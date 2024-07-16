@@ -1,8 +1,8 @@
 use std::hash::{Hasher, Hash};
 
 
-use k8s_openapi::{api::apps::v1::{Deployment, ReplicaSet, StatefulSet}, Resource};
-use kube::{client, Client, ResourceExt};
+use k8s_openapi::{api::{apps::v1::{Deployment, ReplicaSet, StatefulSet}, autoscaling::v2::PodsMetricStatus, core::v1::ObjectReference}, Resource};
+use kube::{api::PostParams, client, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use serde::Serialize;
 
@@ -11,6 +11,7 @@ use minijinja::{context, Environment};
 
 use secrecy::ExposeSecret;
 use tokio::{sync::mpsc::Sender, time};
+use uuid::Uuid;
 
 use std::{collections::HashSet, fmt::Debug};
 
@@ -81,11 +82,14 @@ pub trait Meta {
     fn name(&self) -> String;
     fn namespace(&self) -> Option<String>;    
     fn kind(&self) -> String;
+    fn uid(&self) -> Option<String>;
     
 }
 
 pub trait Scaler {
-    async fn scale(&self, client: Client) -> anyhow::Result<()>;
+    fn scale(&self, client: Client) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+
+    fn generate_scale_event(&self) -> anyhow::Result<Event>;
 }
 
 
@@ -120,11 +124,33 @@ impl Meta for ScaleKind {
         }
     }
 
+    fn uid(&self) -> Option<String> {
+        match self {
+            ScaleKind::Deployment(d) => d.uid(),
+            ScaleKind::ReplicaSet(d) => d.uid(),
+            ScaleKind::StatefulSet(d) => d.uid(),
+            ScaleKind::Notebook(d) => d.uid(),
+            ScaleKind::InferenceService(d) => d.uid(),
+        }
+        
+        }
 }
 
 
 impl Scaler for ScaleKind {
     async fn scale(&self, client: Client) -> anyhow::Result<()> {
+
+        let event = self.generate_scale_event()?;
+        let events_api: Api<Event> = Api::all(client.clone());
+
+        match events_api.create(&PostParams::default(), &event).await {
+            Ok(_) => {},
+            Err(e) => {
+                tracing::error!("Failed to push Event for scale down!: {e}");
+            }            
+        };
+
+
         match self {
             ScaleKind::Deployment(d) => {
                 let api: Api<Deployment> = Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
@@ -148,6 +174,31 @@ impl Scaler for ScaleKind {
             },
         }
 
+    }
+
+
+    fn generate_scale_event(&self) -> anyhow::Result<Event> {
+        let uuid = Uuid::now_v7();
+        let event: Event = Event { 
+            action: Some("scale_down".to_string()),
+            reason: Some(format!("Pod: {:?}:{} was not using GPU", self.namespace(), self.name())),
+            metadata: ObjectMeta {
+                namespace: self.namespace(),
+                name: Some(format!("gpu-scaler-{}", uuid.as_simple().to_string())),
+                ..Default::default()
+            },
+            involved_object: ObjectReference {
+                api_version: None,
+                field_path: None,
+                kind: Some(self.kind()),
+                name: Some(self.name()),
+                namespace: self.namespace(),
+                resource_version: None,
+                uid: self.uid(),
+            },
+            ..Default::default()
+        };
+        Ok(event)
     }
 
 }
