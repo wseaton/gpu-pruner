@@ -65,8 +65,8 @@ struct Cli {
     prometheus_url: String,
 
     /// Prometheus token to use for authentication,
-    /// if not provided, will try to authenticate using the service account token
-    /// for the currently logged in OpenShift user.
+    /// if not provided, will try to authenticate using the service token
+    /// of the currently logged in K8s user.
     #[clap(long)]
     prometheus_token: Option<String>,
 }
@@ -228,7 +228,7 @@ async fn run_query_and_scale(
 
         let status = pod.status.unwrap().phase.unwrap().to_string();
         tracing::info!(
-            "Pod: {pod_name} | Namespace: {namespace} | Container: {container} | Value: {value} | NodeType: {node_type} | Age: {age} | GPU Model: {gpu_model} | Status: {status}",
+            "Pod {pod_name} | Namespace: {namespace} | Container: {container} | Value: {value} | NodeType: {node_type} | Age: {age} | GPU Model: {gpu_model} | Status: {status}",
             pod_name = pod_name,
             namespace = namespace,
             container = container,

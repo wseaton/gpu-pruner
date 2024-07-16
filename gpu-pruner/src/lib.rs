@@ -5,8 +5,7 @@ use k8s_openapi::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         autoscaling::v2::PodsMetricStatus,
         core::v1::ObjectReference,
-    },
-    Resource,
+    }, apimachinery::pkg::apis::meta::v1::MicroTime, Resource
 };
 use kube::{api::PostParams, client, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
@@ -144,7 +143,9 @@ impl Scaler for ScaleKind {
             let events_api: Api<Event> = Api::namespaced(client.clone(), &ns);
 
             match events_api.create(&PostParams::default(), &event).await {
-                Ok(_) => {}
+                Ok(_) => {
+                    tracing::debug!("Emitted scale event for: {:?}", event.involved_object);
+                }
                 Err(e) => {
                     tracing::error!("Failed to push Event for scale down!: {e}");
                 }
@@ -190,17 +191,23 @@ impl Scaler for ScaleKind {
     }
 
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
-        let uuid = Uuid::now_v7();
+        let uuid = Uuid::new_v4();
+        let now: Time = Time(offset::Utc::now());
         let event: Event = Event {
+            last_timestamp: Some(now.clone()),
+            first_timestamp: Some(now.clone()),
+            reporting_component: Some("gpu-pruner".to_string()),
+            event_time: Some(MicroTime(offset::Utc::now())),
             action: Some("scale_down".to_string()),
             reason: Some(format!(
-                "Pod {:?}:{} was not using GPU",
-                self.namespace(),
+                "Pod {}::{} was not using GPU",
+                self.namespace().unwrap_or("".to_string()),
                 self.name()
             )),
+            type_: Some("Normal".to_string()),
             metadata: ObjectMeta {
                 namespace: self.namespace(),
-                name: Some(format!("gpu-scaler-{}", uuid.as_simple().to_string())),
+                name: Some(format!("gpuscaler-{}", uuid.as_simple().to_string())),
                 ..Default::default()
             },
             involved_object: ObjectReference {
@@ -281,4 +288,38 @@ async fn scale_inference_service_to_zero(
         .await?;
 
     Ok(res)
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use kube::api::ObjectMeta;
+    use resources::notebook::NotebookSpec;
+
+    use crate::Scaler;
+
+    use super::{Notebook, Event, ScaleKind};
+
+    use serde_yaml;
+
+    #[test]
+    fn make_event() {
+
+        let sk: ScaleKind = ScaleKind::Notebook(Notebook { metadata: ObjectMeta {
+            name: Some("gpu-test".to_string()),
+            namespace: Some("rhoai-internal--weaton-nb".to_string()),
+            ..Default::default()
+        }, spec: NotebookSpec {
+            template: None
+        }, status: None });
+
+        let event = sk.generate_scale_event().expect("bar");
+
+        println!("{}", serde_yaml::to_string(&event).expect("foo"));
+
+        assert_eq!(event.involved_object.name, Some("gpu-test".to_string()))
+
+    }
+
 }

@@ -28,7 +28,7 @@ Options:
           [default: 30]
 
   -d, --daemon-mode
-          whether or not to run in daemon mode
+          daemon mode to run in, if true, will run indefinitely
 
   -c, --check-interval <CHECK_INTERVAL>
           interval in seconds to check for idle pods, only used in daemon mode
@@ -37,6 +37,11 @@ Options:
 
   -n, --namespace <NAMESPACE>
           namespace to use for search filter, is passed down to prometheus as a pattern match
+
+  -g, --grace-period <GRACE_PERIOD>
+          Seconds of grace period to allow for metrics to be published
+
+          [default: 300]
 
   -m, --model-name <MODEL_NAME>
           model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
@@ -51,7 +56,7 @@ Options:
           Prometheus URL to query for GPU metrics eg. "http://prometheus-k8s.openshift-monitoring.svc:9090"
 
       --prometheus-token <PROMETHEUS_TOKEN>
-          Prometheus token to use for authentication, if not provided, will try to authenticate using the service account token for the currently logged in OpenShift user
+          Prometheus token to use for authentication, if not provided, will try to authenticate using the service token of the currently logged in K8s user
 
   -h, --help
           Print help (see a summary with '-h')
