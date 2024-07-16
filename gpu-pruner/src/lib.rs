@@ -139,15 +139,18 @@ impl Meta for ScaleKind {
 
 impl Scaler for ScaleKind {
     async fn scale(&self, client: Client) -> anyhow::Result<()> {
-        let event = self.generate_scale_event()?;
-        let events_api: Api<Event> = Api::all(client.clone());
+        if let Some(ns) = self.namespace() {
+            let event = self.generate_scale_event()?;
+            let events_api: Api<Event> = Api::namespaced(client.clone(), &ns);
 
-        match events_api.create(&PostParams::default(), &event).await {
-            Ok(_) => {}
-            Err(e) => {
-                tracing::error!("Failed to push Event for scale down!: {e}");
-            }
+            match events_api.create(&PostParams::default(), &event).await {
+                Ok(_) => {}
+                Err(e) => {
+                    tracing::error!("Failed to push Event for scale down!: {e}");
+                }
+            };
         };
+
 
         match self {
             ScaleKind::Deployment(d) => {
