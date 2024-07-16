@@ -2,6 +2,7 @@ use minijinja::{context, Environment};
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
+use secrecy::ExposeSecret;
 use tokio::{sync::mpsc::Sender, time};
 
 use std::{collections::HashSet, fmt::Debug};
@@ -19,7 +20,7 @@ use k8s_openapi::{
 };
 use kube::{
     api::{ObjectMeta, Patch, PatchParams},
-    Api, Client as KubeClient, Resource, 
+    Api, Client as KubeClient, Config, Resource,
 };
 
 use clap::{Parser, ValueEnum};
@@ -93,29 +94,19 @@ enum ScaleKind {
     Notebook,
 }
 
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let mut args = Cli::parse();
-
-
-    if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
-        tracing::info!("Getting token from PROMETHEUS_TOKEN");
-        args.prometheus_token = Some(token);
-    };
-
+    let args = Cli::parse();
 
     let env: Environment = Environment::new();
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
-
-    let client = get_prom_client(&args)?;
     tracing::info!("Running w/ Query: {query}");
-
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<ScaleResource>(100);
 
+    // TODO: figure out a way to clean this up and unify the branches better
     let query_task = if args.daemon_mode {
         let args = args.clone();
         tokio::spawn(async move {
@@ -123,7 +114,16 @@ async fn main() -> anyhow::Result<()> {
                 time::interval(tokio::time::Duration::from_secs(args.check_interval));
             loop {
                 interval.tick().await;
-                run_query_and_scale(client.clone(), query.clone(), &args, tx.clone())
+                let token = match get_prometheus_token().await {
+                    Ok(token) => token,
+                    Err(e) => {
+                        tracing::error!("failed to get prom token: {e}");
+                        panic!("failed to get prometheus  token!");
+                    }
+                };
+                let client = get_prom_client(&args.prometheus_url, token)
+                    .expect("failed to build prometheus client");
+                run_query_and_scale(client, query.clone(), &args, tx.clone())
                     .await
                     .expect("failed!");
             }
@@ -131,6 +131,15 @@ async fn main() -> anyhow::Result<()> {
     } else {
         let args = args.clone();
         tokio::spawn(async move {
+            let token = match get_prometheus_token().await {
+                Ok(token) => token,
+                Err(e) => {
+                    tracing::error!("failed to get prom token: {e}");
+                    panic!("failed to get prometheus  token!");
+                }
+            };
+            let client = get_prom_client(&args.prometheus_url, token)
+                .expect("failed to build prometheus client");
             run_query_and_scale(client, query, &args, tx.clone())
                 .await
                 .expect("failed!");
@@ -140,11 +149,13 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let scale_down_task = tokio::spawn(async move {
-        let kube_client = KubeClient::try_default().await.expect("failed to get kube client");
+        let kube_client = KubeClient::try_default()
+            .await
+            .expect("failed to get kube client");
 
         while let Some(sr) = rx.recv().await {
             match scale_resources(args.clone(), sr, kube_client.clone()).await {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(e) => {
                     tracing::error!("Failed to scale resource! {e}");
                 }
@@ -167,47 +178,39 @@ async fn scale_resources(
 ) -> anyhow::Result<()> {
     match args.run_mode {
         Mode::ScaleDown => {
-                tracing::info!("Scale down: {:?}", sr);
-                match sr.kind {
-                    ScaleKind::InferenceService => {
-                        let _ = scale_inference_service_to_zero(
-                            kube_client.clone(),
-                            &sr.name,
-                            &sr.namespace,
-                        )
-                        .await?;
-                    }
-                    ScaleKind::Notebook => {
-                        let _ = scale_notebook_to_zero(kube_client.clone(), &sr.name, &sr.namespace).await?;
-                    },
-                    ScaleKind::Deployment => {
-                        let deployments: Api<Deployment> = Api::namespaced(kube_client.clone(), &sr.namespace);
-                        scale_to_zero(
-                            deployments,
-                            &sr.name,
-                        )
-                        .await?;
-                    },
-                    ScaleKind::ReplicaSet => {
-                        let replica_sets: Api<ReplicaSet> = Api::namespaced(kube_client.clone(), &sr.namespace);
-                        scale_to_zero(
-                            replica_sets,
-                            &sr.name,
-                        )
-                        .await?;
-                    },
-                    ScaleKind::StatefulSet => {
-                        let stateful_sets: Api<StatefulSet> = Api::namespaced(kube_client.clone(), &sr.namespace);
-                        scale_to_zero(
-                            stateful_sets,
-                            &sr.name,
-                        )
-                        .await?;
-                    },
+            tracing::info!("Scale down: {:?}", sr);
+            match sr.kind {
+                ScaleKind::InferenceService => {
+                    let _ = scale_inference_service_to_zero(
+                        kube_client.clone(),
+                        &sr.name,
+                        &sr.namespace,
+                    )
+                    .await?;
                 }
+                ScaleKind::Notebook => {
+                    let _ = scale_notebook_to_zero(kube_client.clone(), &sr.name, &sr.namespace)
+                        .await?;
+                }
+                ScaleKind::Deployment => {
+                    let deployments: Api<Deployment> =
+                        Api::namespaced(kube_client.clone(), &sr.namespace);
+                    scale_to_zero(deployments, &sr.name).await?;
+                }
+                ScaleKind::ReplicaSet => {
+                    let replica_sets: Api<ReplicaSet> =
+                        Api::namespaced(kube_client.clone(), &sr.namespace);
+                    scale_to_zero(replica_sets, &sr.name).await?;
+                }
+                ScaleKind::StatefulSet => {
+                    let stateful_sets: Api<StatefulSet> =
+                        Api::namespaced(kube_client.clone(), &sr.namespace);
+                    scale_to_zero(stateful_sets, &sr.name).await?;
+                }
+            }
         }
         Mode::DryRun => {
-                tracing::info!("Would scale down: {:?}", sr);
+            tracing::info!("Would scale down: {:?}", sr);
         }
     }
     Ok(())
@@ -258,7 +261,6 @@ async fn run_query_and_scale(
             }
         };
 
-
         if let Some(status) = pod.status.as_ref() {
             if let Some(phase) = status.phase.as_ref() {
                 if phase == "Pending" {
@@ -306,21 +308,36 @@ async fn run_query_and_scale(
     Ok(())
 }
 
-fn get_prom_client(cli: &Cli) -> anyhow::Result<Client> {
-    // get a token by running oc whomai -t via shell
-    tracing::info!("Getting token via `oc whoami -t`");
-    let token = match cli.prometheus_token.as_ref() {
-        Some(token) => token.to_string(),
-        None => {
-            tracing::info!("No token provided, trying to get token from oc");
-            let token = std::process::Command::new("oc")
-                .args(["whoami", "-t"])
-                .output()?
-                .stdout;
-            std::str::from_utf8(&token)?.trim().to_string()
-        }
-    };
+/// Get the token for the prometheus client
+async fn get_prometheus_token() -> anyhow::Result<String> {
+    if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
+        tracing::info!("Getting token from PROMETHEUS_TOKEN");
+        return Ok(token);
+    }
 
+    tracing::info!("Inferring prometheus token from K8s config");
+    let config: Config = Config::infer().await?;
+    tracing::trace!("{config:#?}");
+    // in cluster config usually causes a token file
+    if let Some(token_file) = config.auth_info.token_file {
+        let token = std::fs::read_to_string(token_file)?;
+        return Ok(token);
+    }
+    if let Some(token) = config.auth_info.token {
+        tracing::info!("Found K8s token");
+        let token = token.expose_secret();
+        return Ok(token.to_string());
+    }
+
+    tracing::info!("No token provided, trying to get token from oc as last resort");
+    let token = std::process::Command::new("oc")
+        .args(["whoami", "-t"])
+        .output()?
+        .stdout;
+    return Ok(std::str::from_utf8(&token)?.trim().to_string());
+}
+
+fn get_prom_client(url: &str, token: String) -> anyhow::Result<Client> {
     let mut r_client = reqwest::ClientBuilder::new();
     // add auth token as default header
     let mut header_map = HeaderMap::new();
@@ -328,7 +345,7 @@ fn get_prom_client(cli: &Cli) -> anyhow::Result<Client> {
 
     r_client = r_client.default_headers(header_map);
 
-    let res = Client::from(r_client.build()?, &cli.prometheus_url)?;
+    let res = Client::from(r_client.build()?, url)?;
 
     Ok(res)
 }
@@ -354,10 +371,10 @@ async fn find_root_object(
         if let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice") {
             let namespace = pod_meta.namespace.clone().unwrap_or_default();
             return Ok(ScaleResource {
-                    kind: ScaleKind::InferenceService,
-                    name: ks_label.clone(),
-                    namespace: namespace.clone(),
-                });
+                kind: ScaleKind::InferenceService,
+                name: ks_label.clone(),
+                namespace: namespace.clone(),
+            });
         }
     }
 
@@ -374,10 +391,10 @@ async fn find_root_object(
                                 if rs_or.kind == "Deployment" {
                                     tracing::info!("Found Deployment owning ReplicaSet!");
                                     return Ok(ScaleResource {
-                                            kind: ScaleKind::Deployment,
-                                            name: rs_or.name.clone(),
-                                            namespace: namespace.clone(),
-                                        });
+                                        kind: ScaleKind::Deployment,
+                                        name: rs_or.name.clone(),
+                                        namespace: namespace.clone(),
+                                    });
                                 }
                             }
                         }
@@ -398,28 +415,28 @@ async fn find_root_object(
                                 if ss_or.kind == "Notebook" {
                                     tracing::info!("Found Notebook owning ReplicaSet!");
                                     return Ok(ScaleResource {
-                                            kind: ScaleKind::Notebook,
-                                            name: ss_or.name.clone(),
-                                            namespace: namespace.clone(),
-                                        });
+                                        kind: ScaleKind::Notebook,
+                                        name: ss_or.name.clone(),
+                                        namespace: namespace.clone(),
+                                    });
                                 }
                             }
                         }
                         // fallthrough, statefulset with no owners
                         return Ok(ScaleResource {
-                                kind: ScaleKind::StatefulSet,
-                                name: or.name.clone(),
-                                namespace: namespace.clone(),
-                            });
+                            kind: ScaleKind::StatefulSet,
+                            name: or.name.clone(),
+                            namespace: namespace.clone(),
+                        });
                     }
                 }
                 "Deployment" => {
                     tracing::info!("Found Deployment!");
                     return Ok(ScaleResource {
-                            kind: ScaleKind::Deployment,
-                            name: or.name.clone(),
-                            namespace: namespace.clone(),
-                        });
+                        kind: ScaleKind::Deployment,
+                        name: or.name.clone(),
+                        namespace: namespace.clone(),
+                    });
                 }
                 _ => {
                     tracing::warn!("Found no ORs!")

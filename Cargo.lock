@@ -643,6 +643,7 @@ dependencies = [
  "prometheus-http-query",
  "reqwest",
  "resources",
+ "secrecy",
  "serde",
  "serde_json",
  "tokio",

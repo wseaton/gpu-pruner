@@ -4,16 +4,21 @@
 
 #[allow(unused_imports)]
 mod prelude {
-    pub use kube::CustomResource;
-    pub use serde::{Serialize, Deserialize};
-    pub use std::collections::BTreeMap;
-    pub use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
     pub use k8s_openapi::apimachinery::pkg::apis::meta::v1::Condition;
+    pub use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
+    pub use kube::CustomResource;
+    pub use serde::{Deserialize, Serialize};
+    pub use std::collections::BTreeMap;
 }
 use self::prelude::*;
 
 #[derive(CustomResource, Serialize, Deserialize, Clone, Debug)]
-#[kube(group = "serving.kserve.io", version = "v1beta1", kind = "InferenceService", plural = "inferenceservices")]
+#[kube(
+    group = "serving.kserve.io",
+    version = "v1beta1",
+    kind = "InferenceService",
+    plural = "inferenceservices"
+)]
 #[kube(namespaced)]
 #[kube(status = "InferenceServiceStatus")]
 #[kube(schema = "disabled")]
@@ -27,7 +32,11 @@ pub struct InferenceServiceSpec {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainer {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "activeDeadlineSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "activeDeadlineSeconds"
+    )]
     pub active_deadline_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub affinity: Option<InferenceServiceExplainerAffinity>,
@@ -37,13 +46,25 @@ pub struct InferenceServiceExplainer {
     pub annotations: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub art: Option<InferenceServiceExplainerArt>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "automountServiceAccountToken")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "automountServiceAccountToken"
+    )]
     pub automount_service_account_token: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub batcher: Option<InferenceServiceExplainerBatcher>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "canaryTrafficPercent")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "canaryTrafficPercent"
+    )]
     pub canary_traffic_percent: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerConcurrency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerConcurrency"
+    )]
     pub container_concurrency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub containers: Option<Vec<InferenceServiceExplainerContainers>>,
@@ -51,13 +72,25 @@ pub struct InferenceServiceExplainer {
     pub dns_config: Option<InferenceServiceExplainerDnsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "dnsPolicy")]
     pub dns_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "enableServiceLinks")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "enableServiceLinks"
+    )]
     pub enable_service_links: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostAliases")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostAliases"
+    )]
     pub host_aliases: Option<Vec<InferenceServiceExplainerHostAliases>>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostIPC")]
     pub host_ipc: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostNetwork")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostNetwork"
+    )]
     pub host_network: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostPID")]
     pub host_pid: Option<bool>,
@@ -65,79 +98,180 @@ pub struct InferenceServiceExplainer {
     pub host_users: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullSecrets")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullSecrets"
+    )]
     pub image_pull_secrets: Option<Vec<InferenceServiceExplainerImagePullSecrets>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initContainers")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initContainers"
+    )]
     pub init_containers: Option<Vec<InferenceServiceExplainerInitContainers>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub logger: Option<InferenceServiceExplainerLogger>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxReplicas"
+    )]
     pub max_replicas: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minReplicas"
+    )]
     pub min_replicas: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeName")]
     pub node_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeSelector"
+    )]
     pub node_selector: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub os: Option<InferenceServiceExplainerOs>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overhead: Option<BTreeMap<String, IntOrString>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preemptionPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preemptionPolicy"
+    )]
     pub preemption_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub priority: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "priorityClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "priorityClassName"
+    )]
     pub priority_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessGates"
+    )]
     pub readiness_gates: Option<Vec<InferenceServiceExplainerReadinessGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaims")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaims"
+    )]
     pub resource_claims: Option<Vec<InferenceServiceExplainerResourceClaims>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeClassName"
+    )]
     pub runtime_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleMetric")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleMetric"
+    )]
     pub scale_metric: Option<InferenceServiceExplainerScaleMetric>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleTarget")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleTarget"
+    )]
     pub scale_target: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulerName"
+    )]
     pub scheduler_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulingGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulingGates"
+    )]
     pub scheduling_gates: Option<Vec<InferenceServiceExplainerSchedulingGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceExplainerSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccount")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccount"
+    )]
     pub service_account: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountName"
+    )]
     pub service_account_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "setHostnameAsFQDN")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "setHostnameAsFQDN"
+    )]
     pub set_hostname_as_fqdn: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "shareProcessNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "shareProcessNamespace"
+    )]
     pub share_process_namespace: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subdomain: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tolerations: Option<Vec<InferenceServiceExplainerTolerations>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "topologySpreadConstraints")]
-    pub topology_spread_constraints: Option<Vec<InferenceServiceExplainerTopologySpreadConstraints>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "topologySpreadConstraints"
+    )]
+    pub topology_spread_constraints:
+        Option<Vec<InferenceServiceExplainerTopologySpreadConstraints>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volumes: Option<Vec<InferenceServiceExplainerVolumes>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinity"
+    )]
     pub node_affinity: Option<InferenceServiceExplainerAffinityNodeAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAffinity"
+    )]
     pub pod_affinity: Option<InferenceServiceExplainerAffinityPodAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAntiAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAntiAffinity"
+    )]
     pub pod_anti_affinity: Option<InferenceServiceExplainerAffinityPodAntiAffinity>,
 }
 
@@ -164,7 +298,8 @@ pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions {
+pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -172,7 +307,8 @@ pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields {
+pub struct InferenceServiceExplainerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -194,7 +330,8 @@ pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions {
+pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -202,7 +339,8 @@ pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields {
+pub struct InferenceServiceExplainerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -245,7 +383,8 @@ pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -261,7 +400,8 @@ pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -289,7 +429,8 @@ pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -305,7 +446,8 @@ pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -348,7 +490,8 @@ pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedu
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -364,7 +507,8 @@ pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedu
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -392,7 +536,8 @@ pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -408,7 +553,8 @@ pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceExplainerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -429,29 +575,61 @@ pub struct InferenceServiceExplainerAlibi {
     pub env_from: Option<Vec<InferenceServiceExplainerAlibiEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceExplainerAlibiLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceExplainerAlibiLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceExplainerAlibiPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceExplainerAlibiReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceExplainerAlibiResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceExplainerAlibiResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceExplainerAlibiSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceExplainerAlibiStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -459,21 +637,45 @@ pub struct InferenceServiceExplainerAlibi {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServiceExplainerAlibiStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "type")]
     pub r#type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceExplainerAlibiVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceExplainerAlibiVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -488,13 +690,25 @@ pub struct InferenceServiceExplainerAlibiEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServiceExplainerAlibiEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceExplainerAlibiEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServiceExplainerAlibiEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceExplainerAlibiEnvValueFromSecretKeyRef>,
 }
 
@@ -509,7 +723,11 @@ pub struct InferenceServiceExplainerAlibiEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -517,7 +735,11 @@ pub struct InferenceServiceExplainerAlibiEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -535,7 +757,11 @@ pub struct InferenceServiceExplainerAlibiEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceExplainerAlibiEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -587,8 +813,13 @@ pub struct InferenceServiceExplainerAlibiLifecyclePostStartExec {
 pub struct InferenceServiceExplainerAlibiLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerAlibiLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerAlibiLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -629,7 +860,11 @@ pub struct InferenceServiceExplainerAlibiLifecyclePreStopExec {
 pub struct InferenceServiceExplainerAlibiLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerAlibiLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -655,23 +890,47 @@ pub struct InferenceServiceExplainerAlibiLifecyclePreStopTcpSocket {
 pub struct InferenceServiceExplainerAlibiLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerAlibiLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerAlibiLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerAlibiLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerAlibiLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -692,7 +951,11 @@ pub struct InferenceServiceExplainerAlibiLivenessProbeGrpc {
 pub struct InferenceServiceExplainerAlibiLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerAlibiLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -734,23 +997,47 @@ pub struct InferenceServiceExplainerAlibiPorts {
 pub struct InferenceServiceExplainerAlibiReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerAlibiReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerAlibiReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerAlibiReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerAlibiReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -771,7 +1058,11 @@ pub struct InferenceServiceExplainerAlibiReadinessProbeGrpc {
 pub struct InferenceServiceExplainerAlibiReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerAlibiReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -820,7 +1111,11 @@ pub struct InferenceServiceExplainerAlibiResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceExplainerAlibiSecurityContextCapabilities>,
@@ -828,19 +1123,43 @@ pub struct InferenceServiceExplainerAlibiSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServiceExplainerAlibiSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceExplainerAlibiSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceExplainerAlibiSecurityContextWindowsOptions>,
 }
 
@@ -866,7 +1185,11 @@ pub struct InferenceServiceExplainerAlibiSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -874,13 +1197,29 @@ pub struct InferenceServiceExplainerAlibiSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerAlibiSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -888,23 +1227,47 @@ pub struct InferenceServiceExplainerAlibiSecurityContextWindowsOptions {
 pub struct InferenceServiceExplainerAlibiStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerAlibiStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerAlibiStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerAlibiStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerAlibiStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -925,7 +1288,11 @@ pub struct InferenceServiceExplainerAlibiStartupProbeGrpc {
 pub struct InferenceServiceExplainerAlibiStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerAlibiStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -955,7 +1322,11 @@ pub struct InferenceServiceExplainerAlibiStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -970,14 +1341,22 @@ pub struct InferenceServiceExplainerAlibiVolumeDevices {
 pub struct InferenceServiceExplainerAlibiVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -995,29 +1374,61 @@ pub struct InferenceServiceExplainerArt {
     pub env_from: Option<Vec<InferenceServiceExplainerArtEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceExplainerArtLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceExplainerArtLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceExplainerArtPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceExplainerArtReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceExplainerArtResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceExplainerArtResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceExplainerArtSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceExplainerArtStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -1025,21 +1436,45 @@ pub struct InferenceServiceExplainerArt {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServiceExplainerArtStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "type")]
     pub r#type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceExplainerArtVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceExplainerArtVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -1054,13 +1489,25 @@ pub struct InferenceServiceExplainerArtEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServiceExplainerArtEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceExplainerArtEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServiceExplainerArtEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceExplainerArtEnvValueFromSecretKeyRef>,
 }
 
@@ -1075,7 +1522,11 @@ pub struct InferenceServiceExplainerArtEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -1083,7 +1534,11 @@ pub struct InferenceServiceExplainerArtEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -1101,7 +1556,11 @@ pub struct InferenceServiceExplainerArtEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceExplainerArtEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -1153,7 +1612,11 @@ pub struct InferenceServiceExplainerArtLifecyclePostStartExec {
 pub struct InferenceServiceExplainerArtLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerArtLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1195,7 +1658,11 @@ pub struct InferenceServiceExplainerArtLifecyclePreStopExec {
 pub struct InferenceServiceExplainerArtLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerArtLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1221,23 +1688,47 @@ pub struct InferenceServiceExplainerArtLifecyclePreStopTcpSocket {
 pub struct InferenceServiceExplainerArtLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerArtLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerArtLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerArtLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerArtLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1258,7 +1749,11 @@ pub struct InferenceServiceExplainerArtLivenessProbeGrpc {
 pub struct InferenceServiceExplainerArtLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerArtLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1300,23 +1795,47 @@ pub struct InferenceServiceExplainerArtPorts {
 pub struct InferenceServiceExplainerArtReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerArtReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerArtReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerArtReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerArtReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1337,7 +1856,11 @@ pub struct InferenceServiceExplainerArtReadinessProbeGrpc {
 pub struct InferenceServiceExplainerArtReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerArtReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1386,7 +1909,11 @@ pub struct InferenceServiceExplainerArtResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceExplainerArtSecurityContextCapabilities>,
@@ -1394,19 +1921,43 @@ pub struct InferenceServiceExplainerArtSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServiceExplainerArtSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceExplainerArtSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceExplainerArtSecurityContextWindowsOptions>,
 }
 
@@ -1432,7 +1983,11 @@ pub struct InferenceServiceExplainerArtSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -1440,13 +1995,29 @@ pub struct InferenceServiceExplainerArtSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerArtSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -1454,23 +2025,47 @@ pub struct InferenceServiceExplainerArtSecurityContextWindowsOptions {
 pub struct InferenceServiceExplainerArtStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerArtStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerArtStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerArtStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerArtStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1491,7 +2086,11 @@ pub struct InferenceServiceExplainerArtStartupProbeGrpc {
 pub struct InferenceServiceExplainerArtStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServiceExplainerArtStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1521,7 +2120,11 @@ pub struct InferenceServiceExplainerArtStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -1536,22 +2139,38 @@ pub struct InferenceServiceExplainerArtVolumeDevices {
 pub struct InferenceServiceExplainerArtVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerBatcher {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxBatchSize")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxBatchSize"
+    )]
     pub max_batch_size: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxLatency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxLatency"
+    )]
     pub max_latency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
@@ -1569,42 +2188,90 @@ pub struct InferenceServiceExplainerContainers {
     pub env_from: Option<Vec<InferenceServiceExplainerContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceExplainerContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceExplainerContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceExplainerContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceExplainerContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceExplainerContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceExplainerContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceExplainerContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceExplainerContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceExplainerContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceExplainerContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -1619,13 +2286,25 @@ pub struct InferenceServiceExplainerContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServiceExplainerContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceExplainerContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServiceExplainerContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceExplainerContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -1640,7 +2319,11 @@ pub struct InferenceServiceExplainerContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -1648,7 +2331,11 @@ pub struct InferenceServiceExplainerContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -1666,7 +2353,11 @@ pub struct InferenceServiceExplainerContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceExplainerContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -1718,8 +2409,13 @@ pub struct InferenceServiceExplainerContainersLifecyclePostStartExec {
 pub struct InferenceServiceExplainerContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1760,8 +2456,13 @@ pub struct InferenceServiceExplainerContainersLifecyclePreStopExec {
 pub struct InferenceServiceExplainerContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1786,23 +2487,47 @@ pub struct InferenceServiceExplainerContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServiceExplainerContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1823,8 +2548,13 @@ pub struct InferenceServiceExplainerContainersLivenessProbeGrpc {
 pub struct InferenceServiceExplainerContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1864,23 +2594,47 @@ pub struct InferenceServiceExplainerContainersPorts {
 pub struct InferenceServiceExplainerContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1901,8 +2655,13 @@ pub struct InferenceServiceExplainerContainersReadinessProbeGrpc {
 pub struct InferenceServiceExplainerContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1949,7 +2708,11 @@ pub struct InferenceServiceExplainerContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceExplainerContainersSecurityContextCapabilities>,
@@ -1957,19 +2720,43 @@ pub struct InferenceServiceExplainerContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServiceExplainerContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceExplainerContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceExplainerContainersSecurityContextWindowsOptions>,
 }
 
@@ -1995,7 +2782,11 @@ pub struct InferenceServiceExplainerContainersSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -2003,13 +2794,29 @@ pub struct InferenceServiceExplainerContainersSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -2017,23 +2824,47 @@ pub struct InferenceServiceExplainerContainersSecurityContextWindowsOptions {
 pub struct InferenceServiceExplainerContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -2054,8 +2885,13 @@ pub struct InferenceServiceExplainerContainersStartupProbeGrpc {
 pub struct InferenceServiceExplainerContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2087,14 +2923,22 @@ pub struct InferenceServiceExplainerContainersVolumeDevices {
 pub struct InferenceServiceExplainerContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -2142,42 +2986,90 @@ pub struct InferenceServiceExplainerInitContainers {
     pub env_from: Option<Vec<InferenceServiceExplainerInitContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceExplainerInitContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceExplainerInitContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceExplainerInitContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceExplainerInitContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceExplainerInitContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceExplainerInitContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceExplainerInitContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceExplainerInitContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceExplainerInitContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceExplainerInitContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -2192,13 +3084,27 @@ pub struct InferenceServiceExplainerInitContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
-    pub config_map_key_ref: Option<InferenceServiceExplainerInitContainersEnvValueFromConfigMapKeyRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
+    pub config_map_key_ref:
+        Option<InferenceServiceExplainerInitContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceExplainerInitContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceExplainerInitContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceExplainerInitContainersEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceExplainerInitContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -2213,7 +3119,11 @@ pub struct InferenceServiceExplainerInitContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -2221,7 +3131,11 @@ pub struct InferenceServiceExplainerInitContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -2239,7 +3153,11 @@ pub struct InferenceServiceExplainerInitContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceExplainerInitContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -2291,8 +3209,13 @@ pub struct InferenceServiceExplainerInitContainersLifecyclePostStartExec {
 pub struct InferenceServiceExplainerInitContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2333,8 +3256,13 @@ pub struct InferenceServiceExplainerInitContainersLifecyclePreStopExec {
 pub struct InferenceServiceExplainerInitContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2359,23 +3287,47 @@ pub struct InferenceServiceExplainerInitContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServiceExplainerInitContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerInitContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerInitContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerInitContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerInitContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -2396,8 +3348,13 @@ pub struct InferenceServiceExplainerInitContainersLivenessProbeGrpc {
 pub struct InferenceServiceExplainerInitContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerInitContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerInitContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2436,23 +3393,47 @@ pub struct InferenceServiceExplainerInitContainersPorts {
 pub struct InferenceServiceExplainerInitContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerInitContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerInitContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerInitContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerInitContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -2473,8 +3454,13 @@ pub struct InferenceServiceExplainerInitContainersReadinessProbeGrpc {
 pub struct InferenceServiceExplainerInitContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerInitContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerInitContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2520,7 +3506,11 @@ pub struct InferenceServiceExplainerInitContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceExplainerInitContainersSecurityContextCapabilities>,
@@ -2528,20 +3518,47 @@ pub struct InferenceServiceExplainerInitContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
-    pub se_linux_options: Option<InferenceServiceExplainerInitContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
-    pub seccomp_profile: Option<InferenceServiceExplainerInitContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
-    pub windows_options: Option<InferenceServiceExplainerInitContainersSecurityContextWindowsOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
+    pub se_linux_options:
+        Option<InferenceServiceExplainerInitContainersSecurityContextSeLinuxOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
+    pub seccomp_profile:
+        Option<InferenceServiceExplainerInitContainersSecurityContextSeccompProfile>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
+    pub windows_options:
+        Option<InferenceServiceExplainerInitContainersSecurityContextWindowsOptions>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -2566,7 +3583,11 @@ pub struct InferenceServiceExplainerInitContainersSecurityContextSeLinuxOptions 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -2574,13 +3595,29 @@ pub struct InferenceServiceExplainerInitContainersSecurityContextSeccompProfile 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerInitContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -2588,23 +3625,47 @@ pub struct InferenceServiceExplainerInitContainersSecurityContextWindowsOptions 
 pub struct InferenceServiceExplainerInitContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceExplainerInitContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceExplainerInitContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceExplainerInitContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceExplainerInitContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -2625,8 +3686,13 @@ pub struct InferenceServiceExplainerInitContainersStartupProbeGrpc {
 pub struct InferenceServiceExplainerInitContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceExplainerInitContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceExplainerInitContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -2658,14 +3724,22 @@ pub struct InferenceServiceExplainerInitContainersVolumeDevices {
 pub struct InferenceServiceExplainerInitContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -2708,9 +3782,17 @@ pub struct InferenceServiceExplainerResourceClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerResourceClaimsSource {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimName"
+    )]
     pub resource_claim_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimTemplateName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimTemplateName"
+    )]
     pub resource_claim_template_name: Option<String>,
 }
 
@@ -2735,23 +3817,51 @@ pub struct InferenceServiceExplainerSchedulingGates {
 pub struct InferenceServiceExplainerSecurityContext {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroup")]
     pub fs_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroupChangePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "fsGroupChangePolicy"
+    )]
     pub fs_group_change_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServiceExplainerSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceExplainerSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "supplementalGroups")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "supplementalGroups"
+    )]
     pub supplemental_groups: Option<Vec<i64>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sysctls: Option<Vec<InferenceServiceExplainerSecurityContextSysctls>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceExplainerSecurityContextWindowsOptions>,
 }
 
@@ -2769,7 +3879,11 @@ pub struct InferenceServiceExplainerSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -2783,13 +3897,29 @@ pub struct InferenceServiceExplainerSecurityContextSysctls {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -2801,7 +3931,11 @@ pub struct InferenceServiceExplainerTolerations {
     pub key: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub operator: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "tolerationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "tolerationSeconds"
+    )]
     pub toleration_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
@@ -2809,17 +3943,37 @@ pub struct InferenceServiceExplainerTolerations {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerTopologySpreadConstraints {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "labelSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "labelSelector"
+    )]
     pub label_selector: Option<InferenceServiceExplainerTopologySpreadConstraintsLabelSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabelKeys")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabelKeys"
+    )]
     pub match_label_keys: Option<Vec<String>>,
     #[serde(rename = "maxSkew")]
     pub max_skew: i32,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minDomains")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minDomains"
+    )]
     pub min_domains: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinityPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinityPolicy"
+    )]
     pub node_affinity_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeTaintsPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeTaintsPolicy"
+    )]
     pub node_taints_policy: Option<String>,
     #[serde(rename = "topologyKey")]
     pub topology_key: String,
@@ -2829,9 +3983,19 @@ pub struct InferenceServiceExplainerTopologySpreadConstraints {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerTopologySpreadConstraintsLabelSelector {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchExpressions")]
-    pub match_expressions: Option<Vec<InferenceServiceExplainerTopologySpreadConstraintsLabelSelectorMatchExpressions>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabels")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchExpressions"
+    )]
+    pub match_expressions: Option<
+        Vec<InferenceServiceExplainerTopologySpreadConstraintsLabelSelectorMatchExpressions>,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabels"
+    )]
     pub match_labels: Option<BTreeMap<String, String>>,
 }
 
@@ -2845,7 +4009,11 @@ pub struct InferenceServiceExplainerTopologySpreadConstraintsLabelSelectorMatchE
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumes {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "awsElasticBlockStore")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "awsElasticBlockStore"
+    )]
     pub aws_elastic_block_store: Option<InferenceServiceExplainerVolumesAwsElasticBlockStore>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "azureDisk")]
     pub azure_disk: Option<InferenceServiceExplainerVolumesAzureDisk>,
@@ -2859,7 +4027,11 @@ pub struct InferenceServiceExplainerVolumes {
     pub config_map: Option<InferenceServiceExplainerVolumesConfigMap>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub csi: Option<InferenceServiceExplainerVolumesCsi>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServiceExplainerVolumesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "emptyDir")]
     pub empty_dir: Option<InferenceServiceExplainerVolumesEmptyDir>,
@@ -2867,11 +4039,19 @@ pub struct InferenceServiceExplainerVolumes {
     pub ephemeral: Option<InferenceServiceExplainerVolumesEphemeral>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fc: Option<InferenceServiceExplainerVolumesFc>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "flexVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "flexVolume"
+    )]
     pub flex_volume: Option<InferenceServiceExplainerVolumesFlexVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flocker: Option<InferenceServiceExplainerVolumesFlocker>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gcePersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gcePersistentDisk"
+    )]
     pub gce_persistent_disk: Option<InferenceServiceExplainerVolumesGcePersistentDisk>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "gitRepo")]
     pub git_repo: Option<InferenceServiceExplainerVolumesGitRepo>,
@@ -2884,11 +4064,23 @@ pub struct InferenceServiceExplainerVolumes {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nfs: Option<InferenceServiceExplainerVolumesNfs>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "persistentVolumeClaim")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "persistentVolumeClaim"
+    )]
     pub persistent_volume_claim: Option<InferenceServiceExplainerVolumesPersistentVolumeClaim>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "photonPersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "photonPersistentDisk"
+    )]
     pub photon_persistent_disk: Option<InferenceServiceExplainerVolumesPhotonPersistentDisk>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "portworxVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "portworxVolume"
+    )]
     pub portworx_volume: Option<InferenceServiceExplainerVolumesPortworxVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub projected: Option<InferenceServiceExplainerVolumesProjected>,
@@ -2902,7 +4094,11 @@ pub struct InferenceServiceExplainerVolumes {
     pub secret: Option<InferenceServiceExplainerVolumesSecret>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storageos: Option<InferenceServiceExplainerVolumesStorageos>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "vsphereVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "vsphereVolume"
+    )]
     pub vsphere_volume: Option<InferenceServiceExplainerVolumesVsphereVolume>,
 }
 
@@ -2920,7 +4116,11 @@ pub struct InferenceServiceExplainerVolumesAwsElasticBlockStore {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesAzureDisk {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "cachingMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "cachingMode"
+    )]
     pub caching_mode: Option<String>,
     #[serde(rename = "diskName")]
     pub disk_name: String,
@@ -2951,7 +4151,11 @@ pub struct InferenceServiceExplainerVolumesCephfs {
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretFile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretFile"
+    )]
     pub secret_file: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServiceExplainerVolumesCephfsSecretRef>,
@@ -2985,7 +4189,11 @@ pub struct InferenceServiceExplainerVolumesCinderSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesConfigMap {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceExplainerVolumesConfigMapItems>>,
@@ -3008,11 +4216,19 @@ pub struct InferenceServiceExplainerVolumesCsi {
     pub driver: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodePublishSecretRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodePublishSecretRef"
+    )]
     pub node_publish_secret_ref: Option<InferenceServiceExplainerVolumesCsiNodePublishSecretRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeAttributes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeAttributes"
+    )]
     pub volume_attributes: Option<BTreeMap<String, String>>,
 }
 
@@ -3024,7 +4240,11 @@ pub struct InferenceServiceExplainerVolumesCsiNodePublishSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesDownwardApi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceExplainerVolumesDownwardApiItems>>,
@@ -3037,13 +4257,22 @@ pub struct InferenceServiceExplainerVolumesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceExplainerVolumesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceExplainerVolumesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -3051,7 +4280,11 @@ pub struct InferenceServiceExplainerVolumesDownwardApiItemsFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -3068,7 +4301,11 @@ pub struct InferenceServiceExplainerVolumesEmptyDir {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesEphemeral {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeClaimTemplate")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeClaimTemplate"
+    )]
     pub volume_claim_template: Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplate>,
 }
 
@@ -3080,26 +4317,52 @@ pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplate {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateMetadata {
-}
+pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateMetadata {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "accessModes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "accessModes"
+    )]
     pub access_modes: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSource")]
-    pub data_source: Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSourceRef")]
-    pub data_source_ref: Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSource"
+    )]
+    pub data_source:
+        Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSourceRef"
+    )]
+    pub data_source_ref:
+        Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub resources: Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecResources>,
+    pub resources:
+        Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecResources>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selector: Option<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageClassName"
+    )]
     pub storage_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMode"
+    )]
     pub volume_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -3124,7 +4387,9 @@ pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecDataS
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecResources {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub claims: Option<Vec<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>>,
+    pub claims: Option<
+        Vec<InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>,
+    >,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limits: Option<BTreeMap<String, IntOrString>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3145,7 +4410,8 @@ pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecSelec
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions {
+pub struct InferenceServiceExplainerVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3160,7 +4426,11 @@ pub struct InferenceServiceExplainerVolumesFc {
     pub lun: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetWWNs")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetWWNs"
+    )]
     pub target_ww_ns: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wwids: Option<Vec<String>>,
@@ -3187,9 +4457,17 @@ pub struct InferenceServiceExplainerVolumesFlexVolumeSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesFlocker {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetName"
+    )]
     pub dataset_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetUUID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetUUID"
+    )]
     pub dataset_uuid: Option<String>,
 }
 
@@ -3231,16 +4509,32 @@ pub struct InferenceServiceExplainerVolumesHostPath {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesIscsi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthDiscovery")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthDiscovery"
+    )]
     pub chap_auth_discovery: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthSession")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthSession"
+    )]
     pub chap_auth_session: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initiatorName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initiatorName"
+    )]
     pub initiator_name: Option<String>,
     pub iqn: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "iscsiInterface")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "iscsiInterface"
+    )]
     pub iscsi_interface: Option<String>,
     pub lun: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3295,7 +4589,11 @@ pub struct InferenceServiceExplainerVolumesPortworxVolume {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesProjected {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<InferenceServiceExplainerVolumesProjectedSources>>,
@@ -3305,12 +4603,21 @@ pub struct InferenceServiceExplainerVolumesProjected {
 pub struct InferenceServiceExplainerVolumesProjectedSources {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMap")]
     pub config_map: Option<InferenceServiceExplainerVolumesProjectedSourcesConfigMap>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServiceExplainerVolumesProjectedSourcesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub secret: Option<InferenceServiceExplainerVolumesProjectedSourcesSecret>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountToken")]
-    pub service_account_token: Option<InferenceServiceExplainerVolumesProjectedSourcesServiceAccountToken>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountToken"
+    )]
+    pub service_account_token:
+        Option<InferenceServiceExplainerVolumesProjectedSourcesServiceAccountToken>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -3344,13 +4651,22 @@ pub struct InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -3358,7 +4674,11 @@ pub struct InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItemsField
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -3387,7 +4707,11 @@ pub struct InferenceServiceExplainerVolumesProjectedSourcesSecretItems {
 pub struct InferenceServiceExplainerVolumesProjectedSourcesServiceAccountToken {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "expirationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "expirationSeconds"
+    )]
     pub expiration_seconds: Option<i64>,
     pub path: String,
 }
@@ -3435,20 +4759,40 @@ pub struct InferenceServiceExplainerVolumesScaleIo {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
     pub gateway: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protectionDomain")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protectionDomain"
+    )]
     pub protection_domain: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(rename = "secretRef")]
     pub secret_ref: InferenceServiceExplainerVolumesScaleIoSecretRef,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "sslEnabled")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "sslEnabled"
+    )]
     pub ssl_enabled: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageMode"
+    )]
     pub storage_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePool")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePool"
+    )]
     pub storage_pool: Option<String>,
     pub system: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -3460,13 +4804,21 @@ pub struct InferenceServiceExplainerVolumesScaleIoSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceExplainerVolumesSecret {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceExplainerVolumesSecretItems>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretName"
+    )]
     pub secret_name: Option<String>,
 }
 
@@ -3486,9 +4838,17 @@ pub struct InferenceServiceExplainerVolumesStorageos {
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServiceExplainerVolumesStorageosSecretRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeNamespace"
+    )]
     pub volume_namespace: Option<String>,
 }
 
@@ -3502,9 +4862,17 @@ pub struct InferenceServiceExplainerVolumesStorageosSecretRef {
 pub struct InferenceServiceExplainerVolumesVsphereVolume {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyID"
+    )]
     pub storage_policy_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyName"
+    )]
     pub storage_policy_name: Option<String>,
     #[serde(rename = "volumePath")]
     pub volume_path: String,
@@ -3512,19 +4880,35 @@ pub struct InferenceServiceExplainerVolumesVsphereVolume {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictor {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "activeDeadlineSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "activeDeadlineSeconds"
+    )]
     pub active_deadline_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub affinity: Option<InferenceServicePredictorAffinity>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub annotations: Option<BTreeMap<String, String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "automountServiceAccountToken")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "automountServiceAccountToken"
+    )]
     pub automount_service_account_token: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub batcher: Option<InferenceServicePredictorBatcher>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "canaryTrafficPercent")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "canaryTrafficPercent"
+    )]
     pub canary_traffic_percent: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerConcurrency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerConcurrency"
+    )]
     pub container_concurrency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub containers: Option<Vec<InferenceServicePredictorContainers>>,
@@ -3532,13 +4916,25 @@ pub struct InferenceServicePredictor {
     pub dns_config: Option<InferenceServicePredictorDnsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "dnsPolicy")]
     pub dns_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "enableServiceLinks")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "enableServiceLinks"
+    )]
     pub enable_service_links: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostAliases")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostAliases"
+    )]
     pub host_aliases: Option<Vec<InferenceServicePredictorHostAliases>>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostIPC")]
     pub host_ipc: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostNetwork")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostNetwork"
+    )]
     pub host_network: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostPID")]
     pub host_pid: Option<bool>,
@@ -3548,9 +4944,17 @@ pub struct InferenceServicePredictor {
     pub hostname: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub huggingface: Option<InferenceServicePredictorHuggingface>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullSecrets")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullSecrets"
+    )]
     pub image_pull_secrets: Option<Vec<InferenceServicePredictorImagePullSecrets>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initContainers")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initContainers"
+    )]
     pub init_containers: Option<Vec<InferenceServicePredictorInitContainers>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<BTreeMap<String, String>>,
@@ -3558,15 +4962,27 @@ pub struct InferenceServicePredictor {
     pub lightgbm: Option<InferenceServicePredictorLightgbm>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub logger: Option<InferenceServicePredictorLogger>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxReplicas"
+    )]
     pub max_replicas: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minReplicas"
+    )]
     pub min_replicas: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model: Option<InferenceServicePredictorModel>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeName")]
     pub node_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeSelector"
+    )]
     pub node_selector: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub onnx: Option<InferenceServicePredictorOnnx>,
@@ -3578,39 +4994,99 @@ pub struct InferenceServicePredictor {
     pub paddle: Option<InferenceServicePredictorPaddle>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pmml: Option<InferenceServicePredictorPmml>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preemptionPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preemptionPolicy"
+    )]
     pub preemption_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub priority: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "priorityClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "priorityClassName"
+    )]
     pub priority_class_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pytorch: Option<InferenceServicePredictorPytorch>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessGates"
+    )]
     pub readiness_gates: Option<Vec<InferenceServicePredictorReadinessGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaims")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaims"
+    )]
     pub resource_claims: Option<Vec<InferenceServicePredictorResourceClaims>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeClassName"
+    )]
     pub runtime_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleMetric")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleMetric"
+    )]
     pub scale_metric: Option<InferenceServicePredictorScaleMetric>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleTarget")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleTarget"
+    )]
     pub scale_target: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulerName"
+    )]
     pub scheduler_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulingGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulingGates"
+    )]
     pub scheduling_gates: Option<Vec<InferenceServicePredictorSchedulingGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccount")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccount"
+    )]
     pub service_account: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountName"
+    )]
     pub service_account_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "setHostnameAsFQDN")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "setHostnameAsFQDN"
+    )]
     pub set_hostname_as_fqdn: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "shareProcessNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "shareProcessNamespace"
+    )]
     pub share_process_namespace: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sklearn: Option<InferenceServicePredictorSklearn>,
@@ -3618,14 +5094,23 @@ pub struct InferenceServicePredictor {
     pub subdomain: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tensorflow: Option<InferenceServicePredictorTensorflow>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tolerations: Option<Vec<InferenceServicePredictorTolerations>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "topologySpreadConstraints")]
-    pub topology_spread_constraints: Option<Vec<InferenceServicePredictorTopologySpreadConstraints>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "topologySpreadConstraints"
+    )]
+    pub topology_spread_constraints:
+        Option<Vec<InferenceServicePredictorTopologySpreadConstraints>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub triton: Option<InferenceServicePredictorTriton>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3636,11 +5121,23 @@ pub struct InferenceServicePredictor {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinity"
+    )]
     pub node_affinity: Option<InferenceServicePredictorAffinityNodeAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAffinity"
+    )]
     pub pod_affinity: Option<InferenceServicePredictorAffinityPodAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAntiAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAntiAffinity"
+    )]
     pub pod_anti_affinity: Option<InferenceServicePredictorAffinityPodAntiAffinity>,
 }
 
@@ -3667,7 +5164,8 @@ pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions {
+pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3675,7 +5173,8 @@ pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields {
+pub struct InferenceServicePredictorAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3697,7 +5196,8 @@ pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions {
+pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3705,7 +5205,8 @@ pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields {
+pub struct InferenceServicePredictorAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3748,7 +5249,8 @@ pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3764,7 +5266,8 @@ pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringScheduling
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3792,7 +5295,8 @@ pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3808,7 +5312,8 @@ pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3851,7 +5356,8 @@ pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedu
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3867,7 +5373,8 @@ pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedu
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3895,7 +5402,8 @@ pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3911,7 +5419,8 @@ pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -3920,9 +5429,17 @@ pub struct InferenceServicePredictorAffinityPodAntiAffinityRequiredDuringSchedul
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorBatcher {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxBatchSize")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxBatchSize"
+    )]
     pub max_batch_size: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxLatency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxLatency"
+    )]
     pub max_latency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
@@ -3940,42 +5457,90 @@ pub struct InferenceServicePredictorContainers {
     pub env_from: Option<Vec<InferenceServicePredictorContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -3990,13 +5555,25 @@ pub struct InferenceServicePredictorContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -4011,7 +5588,11 @@ pub struct InferenceServicePredictorContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -4019,7 +5600,11 @@ pub struct InferenceServicePredictorContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -4037,7 +5622,11 @@ pub struct InferenceServicePredictorContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -4089,8 +5678,13 @@ pub struct InferenceServicePredictorContainersLifecyclePostStartExec {
 pub struct InferenceServicePredictorContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -4131,8 +5725,13 @@ pub struct InferenceServicePredictorContainersLifecyclePreStopExec {
 pub struct InferenceServicePredictorContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -4157,23 +5756,47 @@ pub struct InferenceServicePredictorContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -4194,8 +5817,13 @@ pub struct InferenceServicePredictorContainersLivenessProbeGrpc {
 pub struct InferenceServicePredictorContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4235,23 +5863,47 @@ pub struct InferenceServicePredictorContainersPorts {
 pub struct InferenceServicePredictorContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -4272,8 +5924,13 @@ pub struct InferenceServicePredictorContainersReadinessProbeGrpc {
 pub struct InferenceServicePredictorContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4320,7 +5977,11 @@ pub struct InferenceServicePredictorContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorContainersSecurityContextCapabilities>,
@@ -4328,19 +5989,43 @@ pub struct InferenceServicePredictorContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorContainersSecurityContextWindowsOptions>,
 }
 
@@ -4366,7 +6051,11 @@ pub struct InferenceServicePredictorContainersSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -4374,13 +6063,29 @@ pub struct InferenceServicePredictorContainersSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -4388,23 +6093,47 @@ pub struct InferenceServicePredictorContainersSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -4425,8 +6154,13 @@ pub struct InferenceServicePredictorContainersStartupProbeGrpc {
 pub struct InferenceServicePredictorContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -4458,14 +6192,22 @@ pub struct InferenceServicePredictorContainersVolumeDevices {
 pub struct InferenceServicePredictorContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -4507,31 +6249,67 @@ pub struct InferenceServicePredictorHuggingface {
     pub env_from: Option<Vec<InferenceServicePredictorHuggingfaceEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorHuggingfaceLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorHuggingfaceLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorHuggingfacePorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorHuggingfaceReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorHuggingfaceResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorHuggingfaceResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorHuggingfaceSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorHuggingfaceStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -4539,19 +6317,43 @@ pub struct InferenceServicePredictorHuggingface {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorHuggingfaceStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorHuggingfaceVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorHuggingfaceVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -4566,13 +6368,26 @@ pub struct InferenceServicePredictorHuggingfaceEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorHuggingfaceEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorHuggingfaceEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServicePredictorHuggingfaceEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServicePredictorHuggingfaceEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorHuggingfaceEnvValueFromSecretKeyRef>,
 }
 
@@ -4587,7 +6402,11 @@ pub struct InferenceServicePredictorHuggingfaceEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -4595,7 +6414,11 @@ pub struct InferenceServicePredictorHuggingfaceEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -4613,7 +6436,11 @@ pub struct InferenceServicePredictorHuggingfaceEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorHuggingfaceEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -4665,8 +6492,13 @@ pub struct InferenceServicePredictorHuggingfaceLifecyclePostStartExec {
 pub struct InferenceServicePredictorHuggingfaceLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorHuggingfaceLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorHuggingfaceLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -4707,8 +6539,13 @@ pub struct InferenceServicePredictorHuggingfaceLifecyclePreStopExec {
 pub struct InferenceServicePredictorHuggingfaceLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorHuggingfaceLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorHuggingfaceLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -4733,23 +6570,47 @@ pub struct InferenceServicePredictorHuggingfaceLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorHuggingfaceLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorHuggingfaceLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorHuggingfaceLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorHuggingfaceLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorHuggingfaceLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -4770,8 +6631,13 @@ pub struct InferenceServicePredictorHuggingfaceLivenessProbeGrpc {
 pub struct InferenceServicePredictorHuggingfaceLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorHuggingfaceLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorHuggingfaceLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4812,23 +6678,47 @@ pub struct InferenceServicePredictorHuggingfacePorts {
 pub struct InferenceServicePredictorHuggingfaceReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorHuggingfaceReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorHuggingfaceReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorHuggingfaceReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorHuggingfaceReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -4849,8 +6739,13 @@ pub struct InferenceServicePredictorHuggingfaceReadinessProbeGrpc {
 pub struct InferenceServicePredictorHuggingfaceReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorHuggingfaceReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorHuggingfaceReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -4898,7 +6793,11 @@ pub struct InferenceServicePredictorHuggingfaceResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorHuggingfaceSecurityContextCapabilities>,
@@ -4906,19 +6805,43 @@ pub struct InferenceServicePredictorHuggingfaceSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorHuggingfaceSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorHuggingfaceSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorHuggingfaceSecurityContextWindowsOptions>,
 }
 
@@ -4944,7 +6867,11 @@ pub struct InferenceServicePredictorHuggingfaceSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -4952,13 +6879,29 @@ pub struct InferenceServicePredictorHuggingfaceSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorHuggingfaceSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -4966,23 +6909,47 @@ pub struct InferenceServicePredictorHuggingfaceSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorHuggingfaceStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorHuggingfaceStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorHuggingfaceStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorHuggingfaceStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorHuggingfaceStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5003,8 +6970,13 @@ pub struct InferenceServicePredictorHuggingfaceStartupProbeGrpc {
 pub struct InferenceServicePredictorHuggingfaceStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorHuggingfaceStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorHuggingfaceStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5033,7 +7005,11 @@ pub struct InferenceServicePredictorHuggingfaceStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -5048,14 +7024,22 @@ pub struct InferenceServicePredictorHuggingfaceVolumeDevices {
 pub struct InferenceServicePredictorHuggingfaceVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -5077,42 +7061,90 @@ pub struct InferenceServicePredictorInitContainers {
     pub env_from: Option<Vec<InferenceServicePredictorInitContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorInitContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorInitContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorInitContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorInitContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorInitContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorInitContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorInitContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorInitContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorInitContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorInitContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -5127,13 +7159,27 @@ pub struct InferenceServicePredictorInitContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
-    pub config_map_key_ref: Option<InferenceServicePredictorInitContainersEnvValueFromConfigMapKeyRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
+    pub config_map_key_ref:
+        Option<InferenceServicePredictorInitContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorInitContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServicePredictorInitContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServicePredictorInitContainersEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorInitContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -5148,7 +7194,11 @@ pub struct InferenceServicePredictorInitContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -5156,7 +7206,11 @@ pub struct InferenceServicePredictorInitContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -5174,7 +7228,11 @@ pub struct InferenceServicePredictorInitContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorInitContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -5226,8 +7284,13 @@ pub struct InferenceServicePredictorInitContainersLifecyclePostStartExec {
 pub struct InferenceServicePredictorInitContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5268,8 +7331,13 @@ pub struct InferenceServicePredictorInitContainersLifecyclePreStopExec {
 pub struct InferenceServicePredictorInitContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5294,23 +7362,47 @@ pub struct InferenceServicePredictorInitContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorInitContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorInitContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorInitContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorInitContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorInitContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5331,8 +7423,13 @@ pub struct InferenceServicePredictorInitContainersLivenessProbeGrpc {
 pub struct InferenceServicePredictorInitContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorInitContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorInitContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5371,23 +7468,47 @@ pub struct InferenceServicePredictorInitContainersPorts {
 pub struct InferenceServicePredictorInitContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorInitContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorInitContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorInitContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorInitContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5408,8 +7529,13 @@ pub struct InferenceServicePredictorInitContainersReadinessProbeGrpc {
 pub struct InferenceServicePredictorInitContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorInitContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorInitContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5455,7 +7581,11 @@ pub struct InferenceServicePredictorInitContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorInitContainersSecurityContextCapabilities>,
@@ -5463,20 +7593,47 @@ pub struct InferenceServicePredictorInitContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
-    pub se_linux_options: Option<InferenceServicePredictorInitContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
-    pub seccomp_profile: Option<InferenceServicePredictorInitContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
-    pub windows_options: Option<InferenceServicePredictorInitContainersSecurityContextWindowsOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
+    pub se_linux_options:
+        Option<InferenceServicePredictorInitContainersSecurityContextSeLinuxOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
+    pub seccomp_profile:
+        Option<InferenceServicePredictorInitContainersSecurityContextSeccompProfile>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
+    pub windows_options:
+        Option<InferenceServicePredictorInitContainersSecurityContextWindowsOptions>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -5501,7 +7658,11 @@ pub struct InferenceServicePredictorInitContainersSecurityContextSeLinuxOptions 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -5509,13 +7670,29 @@ pub struct InferenceServicePredictorInitContainersSecurityContextSeccompProfile 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorInitContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -5523,23 +7700,47 @@ pub struct InferenceServicePredictorInitContainersSecurityContextWindowsOptions 
 pub struct InferenceServicePredictorInitContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorInitContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorInitContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorInitContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorInitContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5560,8 +7761,13 @@ pub struct InferenceServicePredictorInitContainersStartupProbeGrpc {
 pub struct InferenceServicePredictorInitContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorInitContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorInitContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5593,14 +7799,22 @@ pub struct InferenceServicePredictorInitContainersVolumeDevices {
 pub struct InferenceServicePredictorInitContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -5616,31 +7830,67 @@ pub struct InferenceServicePredictorLightgbm {
     pub env_from: Option<Vec<InferenceServicePredictorLightgbmEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorLightgbmLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorLightgbmLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorLightgbmPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorLightgbmReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorLightgbmResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorLightgbmResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorLightgbmSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorLightgbmStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -5648,19 +7898,43 @@ pub struct InferenceServicePredictorLightgbm {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorLightgbmStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorLightgbmVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorLightgbmVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -5675,13 +7949,25 @@ pub struct InferenceServicePredictorLightgbmEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorLightgbmEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorLightgbmEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorLightgbmEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorLightgbmEnvValueFromSecretKeyRef>,
 }
 
@@ -5696,7 +7982,11 @@ pub struct InferenceServicePredictorLightgbmEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -5704,7 +7994,11 @@ pub struct InferenceServicePredictorLightgbmEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -5722,7 +8016,11 @@ pub struct InferenceServicePredictorLightgbmEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorLightgbmEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -5774,8 +8072,13 @@ pub struct InferenceServicePredictorLightgbmLifecyclePostStartExec {
 pub struct InferenceServicePredictorLightgbmLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorLightgbmLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorLightgbmLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5816,8 +8119,13 @@ pub struct InferenceServicePredictorLightgbmLifecyclePreStopExec {
 pub struct InferenceServicePredictorLightgbmLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorLightgbmLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorLightgbmLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -5842,23 +8150,47 @@ pub struct InferenceServicePredictorLightgbmLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorLightgbmLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorLightgbmLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorLightgbmLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorLightgbmLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorLightgbmLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5879,7 +8211,11 @@ pub struct InferenceServicePredictorLightgbmLivenessProbeGrpc {
 pub struct InferenceServicePredictorLightgbmLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorLightgbmLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -5921,23 +8257,47 @@ pub struct InferenceServicePredictorLightgbmPorts {
 pub struct InferenceServicePredictorLightgbmReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorLightgbmReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorLightgbmReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorLightgbmReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorLightgbmReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -5958,8 +8318,13 @@ pub struct InferenceServicePredictorLightgbmReadinessProbeGrpc {
 pub struct InferenceServicePredictorLightgbmReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorLightgbmReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorLightgbmReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -6007,7 +8372,11 @@ pub struct InferenceServicePredictorLightgbmResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorLightgbmSecurityContextCapabilities>,
@@ -6015,19 +8384,43 @@ pub struct InferenceServicePredictorLightgbmSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorLightgbmSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorLightgbmSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorLightgbmSecurityContextWindowsOptions>,
 }
 
@@ -6053,7 +8446,11 @@ pub struct InferenceServicePredictorLightgbmSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -6061,13 +8458,29 @@ pub struct InferenceServicePredictorLightgbmSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorLightgbmSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -6075,23 +8488,47 @@ pub struct InferenceServicePredictorLightgbmSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorLightgbmStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorLightgbmStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorLightgbmStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorLightgbmStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorLightgbmStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -6112,7 +8549,11 @@ pub struct InferenceServicePredictorLightgbmStartupProbeGrpc {
 pub struct InferenceServicePredictorLightgbmStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorLightgbmStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6142,7 +8583,11 @@ pub struct InferenceServicePredictorLightgbmStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -6157,14 +8602,22 @@ pub struct InferenceServicePredictorLightgbmVolumeDevices {
 pub struct InferenceServicePredictorLightgbmVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -6198,35 +8651,75 @@ pub struct InferenceServicePredictorModel {
     pub env_from: Option<Vec<InferenceServicePredictorModelEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorModelLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorModelLivenessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "modelFormat")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "modelFormat"
+    )]
     pub model_format: Option<InferenceServicePredictorModelModelFormat>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorModelPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorModelReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorModelResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorModelResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub runtime: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorModelSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorModelStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -6234,19 +8727,43 @@ pub struct InferenceServicePredictorModel {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorModelStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorModelVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorModelVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -6261,13 +8778,25 @@ pub struct InferenceServicePredictorModelEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorModelEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorModelEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorModelEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorModelEnvValueFromSecretKeyRef>,
 }
 
@@ -6282,7 +8811,11 @@ pub struct InferenceServicePredictorModelEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -6290,7 +8823,11 @@ pub struct InferenceServicePredictorModelEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -6308,7 +8845,11 @@ pub struct InferenceServicePredictorModelEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorModelEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -6360,8 +8901,13 @@ pub struct InferenceServicePredictorModelLifecyclePostStartExec {
 pub struct InferenceServicePredictorModelLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorModelLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorModelLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -6402,7 +8948,11 @@ pub struct InferenceServicePredictorModelLifecyclePreStopExec {
 pub struct InferenceServicePredictorModelLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorModelLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6428,23 +8978,47 @@ pub struct InferenceServicePredictorModelLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorModelLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorModelLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorModelLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorModelLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorModelLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -6465,7 +9039,11 @@ pub struct InferenceServicePredictorModelLivenessProbeGrpc {
 pub struct InferenceServicePredictorModelLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorModelLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6514,23 +9092,47 @@ pub struct InferenceServicePredictorModelPorts {
 pub struct InferenceServicePredictorModelReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorModelReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorModelReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorModelReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorModelReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -6551,7 +9153,11 @@ pub struct InferenceServicePredictorModelReadinessProbeGrpc {
 pub struct InferenceServicePredictorModelReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorModelReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6600,7 +9206,11 @@ pub struct InferenceServicePredictorModelResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorModelSecurityContextCapabilities>,
@@ -6608,19 +9218,43 @@ pub struct InferenceServicePredictorModelSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorModelSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorModelSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorModelSecurityContextWindowsOptions>,
 }
 
@@ -6646,7 +9280,11 @@ pub struct InferenceServicePredictorModelSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -6654,13 +9292,29 @@ pub struct InferenceServicePredictorModelSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorModelSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -6668,23 +9322,47 @@ pub struct InferenceServicePredictorModelSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorModelStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorModelStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorModelStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorModelStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorModelStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -6705,7 +9383,11 @@ pub struct InferenceServicePredictorModelStartupProbeGrpc {
 pub struct InferenceServicePredictorModelStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorModelStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6735,7 +9417,11 @@ pub struct InferenceServicePredictorModelStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -6750,14 +9436,22 @@ pub struct InferenceServicePredictorModelVolumeDevices {
 pub struct InferenceServicePredictorModelVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -6773,31 +9467,67 @@ pub struct InferenceServicePredictorOnnx {
     pub env_from: Option<Vec<InferenceServicePredictorOnnxEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorOnnxLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorOnnxLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorOnnxPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorOnnxReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorOnnxResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorOnnxResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorOnnxSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorOnnxStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -6805,19 +9535,43 @@ pub struct InferenceServicePredictorOnnx {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorOnnxStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorOnnxVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorOnnxVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -6832,13 +9586,25 @@ pub struct InferenceServicePredictorOnnxEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorOnnxEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorOnnxEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorOnnxEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorOnnxEnvValueFromSecretKeyRef>,
 }
 
@@ -6853,7 +9619,11 @@ pub struct InferenceServicePredictorOnnxEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -6861,7 +9631,11 @@ pub struct InferenceServicePredictorOnnxEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -6879,7 +9653,11 @@ pub struct InferenceServicePredictorOnnxEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorOnnxEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -6931,8 +9709,13 @@ pub struct InferenceServicePredictorOnnxLifecyclePostStartExec {
 pub struct InferenceServicePredictorOnnxLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorOnnxLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorOnnxLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -6973,7 +9756,11 @@ pub struct InferenceServicePredictorOnnxLifecyclePreStopExec {
 pub struct InferenceServicePredictorOnnxLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorOnnxLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -6999,23 +9786,47 @@ pub struct InferenceServicePredictorOnnxLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorOnnxLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorOnnxLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorOnnxLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorOnnxLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorOnnxLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7036,7 +9847,11 @@ pub struct InferenceServicePredictorOnnxLivenessProbeGrpc {
 pub struct InferenceServicePredictorOnnxLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorOnnxLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7078,23 +9893,47 @@ pub struct InferenceServicePredictorOnnxPorts {
 pub struct InferenceServicePredictorOnnxReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorOnnxReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorOnnxReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorOnnxReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorOnnxReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7115,7 +9954,11 @@ pub struct InferenceServicePredictorOnnxReadinessProbeGrpc {
 pub struct InferenceServicePredictorOnnxReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorOnnxReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7164,7 +10007,11 @@ pub struct InferenceServicePredictorOnnxResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorOnnxSecurityContextCapabilities>,
@@ -7172,19 +10019,43 @@ pub struct InferenceServicePredictorOnnxSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorOnnxSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorOnnxSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorOnnxSecurityContextWindowsOptions>,
 }
 
@@ -7210,7 +10081,11 @@ pub struct InferenceServicePredictorOnnxSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -7218,13 +10093,29 @@ pub struct InferenceServicePredictorOnnxSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorOnnxSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -7232,23 +10123,47 @@ pub struct InferenceServicePredictorOnnxSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorOnnxStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorOnnxStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorOnnxStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorOnnxStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorOnnxStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7269,7 +10184,11 @@ pub struct InferenceServicePredictorOnnxStartupProbeGrpc {
 pub struct InferenceServicePredictorOnnxStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorOnnxStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7299,7 +10218,11 @@ pub struct InferenceServicePredictorOnnxStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -7314,14 +10237,22 @@ pub struct InferenceServicePredictorOnnxVolumeDevices {
 pub struct InferenceServicePredictorOnnxVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -7343,31 +10274,67 @@ pub struct InferenceServicePredictorPaddle {
     pub env_from: Option<Vec<InferenceServicePredictorPaddleEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorPaddleLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorPaddleLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorPaddlePorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorPaddleReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorPaddleResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorPaddleResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorPaddleSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorPaddleStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -7375,19 +10342,43 @@ pub struct InferenceServicePredictorPaddle {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorPaddleStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorPaddleVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorPaddleVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -7402,13 +10393,25 @@ pub struct InferenceServicePredictorPaddleEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorPaddleEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorPaddleEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorPaddleEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorPaddleEnvValueFromSecretKeyRef>,
 }
 
@@ -7423,7 +10426,11 @@ pub struct InferenceServicePredictorPaddleEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -7431,7 +10438,11 @@ pub struct InferenceServicePredictorPaddleEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -7449,7 +10460,11 @@ pub struct InferenceServicePredictorPaddleEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorPaddleEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -7501,8 +10516,13 @@ pub struct InferenceServicePredictorPaddleLifecyclePostStartExec {
 pub struct InferenceServicePredictorPaddleLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorPaddleLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorPaddleLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -7543,8 +10563,13 @@ pub struct InferenceServicePredictorPaddleLifecyclePreStopExec {
 pub struct InferenceServicePredictorPaddleLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorPaddleLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorPaddleLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -7569,23 +10594,47 @@ pub struct InferenceServicePredictorPaddleLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorPaddleLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPaddleLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPaddleLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPaddleLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPaddleLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7606,7 +10655,11 @@ pub struct InferenceServicePredictorPaddleLivenessProbeGrpc {
 pub struct InferenceServicePredictorPaddleLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPaddleLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7648,23 +10701,47 @@ pub struct InferenceServicePredictorPaddlePorts {
 pub struct InferenceServicePredictorPaddleReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPaddleReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPaddleReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPaddleReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPaddleReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7685,7 +10762,11 @@ pub struct InferenceServicePredictorPaddleReadinessProbeGrpc {
 pub struct InferenceServicePredictorPaddleReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPaddleReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7734,7 +10815,11 @@ pub struct InferenceServicePredictorPaddleResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorPaddleSecurityContextCapabilities>,
@@ -7742,19 +10827,43 @@ pub struct InferenceServicePredictorPaddleSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorPaddleSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorPaddleSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorPaddleSecurityContextWindowsOptions>,
 }
 
@@ -7780,7 +10889,11 @@ pub struct InferenceServicePredictorPaddleSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -7788,13 +10901,29 @@ pub struct InferenceServicePredictorPaddleSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPaddleSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -7802,23 +10931,47 @@ pub struct InferenceServicePredictorPaddleSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorPaddleStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPaddleStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPaddleStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPaddleStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPaddleStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -7839,7 +10992,11 @@ pub struct InferenceServicePredictorPaddleStartupProbeGrpc {
 pub struct InferenceServicePredictorPaddleStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPaddleStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -7869,7 +11026,11 @@ pub struct InferenceServicePredictorPaddleStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -7884,14 +11045,22 @@ pub struct InferenceServicePredictorPaddleVolumeDevices {
 pub struct InferenceServicePredictorPaddleVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -7907,31 +11076,67 @@ pub struct InferenceServicePredictorPmml {
     pub env_from: Option<Vec<InferenceServicePredictorPmmlEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorPmmlLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorPmmlLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorPmmlPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorPmmlReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorPmmlResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorPmmlResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorPmmlSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorPmmlStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -7939,19 +11144,43 @@ pub struct InferenceServicePredictorPmml {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorPmmlStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorPmmlVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorPmmlVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -7966,13 +11195,25 @@ pub struct InferenceServicePredictorPmmlEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorPmmlEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorPmmlEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorPmmlEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorPmmlEnvValueFromSecretKeyRef>,
 }
 
@@ -7987,7 +11228,11 @@ pub struct InferenceServicePredictorPmmlEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -7995,7 +11240,11 @@ pub struct InferenceServicePredictorPmmlEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -8013,7 +11262,11 @@ pub struct InferenceServicePredictorPmmlEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorPmmlEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -8065,8 +11318,13 @@ pub struct InferenceServicePredictorPmmlLifecyclePostStartExec {
 pub struct InferenceServicePredictorPmmlLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorPmmlLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorPmmlLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -8107,7 +11365,11 @@ pub struct InferenceServicePredictorPmmlLifecyclePreStopExec {
 pub struct InferenceServicePredictorPmmlLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPmmlLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8133,23 +11395,47 @@ pub struct InferenceServicePredictorPmmlLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorPmmlLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPmmlLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPmmlLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPmmlLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPmmlLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8170,7 +11456,11 @@ pub struct InferenceServicePredictorPmmlLivenessProbeGrpc {
 pub struct InferenceServicePredictorPmmlLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPmmlLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8212,23 +11502,47 @@ pub struct InferenceServicePredictorPmmlPorts {
 pub struct InferenceServicePredictorPmmlReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPmmlReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPmmlReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPmmlReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPmmlReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8249,7 +11563,11 @@ pub struct InferenceServicePredictorPmmlReadinessProbeGrpc {
 pub struct InferenceServicePredictorPmmlReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPmmlReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8298,7 +11616,11 @@ pub struct InferenceServicePredictorPmmlResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorPmmlSecurityContextCapabilities>,
@@ -8306,19 +11628,43 @@ pub struct InferenceServicePredictorPmmlSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorPmmlSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorPmmlSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorPmmlSecurityContextWindowsOptions>,
 }
 
@@ -8344,7 +11690,11 @@ pub struct InferenceServicePredictorPmmlSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -8352,13 +11702,29 @@ pub struct InferenceServicePredictorPmmlSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPmmlSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -8366,23 +11732,47 @@ pub struct InferenceServicePredictorPmmlSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorPmmlStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPmmlStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPmmlStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPmmlStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPmmlStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8403,7 +11793,11 @@ pub struct InferenceServicePredictorPmmlStartupProbeGrpc {
 pub struct InferenceServicePredictorPmmlStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPmmlStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8433,7 +11827,11 @@ pub struct InferenceServicePredictorPmmlStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -8448,14 +11846,22 @@ pub struct InferenceServicePredictorPmmlVolumeDevices {
 pub struct InferenceServicePredictorPmmlVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -8471,31 +11877,67 @@ pub struct InferenceServicePredictorPytorch {
     pub env_from: Option<Vec<InferenceServicePredictorPytorchEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorPytorchLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorPytorchLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorPytorchPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorPytorchReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorPytorchResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorPytorchResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorPytorchSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorPytorchStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -8503,19 +11945,43 @@ pub struct InferenceServicePredictorPytorch {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorPytorchStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorPytorchVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorPytorchVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -8530,13 +11996,25 @@ pub struct InferenceServicePredictorPytorchEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorPytorchEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorPytorchEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorPytorchEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorPytorchEnvValueFromSecretKeyRef>,
 }
 
@@ -8551,7 +12029,11 @@ pub struct InferenceServicePredictorPytorchEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -8559,7 +12041,11 @@ pub struct InferenceServicePredictorPytorchEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -8577,7 +12063,11 @@ pub struct InferenceServicePredictorPytorchEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorPytorchEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -8629,8 +12119,13 @@ pub struct InferenceServicePredictorPytorchLifecyclePostStartExec {
 pub struct InferenceServicePredictorPytorchLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorPytorchLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorPytorchLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -8671,8 +12166,13 @@ pub struct InferenceServicePredictorPytorchLifecyclePreStopExec {
 pub struct InferenceServicePredictorPytorchLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorPytorchLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorPytorchLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -8697,23 +12197,47 @@ pub struct InferenceServicePredictorPytorchLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorPytorchLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPytorchLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPytorchLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPytorchLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPytorchLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8734,7 +12258,11 @@ pub struct InferenceServicePredictorPytorchLivenessProbeGrpc {
 pub struct InferenceServicePredictorPytorchLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPytorchLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8776,23 +12304,47 @@ pub struct InferenceServicePredictorPytorchPorts {
 pub struct InferenceServicePredictorPytorchReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPytorchReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPytorchReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPytorchReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPytorchReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8813,7 +12365,11 @@ pub struct InferenceServicePredictorPytorchReadinessProbeGrpc {
 pub struct InferenceServicePredictorPytorchReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPytorchReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8862,7 +12418,11 @@ pub struct InferenceServicePredictorPytorchResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorPytorchSecurityContextCapabilities>,
@@ -8870,19 +12430,43 @@ pub struct InferenceServicePredictorPytorchSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorPytorchSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorPytorchSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorPytorchSecurityContextWindowsOptions>,
 }
 
@@ -8908,7 +12492,11 @@ pub struct InferenceServicePredictorPytorchSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -8916,13 +12504,29 @@ pub struct InferenceServicePredictorPytorchSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorPytorchSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -8930,23 +12534,47 @@ pub struct InferenceServicePredictorPytorchSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorPytorchStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorPytorchStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorPytorchStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorPytorchStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorPytorchStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -8967,7 +12595,11 @@ pub struct InferenceServicePredictorPytorchStartupProbeGrpc {
 pub struct InferenceServicePredictorPytorchStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorPytorchStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -8997,7 +12629,11 @@ pub struct InferenceServicePredictorPytorchStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -9012,14 +12648,22 @@ pub struct InferenceServicePredictorPytorchVolumeDevices {
 pub struct InferenceServicePredictorPytorchVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -9038,9 +12682,17 @@ pub struct InferenceServicePredictorResourceClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorResourceClaimsSource {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimName"
+    )]
     pub resource_claim_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimTemplateName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimTemplateName"
+    )]
     pub resource_claim_template_name: Option<String>,
 }
 
@@ -9065,23 +12717,51 @@ pub struct InferenceServicePredictorSchedulingGates {
 pub struct InferenceServicePredictorSecurityContext {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroup")]
     pub fs_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroupChangePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "fsGroupChangePolicy"
+    )]
     pub fs_group_change_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "supplementalGroups")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "supplementalGroups"
+    )]
     pub supplemental_groups: Option<Vec<i64>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sysctls: Option<Vec<InferenceServicePredictorSecurityContextSysctls>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorSecurityContextWindowsOptions>,
 }
 
@@ -9099,7 +12779,11 @@ pub struct InferenceServicePredictorSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -9113,13 +12797,29 @@ pub struct InferenceServicePredictorSecurityContextSysctls {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -9135,31 +12835,67 @@ pub struct InferenceServicePredictorSklearn {
     pub env_from: Option<Vec<InferenceServicePredictorSklearnEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorSklearnLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorSklearnLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorSklearnPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorSklearnReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorSklearnResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorSklearnResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorSklearnSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorSklearnStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -9167,19 +12903,43 @@ pub struct InferenceServicePredictorSklearn {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorSklearnStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorSklearnVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorSklearnVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -9194,13 +12954,25 @@ pub struct InferenceServicePredictorSklearnEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorSklearnEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorSklearnEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorSklearnEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorSklearnEnvValueFromSecretKeyRef>,
 }
 
@@ -9215,7 +12987,11 @@ pub struct InferenceServicePredictorSklearnEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -9223,7 +12999,11 @@ pub struct InferenceServicePredictorSklearnEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -9241,7 +13021,11 @@ pub struct InferenceServicePredictorSklearnEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorSklearnEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -9293,8 +13077,13 @@ pub struct InferenceServicePredictorSklearnLifecyclePostStartExec {
 pub struct InferenceServicePredictorSklearnLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorSklearnLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorSklearnLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -9335,8 +13124,13 @@ pub struct InferenceServicePredictorSklearnLifecyclePreStopExec {
 pub struct InferenceServicePredictorSklearnLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorSklearnLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorSklearnLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -9361,23 +13155,47 @@ pub struct InferenceServicePredictorSklearnLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorSklearnLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorSklearnLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorSklearnLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorSklearnLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorSklearnLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -9398,7 +13216,11 @@ pub struct InferenceServicePredictorSklearnLivenessProbeGrpc {
 pub struct InferenceServicePredictorSklearnLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorSklearnLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -9440,23 +13262,47 @@ pub struct InferenceServicePredictorSklearnPorts {
 pub struct InferenceServicePredictorSklearnReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorSklearnReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorSklearnReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorSklearnReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorSklearnReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -9477,7 +13323,11 @@ pub struct InferenceServicePredictorSklearnReadinessProbeGrpc {
 pub struct InferenceServicePredictorSklearnReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorSklearnReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -9526,7 +13376,11 @@ pub struct InferenceServicePredictorSklearnResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorSklearnSecurityContextCapabilities>,
@@ -9534,19 +13388,43 @@ pub struct InferenceServicePredictorSklearnSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorSklearnSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorSklearnSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorSklearnSecurityContextWindowsOptions>,
 }
 
@@ -9572,7 +13450,11 @@ pub struct InferenceServicePredictorSklearnSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -9580,13 +13462,29 @@ pub struct InferenceServicePredictorSklearnSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorSklearnSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -9594,23 +13492,47 @@ pub struct InferenceServicePredictorSklearnSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorSklearnStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorSklearnStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorSklearnStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorSklearnStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorSklearnStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -9631,7 +13553,11 @@ pub struct InferenceServicePredictorSklearnStartupProbeGrpc {
 pub struct InferenceServicePredictorSklearnStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorSklearnStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -9661,7 +13587,11 @@ pub struct InferenceServicePredictorSklearnStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -9676,14 +13606,22 @@ pub struct InferenceServicePredictorSklearnVolumeDevices {
 pub struct InferenceServicePredictorSklearnVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -9699,31 +13637,67 @@ pub struct InferenceServicePredictorTensorflow {
     pub env_from: Option<Vec<InferenceServicePredictorTensorflowEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorTensorflowLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorTensorflowLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorTensorflowPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorTensorflowReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorTensorflowResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorTensorflowResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorTensorflowSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorTensorflowStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -9731,19 +13705,43 @@ pub struct InferenceServicePredictorTensorflow {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorTensorflowStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorTensorflowVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorTensorflowVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -9758,13 +13756,25 @@ pub struct InferenceServicePredictorTensorflowEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorTensorflowEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorTensorflowEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorTensorflowEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorTensorflowEnvValueFromSecretKeyRef>,
 }
 
@@ -9779,7 +13789,11 @@ pub struct InferenceServicePredictorTensorflowEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -9787,7 +13801,11 @@ pub struct InferenceServicePredictorTensorflowEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -9805,7 +13823,11 @@ pub struct InferenceServicePredictorTensorflowEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorTensorflowEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -9857,8 +13879,13 @@ pub struct InferenceServicePredictorTensorflowLifecyclePostStartExec {
 pub struct InferenceServicePredictorTensorflowLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTensorflowLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTensorflowLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -9899,8 +13926,13 @@ pub struct InferenceServicePredictorTensorflowLifecyclePreStopExec {
 pub struct InferenceServicePredictorTensorflowLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTensorflowLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTensorflowLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -9925,23 +13957,47 @@ pub struct InferenceServicePredictorTensorflowLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorTensorflowLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTensorflowLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTensorflowLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTensorflowLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTensorflowLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -9962,8 +14018,13 @@ pub struct InferenceServicePredictorTensorflowLivenessProbeGrpc {
 pub struct InferenceServicePredictorTensorflowLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTensorflowLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTensorflowLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -10004,23 +14065,47 @@ pub struct InferenceServicePredictorTensorflowPorts {
 pub struct InferenceServicePredictorTensorflowReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTensorflowReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTensorflowReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTensorflowReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTensorflowReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -10041,8 +14126,13 @@ pub struct InferenceServicePredictorTensorflowReadinessProbeGrpc {
 pub struct InferenceServicePredictorTensorflowReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTensorflowReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTensorflowReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -10090,7 +14180,11 @@ pub struct InferenceServicePredictorTensorflowResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorTensorflowSecurityContextCapabilities>,
@@ -10098,19 +14192,43 @@ pub struct InferenceServicePredictorTensorflowSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorTensorflowSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorTensorflowSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorTensorflowSecurityContextWindowsOptions>,
 }
 
@@ -10136,7 +14254,11 @@ pub struct InferenceServicePredictorTensorflowSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -10144,13 +14266,29 @@ pub struct InferenceServicePredictorTensorflowSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTensorflowSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -10158,23 +14296,47 @@ pub struct InferenceServicePredictorTensorflowSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorTensorflowStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTensorflowStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTensorflowStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTensorflowStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTensorflowStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -10195,8 +14357,13 @@ pub struct InferenceServicePredictorTensorflowStartupProbeGrpc {
 pub struct InferenceServicePredictorTensorflowStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTensorflowStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTensorflowStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -10225,7 +14392,11 @@ pub struct InferenceServicePredictorTensorflowStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -10240,14 +14411,22 @@ pub struct InferenceServicePredictorTensorflowVolumeDevices {
 pub struct InferenceServicePredictorTensorflowVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -10259,7 +14438,11 @@ pub struct InferenceServicePredictorTolerations {
     pub key: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub operator: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "tolerationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "tolerationSeconds"
+    )]
     pub toleration_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
@@ -10267,17 +14450,37 @@ pub struct InferenceServicePredictorTolerations {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTopologySpreadConstraints {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "labelSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "labelSelector"
+    )]
     pub label_selector: Option<InferenceServicePredictorTopologySpreadConstraintsLabelSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabelKeys")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabelKeys"
+    )]
     pub match_label_keys: Option<Vec<String>>,
     #[serde(rename = "maxSkew")]
     pub max_skew: i32,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minDomains")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minDomains"
+    )]
     pub min_domains: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinityPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinityPolicy"
+    )]
     pub node_affinity_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeTaintsPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeTaintsPolicy"
+    )]
     pub node_taints_policy: Option<String>,
     #[serde(rename = "topologyKey")]
     pub topology_key: String,
@@ -10287,9 +14490,19 @@ pub struct InferenceServicePredictorTopologySpreadConstraints {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTopologySpreadConstraintsLabelSelector {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchExpressions")]
-    pub match_expressions: Option<Vec<InferenceServicePredictorTopologySpreadConstraintsLabelSelectorMatchExpressions>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabels")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchExpressions"
+    )]
+    pub match_expressions: Option<
+        Vec<InferenceServicePredictorTopologySpreadConstraintsLabelSelectorMatchExpressions>,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabels"
+    )]
     pub match_labels: Option<BTreeMap<String, String>>,
 }
 
@@ -10313,31 +14526,67 @@ pub struct InferenceServicePredictorTriton {
     pub env_from: Option<Vec<InferenceServicePredictorTritonEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorTritonLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorTritonLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorTritonPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorTritonReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorTritonResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorTritonResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorTritonSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorTritonStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -10345,19 +14594,43 @@ pub struct InferenceServicePredictorTriton {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorTritonStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorTritonVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorTritonVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -10372,13 +14645,25 @@ pub struct InferenceServicePredictorTritonEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorTritonEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorTritonEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorTritonEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorTritonEnvValueFromSecretKeyRef>,
 }
 
@@ -10393,7 +14678,11 @@ pub struct InferenceServicePredictorTritonEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -10401,7 +14690,11 @@ pub struct InferenceServicePredictorTritonEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -10419,7 +14712,11 @@ pub struct InferenceServicePredictorTritonEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorTritonEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -10471,8 +14768,13 @@ pub struct InferenceServicePredictorTritonLifecyclePostStartExec {
 pub struct InferenceServicePredictorTritonLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTritonLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTritonLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -10513,8 +14815,13 @@ pub struct InferenceServicePredictorTritonLifecyclePreStopExec {
 pub struct InferenceServicePredictorTritonLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorTritonLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorTritonLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -10539,23 +14846,47 @@ pub struct InferenceServicePredictorTritonLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorTritonLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTritonLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTritonLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTritonLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTritonLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -10576,7 +14907,11 @@ pub struct InferenceServicePredictorTritonLivenessProbeGrpc {
 pub struct InferenceServicePredictorTritonLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorTritonLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -10618,23 +14953,47 @@ pub struct InferenceServicePredictorTritonPorts {
 pub struct InferenceServicePredictorTritonReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTritonReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTritonReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTritonReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTritonReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -10655,7 +15014,11 @@ pub struct InferenceServicePredictorTritonReadinessProbeGrpc {
 pub struct InferenceServicePredictorTritonReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorTritonReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -10704,7 +15067,11 @@ pub struct InferenceServicePredictorTritonResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorTritonSecurityContextCapabilities>,
@@ -10712,19 +15079,43 @@ pub struct InferenceServicePredictorTritonSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorTritonSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorTritonSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorTritonSecurityContextWindowsOptions>,
 }
 
@@ -10750,7 +15141,11 @@ pub struct InferenceServicePredictorTritonSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -10758,13 +15153,29 @@ pub struct InferenceServicePredictorTritonSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorTritonSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -10772,23 +15183,47 @@ pub struct InferenceServicePredictorTritonSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorTritonStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorTritonStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorTritonStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorTritonStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorTritonStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -10809,7 +15244,11 @@ pub struct InferenceServicePredictorTritonStartupProbeGrpc {
 pub struct InferenceServicePredictorTritonStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorTritonStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -10839,7 +15278,11 @@ pub struct InferenceServicePredictorTritonStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -10854,20 +15297,32 @@ pub struct InferenceServicePredictorTritonVolumeDevices {
 pub struct InferenceServicePredictorTritonVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumes {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "awsElasticBlockStore")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "awsElasticBlockStore"
+    )]
     pub aws_elastic_block_store: Option<InferenceServicePredictorVolumesAwsElasticBlockStore>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "azureDisk")]
     pub azure_disk: Option<InferenceServicePredictorVolumesAzureDisk>,
@@ -10881,7 +15336,11 @@ pub struct InferenceServicePredictorVolumes {
     pub config_map: Option<InferenceServicePredictorVolumesConfigMap>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub csi: Option<InferenceServicePredictorVolumesCsi>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServicePredictorVolumesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "emptyDir")]
     pub empty_dir: Option<InferenceServicePredictorVolumesEmptyDir>,
@@ -10889,11 +15348,19 @@ pub struct InferenceServicePredictorVolumes {
     pub ephemeral: Option<InferenceServicePredictorVolumesEphemeral>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fc: Option<InferenceServicePredictorVolumesFc>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "flexVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "flexVolume"
+    )]
     pub flex_volume: Option<InferenceServicePredictorVolumesFlexVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flocker: Option<InferenceServicePredictorVolumesFlocker>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gcePersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gcePersistentDisk"
+    )]
     pub gce_persistent_disk: Option<InferenceServicePredictorVolumesGcePersistentDisk>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "gitRepo")]
     pub git_repo: Option<InferenceServicePredictorVolumesGitRepo>,
@@ -10906,11 +15373,23 @@ pub struct InferenceServicePredictorVolumes {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nfs: Option<InferenceServicePredictorVolumesNfs>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "persistentVolumeClaim")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "persistentVolumeClaim"
+    )]
     pub persistent_volume_claim: Option<InferenceServicePredictorVolumesPersistentVolumeClaim>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "photonPersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "photonPersistentDisk"
+    )]
     pub photon_persistent_disk: Option<InferenceServicePredictorVolumesPhotonPersistentDisk>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "portworxVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "portworxVolume"
+    )]
     pub portworx_volume: Option<InferenceServicePredictorVolumesPortworxVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub projected: Option<InferenceServicePredictorVolumesProjected>,
@@ -10924,7 +15403,11 @@ pub struct InferenceServicePredictorVolumes {
     pub secret: Option<InferenceServicePredictorVolumesSecret>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storageos: Option<InferenceServicePredictorVolumesStorageos>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "vsphereVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "vsphereVolume"
+    )]
     pub vsphere_volume: Option<InferenceServicePredictorVolumesVsphereVolume>,
 }
 
@@ -10942,7 +15425,11 @@ pub struct InferenceServicePredictorVolumesAwsElasticBlockStore {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesAzureDisk {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "cachingMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "cachingMode"
+    )]
     pub caching_mode: Option<String>,
     #[serde(rename = "diskName")]
     pub disk_name: String,
@@ -10973,7 +15460,11 @@ pub struct InferenceServicePredictorVolumesCephfs {
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretFile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretFile"
+    )]
     pub secret_file: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServicePredictorVolumesCephfsSecretRef>,
@@ -11007,7 +15498,11 @@ pub struct InferenceServicePredictorVolumesCinderSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesConfigMap {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServicePredictorVolumesConfigMapItems>>,
@@ -11030,11 +15525,19 @@ pub struct InferenceServicePredictorVolumesCsi {
     pub driver: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodePublishSecretRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodePublishSecretRef"
+    )]
     pub node_publish_secret_ref: Option<InferenceServicePredictorVolumesCsiNodePublishSecretRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeAttributes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeAttributes"
+    )]
     pub volume_attributes: Option<BTreeMap<String, String>>,
 }
 
@@ -11046,7 +15549,11 @@ pub struct InferenceServicePredictorVolumesCsiNodePublishSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesDownwardApi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServicePredictorVolumesDownwardApiItems>>,
@@ -11059,13 +15566,22 @@ pub struct InferenceServicePredictorVolumesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServicePredictorVolumesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServicePredictorVolumesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -11073,7 +15589,11 @@ pub struct InferenceServicePredictorVolumesDownwardApiItemsFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -11090,7 +15610,11 @@ pub struct InferenceServicePredictorVolumesEmptyDir {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesEphemeral {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeClaimTemplate")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeClaimTemplate"
+    )]
     pub volume_claim_template: Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplate>,
 }
 
@@ -11102,26 +15626,52 @@ pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplate {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateMetadata {
-}
+pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateMetadata {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "accessModes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "accessModes"
+    )]
     pub access_modes: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSource")]
-    pub data_source: Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSourceRef")]
-    pub data_source_ref: Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSource"
+    )]
+    pub data_source:
+        Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSourceRef"
+    )]
+    pub data_source_ref:
+        Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub resources: Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecResources>,
+    pub resources:
+        Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecResources>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selector: Option<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageClassName"
+    )]
     pub storage_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMode"
+    )]
     pub volume_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -11146,7 +15696,9 @@ pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecDataS
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecResources {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub claims: Option<Vec<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>>,
+    pub claims: Option<
+        Vec<InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>,
+    >,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limits: Option<BTreeMap<String, IntOrString>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -11167,7 +15719,8 @@ pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecSelec
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions {
+pub struct InferenceServicePredictorVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -11182,7 +15735,11 @@ pub struct InferenceServicePredictorVolumesFc {
     pub lun: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetWWNs")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetWWNs"
+    )]
     pub target_ww_ns: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wwids: Option<Vec<String>>,
@@ -11209,9 +15766,17 @@ pub struct InferenceServicePredictorVolumesFlexVolumeSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesFlocker {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetName"
+    )]
     pub dataset_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetUUID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetUUID"
+    )]
     pub dataset_uuid: Option<String>,
 }
 
@@ -11253,16 +15818,32 @@ pub struct InferenceServicePredictorVolumesHostPath {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesIscsi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthDiscovery")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthDiscovery"
+    )]
     pub chap_auth_discovery: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthSession")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthSession"
+    )]
     pub chap_auth_session: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initiatorName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initiatorName"
+    )]
     pub initiator_name: Option<String>,
     pub iqn: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "iscsiInterface")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "iscsiInterface"
+    )]
     pub iscsi_interface: Option<String>,
     pub lun: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -11317,7 +15898,11 @@ pub struct InferenceServicePredictorVolumesPortworxVolume {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesProjected {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<InferenceServicePredictorVolumesProjectedSources>>,
@@ -11327,12 +15912,21 @@ pub struct InferenceServicePredictorVolumesProjected {
 pub struct InferenceServicePredictorVolumesProjectedSources {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMap")]
     pub config_map: Option<InferenceServicePredictorVolumesProjectedSourcesConfigMap>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServicePredictorVolumesProjectedSourcesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub secret: Option<InferenceServicePredictorVolumesProjectedSourcesSecret>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountToken")]
-    pub service_account_token: Option<InferenceServicePredictorVolumesProjectedSourcesServiceAccountToken>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountToken"
+    )]
+    pub service_account_token:
+        Option<InferenceServicePredictorVolumesProjectedSourcesServiceAccountToken>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -11366,13 +15960,22 @@ pub struct InferenceServicePredictorVolumesProjectedSourcesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServicePredictorVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServicePredictorVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesProjectedSourcesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -11380,7 +15983,11 @@ pub struct InferenceServicePredictorVolumesProjectedSourcesDownwardApiItemsField
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesProjectedSourcesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -11409,7 +16016,11 @@ pub struct InferenceServicePredictorVolumesProjectedSourcesSecretItems {
 pub struct InferenceServicePredictorVolumesProjectedSourcesServiceAccountToken {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "expirationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "expirationSeconds"
+    )]
     pub expiration_seconds: Option<i64>,
     pub path: String,
 }
@@ -11457,20 +16068,40 @@ pub struct InferenceServicePredictorVolumesScaleIo {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
     pub gateway: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protectionDomain")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protectionDomain"
+    )]
     pub protection_domain: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(rename = "secretRef")]
     pub secret_ref: InferenceServicePredictorVolumesScaleIoSecretRef,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "sslEnabled")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "sslEnabled"
+    )]
     pub ssl_enabled: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageMode"
+    )]
     pub storage_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePool")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePool"
+    )]
     pub storage_pool: Option<String>,
     pub system: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -11482,13 +16113,21 @@ pub struct InferenceServicePredictorVolumesScaleIoSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorVolumesSecret {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServicePredictorVolumesSecretItems>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretName"
+    )]
     pub secret_name: Option<String>,
 }
 
@@ -11508,9 +16147,17 @@ pub struct InferenceServicePredictorVolumesStorageos {
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServicePredictorVolumesStorageosSecretRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeNamespace"
+    )]
     pub volume_namespace: Option<String>,
 }
 
@@ -11524,9 +16171,17 @@ pub struct InferenceServicePredictorVolumesStorageosSecretRef {
 pub struct InferenceServicePredictorVolumesVsphereVolume {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyID"
+    )]
     pub storage_policy_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyName"
+    )]
     pub storage_policy_name: Option<String>,
     #[serde(rename = "volumePath")]
     pub volume_path: String,
@@ -11544,31 +16199,67 @@ pub struct InferenceServicePredictorXgboost {
     pub env_from: Option<Vec<InferenceServicePredictorXgboostEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServicePredictorXgboostLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServicePredictorXgboostLivenessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServicePredictorXgboostPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protocolVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protocolVersion"
+    )]
     pub protocol_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServicePredictorXgboostReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServicePredictorXgboostResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServicePredictorXgboostResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeVersion"
+    )]
     pub runtime_version: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServicePredictorXgboostSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServicePredictorXgboostStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
@@ -11576,19 +16267,43 @@ pub struct InferenceServicePredictorXgboost {
     pub stdin_once: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storage: Option<InferenceServicePredictorXgboostStorage>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageUri")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageUri"
+    )]
     pub storage_uri: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServicePredictorXgboostVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServicePredictorXgboostVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -11603,13 +16318,25 @@ pub struct InferenceServicePredictorXgboostEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<InferenceServicePredictorXgboostEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServicePredictorXgboostEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<InferenceServicePredictorXgboostEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServicePredictorXgboostEnvValueFromSecretKeyRef>,
 }
 
@@ -11624,7 +16351,11 @@ pub struct InferenceServicePredictorXgboostEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -11632,7 +16363,11 @@ pub struct InferenceServicePredictorXgboostEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -11650,7 +16385,11 @@ pub struct InferenceServicePredictorXgboostEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServicePredictorXgboostEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -11702,8 +16441,13 @@ pub struct InferenceServicePredictorXgboostLifecyclePostStartExec {
 pub struct InferenceServicePredictorXgboostLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorXgboostLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorXgboostLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -11744,8 +16488,13 @@ pub struct InferenceServicePredictorXgboostLifecyclePreStopExec {
 pub struct InferenceServicePredictorXgboostLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServicePredictorXgboostLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServicePredictorXgboostLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -11770,23 +16519,47 @@ pub struct InferenceServicePredictorXgboostLifecyclePreStopTcpSocket {
 pub struct InferenceServicePredictorXgboostLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorXgboostLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorXgboostLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorXgboostLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorXgboostLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -11807,7 +16580,11 @@ pub struct InferenceServicePredictorXgboostLivenessProbeGrpc {
 pub struct InferenceServicePredictorXgboostLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorXgboostLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -11849,23 +16626,47 @@ pub struct InferenceServicePredictorXgboostPorts {
 pub struct InferenceServicePredictorXgboostReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorXgboostReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorXgboostReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorXgboostReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorXgboostReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -11886,7 +16687,11 @@ pub struct InferenceServicePredictorXgboostReadinessProbeGrpc {
 pub struct InferenceServicePredictorXgboostReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorXgboostReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -11935,7 +16740,11 @@ pub struct InferenceServicePredictorXgboostResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServicePredictorXgboostSecurityContextCapabilities>,
@@ -11943,19 +16752,43 @@ pub struct InferenceServicePredictorXgboostSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServicePredictorXgboostSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServicePredictorXgboostSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServicePredictorXgboostSecurityContextWindowsOptions>,
 }
 
@@ -11981,7 +16814,11 @@ pub struct InferenceServicePredictorXgboostSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -11989,13 +16826,29 @@ pub struct InferenceServicePredictorXgboostSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServicePredictorXgboostSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -12003,23 +16856,47 @@ pub struct InferenceServicePredictorXgboostSecurityContextWindowsOptions {
 pub struct InferenceServicePredictorXgboostStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServicePredictorXgboostStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServicePredictorXgboostStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServicePredictorXgboostStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServicePredictorXgboostStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -12040,7 +16917,11 @@ pub struct InferenceServicePredictorXgboostStartupProbeGrpc {
 pub struct InferenceServicePredictorXgboostStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<InferenceServicePredictorXgboostStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -12070,7 +16951,11 @@ pub struct InferenceServicePredictorXgboostStorage {
     pub parameters: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schemaPath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schemaPath"
+    )]
     pub schema_path: Option<String>,
 }
 
@@ -12085,32 +16970,56 @@ pub struct InferenceServicePredictorXgboostVolumeDevices {
 pub struct InferenceServicePredictorXgboostVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformer {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "activeDeadlineSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "activeDeadlineSeconds"
+    )]
     pub active_deadline_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub affinity: Option<InferenceServiceTransformerAffinity>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub annotations: Option<BTreeMap<String, String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "automountServiceAccountToken")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "automountServiceAccountToken"
+    )]
     pub automount_service_account_token: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub batcher: Option<InferenceServiceTransformerBatcher>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "canaryTrafficPercent")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "canaryTrafficPercent"
+    )]
     pub canary_traffic_percent: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerConcurrency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerConcurrency"
+    )]
     pub container_concurrency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub containers: Option<Vec<InferenceServiceTransformerContainers>>,
@@ -12118,13 +17027,25 @@ pub struct InferenceServiceTransformer {
     pub dns_config: Option<InferenceServiceTransformerDnsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "dnsPolicy")]
     pub dns_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "enableServiceLinks")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "enableServiceLinks"
+    )]
     pub enable_service_links: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostAliases")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostAliases"
+    )]
     pub host_aliases: Option<Vec<InferenceServiceTransformerHostAliases>>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostIPC")]
     pub host_ipc: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostNetwork")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostNetwork"
+    )]
     pub host_network: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostPID")]
     pub host_pid: Option<bool>,
@@ -12132,79 +17053,180 @@ pub struct InferenceServiceTransformer {
     pub host_users: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullSecrets")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullSecrets"
+    )]
     pub image_pull_secrets: Option<Vec<InferenceServiceTransformerImagePullSecrets>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initContainers")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initContainers"
+    )]
     pub init_containers: Option<Vec<InferenceServiceTransformerInitContainers>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub logger: Option<InferenceServiceTransformerLogger>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxReplicas"
+    )]
     pub max_replicas: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minReplicas")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minReplicas"
+    )]
     pub min_replicas: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeName")]
     pub node_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeSelector"
+    )]
     pub node_selector: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub os: Option<InferenceServiceTransformerOs>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overhead: Option<BTreeMap<String, IntOrString>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preemptionPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preemptionPolicy"
+    )]
     pub preemption_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub priority: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "priorityClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "priorityClassName"
+    )]
     pub priority_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessGates"
+    )]
     pub readiness_gates: Option<Vec<InferenceServiceTransformerReadinessGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaims")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaims"
+    )]
     pub resource_claims: Option<Vec<InferenceServiceTransformerResourceClaims>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeClassName"
+    )]
     pub runtime_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleMetric")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleMetric"
+    )]
     pub scale_metric: Option<InferenceServiceTransformerScaleMetric>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "scaleTarget")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "scaleTarget"
+    )]
     pub scale_target: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulerName"
+    )]
     pub scheduler_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulingGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulingGates"
+    )]
     pub scheduling_gates: Option<Vec<InferenceServiceTransformerSchedulingGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceTransformerSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccount")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccount"
+    )]
     pub service_account: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountName"
+    )]
     pub service_account_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "setHostnameAsFQDN")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "setHostnameAsFQDN"
+    )]
     pub set_hostname_as_fqdn: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "shareProcessNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "shareProcessNamespace"
+    )]
     pub share_process_namespace: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subdomain: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tolerations: Option<Vec<InferenceServiceTransformerTolerations>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "topologySpreadConstraints")]
-    pub topology_spread_constraints: Option<Vec<InferenceServiceTransformerTopologySpreadConstraints>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "topologySpreadConstraints"
+    )]
+    pub topology_spread_constraints:
+        Option<Vec<InferenceServiceTransformerTopologySpreadConstraints>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volumes: Option<Vec<InferenceServiceTransformerVolumes>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinity"
+    )]
     pub node_affinity: Option<InferenceServiceTransformerAffinityNodeAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAffinity"
+    )]
     pub pod_affinity: Option<InferenceServiceTransformerAffinityPodAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAntiAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAntiAffinity"
+    )]
     pub pod_anti_affinity: Option<InferenceServiceTransformerAffinityPodAntiAffinity>,
 }
 
@@ -12231,7 +17253,8 @@ pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions {
+pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12239,7 +17262,8 @@ pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedul
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields {
+pub struct InferenceServiceTransformerAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12261,7 +17285,8 @@ pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringScheduli
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions {
+pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12269,7 +17294,8 @@ pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringScheduli
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields {
+pub struct InferenceServiceTransformerAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12312,7 +17338,8 @@ pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringScheduli
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12328,7 +17355,8 @@ pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringScheduli
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12356,7 +17384,8 @@ pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12372,7 +17401,8 @@ pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulin
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12415,7 +17445,8 @@ pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSche
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12431,7 +17462,8 @@ pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSche
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12459,7 +17491,8 @@ pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSched
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12475,7 +17508,8 @@ pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSched
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12484,9 +17518,17 @@ pub struct InferenceServiceTransformerAffinityPodAntiAffinityRequiredDuringSched
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerBatcher {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxBatchSize")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxBatchSize"
+    )]
     pub max_batch_size: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxLatency")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "maxLatency"
+    )]
     pub max_latency: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timeout: Option<i64>,
@@ -12504,42 +17546,90 @@ pub struct InferenceServiceTransformerContainers {
     pub env_from: Option<Vec<InferenceServiceTransformerContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceTransformerContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceTransformerContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceTransformerContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceTransformerContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceTransformerContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceTransformerContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceTransformerContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceTransformerContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceTransformerContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceTransformerContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -12554,13 +17644,27 @@ pub struct InferenceServiceTransformerContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
-    pub config_map_key_ref: Option<InferenceServiceTransformerContainersEnvValueFromConfigMapKeyRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
+    pub config_map_key_ref:
+        Option<InferenceServiceTransformerContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceTransformerContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceTransformerContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceTransformerContainersEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceTransformerContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -12575,7 +17679,11 @@ pub struct InferenceServiceTransformerContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -12583,7 +17691,11 @@ pub struct InferenceServiceTransformerContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -12601,7 +17713,11 @@ pub struct InferenceServiceTransformerContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceTransformerContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -12653,8 +17769,13 @@ pub struct InferenceServiceTransformerContainersLifecyclePostStartExec {
 pub struct InferenceServiceTransformerContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -12695,8 +17816,13 @@ pub struct InferenceServiceTransformerContainersLifecyclePreStopExec {
 pub struct InferenceServiceTransformerContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -12721,23 +17847,47 @@ pub struct InferenceServiceTransformerContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServiceTransformerContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -12758,8 +17908,13 @@ pub struct InferenceServiceTransformerContainersLivenessProbeGrpc {
 pub struct InferenceServiceTransformerContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12799,23 +17954,47 @@ pub struct InferenceServiceTransformerContainersPorts {
 pub struct InferenceServiceTransformerContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -12836,8 +18015,13 @@ pub struct InferenceServiceTransformerContainersReadinessProbeGrpc {
 pub struct InferenceServiceTransformerContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -12884,7 +18068,11 @@ pub struct InferenceServiceTransformerContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceTransformerContainersSecurityContextCapabilities>,
@@ -12892,19 +18080,44 @@ pub struct InferenceServiceTransformerContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
-    pub se_linux_options: Option<InferenceServiceTransformerContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
+    pub se_linux_options:
+        Option<InferenceServiceTransformerContainersSecurityContextSeLinuxOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceTransformerContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceTransformerContainersSecurityContextWindowsOptions>,
 }
 
@@ -12930,7 +18143,11 @@ pub struct InferenceServiceTransformerContainersSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -12938,13 +18155,29 @@ pub struct InferenceServiceTransformerContainersSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -12952,23 +18185,47 @@ pub struct InferenceServiceTransformerContainersSecurityContextWindowsOptions {
 pub struct InferenceServiceTransformerContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -12989,8 +18246,13 @@ pub struct InferenceServiceTransformerContainersStartupProbeGrpc {
 pub struct InferenceServiceTransformerContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13022,14 +18284,22 @@ pub struct InferenceServiceTransformerContainersVolumeDevices {
 pub struct InferenceServiceTransformerContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -13077,42 +18347,90 @@ pub struct InferenceServiceTransformerInitContainers {
     pub env_from: Option<Vec<InferenceServiceTransformerInitContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<InferenceServiceTransformerInitContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<InferenceServiceTransformerInitContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<InferenceServiceTransformerInitContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<InferenceServiceTransformerInitContainersReadinessProbe>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resizePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resizePolicy"
+    )]
     pub resize_policy: Option<Vec<InferenceServiceTransformerInitContainersResizePolicy>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<InferenceServiceTransformerInitContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<InferenceServiceTransformerInitContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<InferenceServiceTransformerInitContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<InferenceServiceTransformerInitContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<InferenceServiceTransformerInitContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -13127,13 +18445,27 @@ pub struct InferenceServiceTransformerInitContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
-    pub config_map_key_ref: Option<InferenceServiceTransformerInitContainersEnvValueFromConfigMapKeyRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
+    pub config_map_key_ref:
+        Option<InferenceServiceTransformerInitContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<InferenceServiceTransformerInitContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceTransformerInitContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceTransformerInitContainersEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<InferenceServiceTransformerInitContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -13148,7 +18480,11 @@ pub struct InferenceServiceTransformerInitContainersEnvValueFromConfigMapKeyRef 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -13156,7 +18492,11 @@ pub struct InferenceServiceTransformerInitContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -13174,7 +18514,11 @@ pub struct InferenceServiceTransformerInitContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<InferenceServiceTransformerInitContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -13226,8 +18570,13 @@ pub struct InferenceServiceTransformerInitContainersLifecyclePostStartExec {
 pub struct InferenceServiceTransformerInitContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13268,8 +18617,13 @@ pub struct InferenceServiceTransformerInitContainersLifecyclePreStopExec {
 pub struct InferenceServiceTransformerInitContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13294,23 +18648,47 @@ pub struct InferenceServiceTransformerInitContainersLifecyclePreStopTcpSocket {
 pub struct InferenceServiceTransformerInitContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerInitContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerInitContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerInitContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerInitContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -13331,8 +18709,13 @@ pub struct InferenceServiceTransformerInitContainersLivenessProbeGrpc {
 pub struct InferenceServiceTransformerInitContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerInitContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerInitContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13371,23 +18754,47 @@ pub struct InferenceServiceTransformerInitContainersPorts {
 pub struct InferenceServiceTransformerInitContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerInitContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerInitContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerInitContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerInitContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -13408,8 +18815,13 @@ pub struct InferenceServiceTransformerInitContainersReadinessProbeGrpc {
 pub struct InferenceServiceTransformerInitContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerInitContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerInitContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13455,7 +18867,11 @@ pub struct InferenceServiceTransformerInitContainersResourcesClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<InferenceServiceTransformerInitContainersSecurityContextCapabilities>,
@@ -13463,20 +18879,47 @@ pub struct InferenceServiceTransformerInitContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
-    pub se_linux_options: Option<InferenceServiceTransformerInitContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
-    pub seccomp_profile: Option<InferenceServiceTransformerInitContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
-    pub windows_options: Option<InferenceServiceTransformerInitContainersSecurityContextWindowsOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
+    pub se_linux_options:
+        Option<InferenceServiceTransformerInitContainersSecurityContextSeLinuxOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
+    pub seccomp_profile:
+        Option<InferenceServiceTransformerInitContainersSecurityContextSeccompProfile>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
+    pub windows_options:
+        Option<InferenceServiceTransformerInitContainersSecurityContextWindowsOptions>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -13501,7 +18944,11 @@ pub struct InferenceServiceTransformerInitContainersSecurityContextSeLinuxOption
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -13509,13 +18956,29 @@ pub struct InferenceServiceTransformerInitContainersSecurityContextSeccompProfil
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerInitContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -13523,23 +18986,47 @@ pub struct InferenceServiceTransformerInitContainersSecurityContextWindowsOption
 pub struct InferenceServiceTransformerInitContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<InferenceServiceTransformerInitContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<InferenceServiceTransformerInitContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<InferenceServiceTransformerInitContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<InferenceServiceTransformerInitContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -13560,8 +19047,13 @@ pub struct InferenceServiceTransformerInitContainersStartupProbeGrpc {
 pub struct InferenceServiceTransformerInitContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<InferenceServiceTransformerInitContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<InferenceServiceTransformerInitContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -13593,14 +19085,22 @@ pub struct InferenceServiceTransformerInitContainersVolumeDevices {
 pub struct InferenceServiceTransformerInitContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -13643,9 +19143,17 @@ pub struct InferenceServiceTransformerResourceClaims {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerResourceClaimsSource {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimName"
+    )]
     pub resource_claim_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceClaimTemplateName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceClaimTemplateName"
+    )]
     pub resource_claim_template_name: Option<String>,
 }
 
@@ -13670,23 +19178,51 @@ pub struct InferenceServiceTransformerSchedulingGates {
 pub struct InferenceServiceTransformerSecurityContext {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroup")]
     pub fs_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroupChangePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "fsGroupChangePolicy"
+    )]
     pub fs_group_change_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<InferenceServiceTransformerSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<InferenceServiceTransformerSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "supplementalGroups")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "supplementalGroups"
+    )]
     pub supplemental_groups: Option<Vec<i64>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sysctls: Option<Vec<InferenceServiceTransformerSecurityContextSysctls>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<InferenceServiceTransformerSecurityContextWindowsOptions>,
 }
 
@@ -13704,7 +19240,11 @@ pub struct InferenceServiceTransformerSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -13718,13 +19258,29 @@ pub struct InferenceServiceTransformerSecurityContextSysctls {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -13736,7 +19292,11 @@ pub struct InferenceServiceTransformerTolerations {
     pub key: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub operator: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "tolerationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "tolerationSeconds"
+    )]
     pub toleration_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
@@ -13744,17 +19304,37 @@ pub struct InferenceServiceTransformerTolerations {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerTopologySpreadConstraints {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "labelSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "labelSelector"
+    )]
     pub label_selector: Option<InferenceServiceTransformerTopologySpreadConstraintsLabelSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabelKeys")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabelKeys"
+    )]
     pub match_label_keys: Option<Vec<String>>,
     #[serde(rename = "maxSkew")]
     pub max_skew: i32,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "minDomains")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "minDomains"
+    )]
     pub min_domains: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinityPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinityPolicy"
+    )]
     pub node_affinity_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeTaintsPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeTaintsPolicy"
+    )]
     pub node_taints_policy: Option<String>,
     #[serde(rename = "topologyKey")]
     pub topology_key: String,
@@ -13764,9 +19344,19 @@ pub struct InferenceServiceTransformerTopologySpreadConstraints {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerTopologySpreadConstraintsLabelSelector {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchExpressions")]
-    pub match_expressions: Option<Vec<InferenceServiceTransformerTopologySpreadConstraintsLabelSelectorMatchExpressions>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabels")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchExpressions"
+    )]
+    pub match_expressions: Option<
+        Vec<InferenceServiceTransformerTopologySpreadConstraintsLabelSelectorMatchExpressions>,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabels"
+    )]
     pub match_labels: Option<BTreeMap<String, String>>,
 }
 
@@ -13780,7 +19370,11 @@ pub struct InferenceServiceTransformerTopologySpreadConstraintsLabelSelectorMatc
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumes {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "awsElasticBlockStore")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "awsElasticBlockStore"
+    )]
     pub aws_elastic_block_store: Option<InferenceServiceTransformerVolumesAwsElasticBlockStore>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "azureDisk")]
     pub azure_disk: Option<InferenceServiceTransformerVolumesAzureDisk>,
@@ -13794,7 +19388,11 @@ pub struct InferenceServiceTransformerVolumes {
     pub config_map: Option<InferenceServiceTransformerVolumesConfigMap>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub csi: Option<InferenceServiceTransformerVolumesCsi>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServiceTransformerVolumesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "emptyDir")]
     pub empty_dir: Option<InferenceServiceTransformerVolumesEmptyDir>,
@@ -13802,11 +19400,19 @@ pub struct InferenceServiceTransformerVolumes {
     pub ephemeral: Option<InferenceServiceTransformerVolumesEphemeral>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fc: Option<InferenceServiceTransformerVolumesFc>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "flexVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "flexVolume"
+    )]
     pub flex_volume: Option<InferenceServiceTransformerVolumesFlexVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flocker: Option<InferenceServiceTransformerVolumesFlocker>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gcePersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gcePersistentDisk"
+    )]
     pub gce_persistent_disk: Option<InferenceServiceTransformerVolumesGcePersistentDisk>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "gitRepo")]
     pub git_repo: Option<InferenceServiceTransformerVolumesGitRepo>,
@@ -13819,11 +19425,23 @@ pub struct InferenceServiceTransformerVolumes {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nfs: Option<InferenceServiceTransformerVolumesNfs>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "persistentVolumeClaim")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "persistentVolumeClaim"
+    )]
     pub persistent_volume_claim: Option<InferenceServiceTransformerVolumesPersistentVolumeClaim>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "photonPersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "photonPersistentDisk"
+    )]
     pub photon_persistent_disk: Option<InferenceServiceTransformerVolumesPhotonPersistentDisk>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "portworxVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "portworxVolume"
+    )]
     pub portworx_volume: Option<InferenceServiceTransformerVolumesPortworxVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub projected: Option<InferenceServiceTransformerVolumesProjected>,
@@ -13837,7 +19455,11 @@ pub struct InferenceServiceTransformerVolumes {
     pub secret: Option<InferenceServiceTransformerVolumesSecret>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storageos: Option<InferenceServiceTransformerVolumesStorageos>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "vsphereVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "vsphereVolume"
+    )]
     pub vsphere_volume: Option<InferenceServiceTransformerVolumesVsphereVolume>,
 }
 
@@ -13855,7 +19477,11 @@ pub struct InferenceServiceTransformerVolumesAwsElasticBlockStore {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesAzureDisk {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "cachingMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "cachingMode"
+    )]
     pub caching_mode: Option<String>,
     #[serde(rename = "diskName")]
     pub disk_name: String,
@@ -13886,7 +19512,11 @@ pub struct InferenceServiceTransformerVolumesCephfs {
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretFile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretFile"
+    )]
     pub secret_file: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServiceTransformerVolumesCephfsSecretRef>,
@@ -13920,7 +19550,11 @@ pub struct InferenceServiceTransformerVolumesCinderSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesConfigMap {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceTransformerVolumesConfigMapItems>>,
@@ -13943,11 +19577,19 @@ pub struct InferenceServiceTransformerVolumesCsi {
     pub driver: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodePublishSecretRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodePublishSecretRef"
+    )]
     pub node_publish_secret_ref: Option<InferenceServiceTransformerVolumesCsiNodePublishSecretRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeAttributes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeAttributes"
+    )]
     pub volume_attributes: Option<BTreeMap<String, String>>,
 }
 
@@ -13959,7 +19601,11 @@ pub struct InferenceServiceTransformerVolumesCsiNodePublishSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesDownwardApi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceTransformerVolumesDownwardApiItems>>,
@@ -13972,13 +19618,22 @@ pub struct InferenceServiceTransformerVolumesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceTransformerVolumesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceTransformerVolumesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -13986,7 +19641,11 @@ pub struct InferenceServiceTransformerVolumesDownwardApiItemsFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -14003,8 +19662,13 @@ pub struct InferenceServiceTransformerVolumesEmptyDir {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesEphemeral {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeClaimTemplate")]
-    pub volume_claim_template: Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplate>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeClaimTemplate"
+    )]
+    pub volume_claim_template:
+        Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplate>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -14015,26 +19679,53 @@ pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplate {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateMetadata {
-}
+pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateMetadata {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "accessModes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "accessModes"
+    )]
     pub access_modes: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSource")]
-    pub data_source: Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSourceRef")]
-    pub data_source_ref: Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSource"
+    )]
+    pub data_source:
+        Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSourceRef"
+    )]
+    pub data_source_ref:
+        Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub resources: Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecResources>,
+    pub resources:
+        Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecResources>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub selector: Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageClassName")]
+    pub selector:
+        Option<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecSelector>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageClassName"
+    )]
     pub storage_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMode"
+    )]
     pub volume_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -14059,7 +19750,9 @@ pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecDat
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecResources {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub claims: Option<Vec<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>>,
+    pub claims: Option<
+        Vec<InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecResourcesClaims>,
+    >,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limits: Option<BTreeMap<String, IntOrString>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -14080,7 +19773,8 @@ pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecSel
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions {
+pub struct InferenceServiceTransformerVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -14095,7 +19789,11 @@ pub struct InferenceServiceTransformerVolumesFc {
     pub lun: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetWWNs")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetWWNs"
+    )]
     pub target_ww_ns: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wwids: Option<Vec<String>>,
@@ -14122,9 +19820,17 @@ pub struct InferenceServiceTransformerVolumesFlexVolumeSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesFlocker {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetName"
+    )]
     pub dataset_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetUUID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetUUID"
+    )]
     pub dataset_uuid: Option<String>,
 }
 
@@ -14166,16 +19872,32 @@ pub struct InferenceServiceTransformerVolumesHostPath {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesIscsi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthDiscovery")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthDiscovery"
+    )]
     pub chap_auth_discovery: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthSession")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthSession"
+    )]
     pub chap_auth_session: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initiatorName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initiatorName"
+    )]
     pub initiator_name: Option<String>,
     pub iqn: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "iscsiInterface")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "iscsiInterface"
+    )]
     pub iscsi_interface: Option<String>,
     pub lun: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -14230,7 +19952,11 @@ pub struct InferenceServiceTransformerVolumesPortworxVolume {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesProjected {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<InferenceServiceTransformerVolumesProjectedSources>>,
@@ -14240,12 +19966,21 @@ pub struct InferenceServiceTransformerVolumesProjected {
 pub struct InferenceServiceTransformerVolumesProjectedSources {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMap")]
     pub config_map: Option<InferenceServiceTransformerVolumesProjectedSourcesConfigMap>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<InferenceServiceTransformerVolumesProjectedSourcesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub secret: Option<InferenceServiceTransformerVolumesProjectedSourcesSecret>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountToken")]
-    pub service_account_token: Option<InferenceServiceTransformerVolumesProjectedSourcesServiceAccountToken>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountToken"
+    )]
+    pub service_account_token:
+        Option<InferenceServiceTransformerVolumesProjectedSourcesServiceAccountToken>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -14275,17 +20010,27 @@ pub struct InferenceServiceTransformerVolumesProjectedSourcesDownwardApi {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
-    pub field_ref: Option<InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsFieldRef>,
+    pub field_ref:
+        Option<InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsFieldRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -14293,7 +20038,11 @@ pub struct InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsFie
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesProjectedSourcesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -14322,7 +20071,11 @@ pub struct InferenceServiceTransformerVolumesProjectedSourcesSecretItems {
 pub struct InferenceServiceTransformerVolumesProjectedSourcesServiceAccountToken {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "expirationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "expirationSeconds"
+    )]
     pub expiration_seconds: Option<i64>,
     pub path: String,
 }
@@ -14370,20 +20123,40 @@ pub struct InferenceServiceTransformerVolumesScaleIo {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
     pub gateway: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protectionDomain")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protectionDomain"
+    )]
     pub protection_domain: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(rename = "secretRef")]
     pub secret_ref: InferenceServiceTransformerVolumesScaleIoSecretRef,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "sslEnabled")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "sslEnabled"
+    )]
     pub ssl_enabled: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageMode"
+    )]
     pub storage_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePool")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePool"
+    )]
     pub storage_pool: Option<String>,
     pub system: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -14395,13 +20168,21 @@ pub struct InferenceServiceTransformerVolumesScaleIoSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceTransformerVolumesSecret {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<InferenceServiceTransformerVolumesSecretItems>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretName"
+    )]
     pub secret_name: Option<String>,
 }
 
@@ -14421,9 +20202,17 @@ pub struct InferenceServiceTransformerVolumesStorageos {
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<InferenceServiceTransformerVolumesStorageosSecretRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeNamespace"
+    )]
     pub volume_namespace: Option<String>,
 }
 
@@ -14437,9 +20226,17 @@ pub struct InferenceServiceTransformerVolumesStorageosSecretRef {
 pub struct InferenceServiceTransformerVolumesVsphereVolume {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyID"
+    )]
     pub storage_policy_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyName"
+    )]
     pub storage_policy_name: Option<String>,
     #[serde(rename = "volumePath")]
     pub volume_path: String,
@@ -14455,9 +20252,17 @@ pub struct InferenceServiceStatus {
     pub components: Option<BTreeMap<String, InferenceServiceStatusComponents>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub conditions: Option<Vec<Condition>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "modelStatus")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "modelStatus"
+    )]
     pub model_status: Option<InferenceServiceStatusModelStatus>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "observedGeneration")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "observedGeneration"
+    )]
     pub observed_generation: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
@@ -14481,13 +20286,29 @@ pub struct InferenceServiceStatusComponents {
     pub address: Option<InferenceServiceStatusComponentsAddress>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "grpcUrl")]
     pub grpc_url: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "latestCreatedRevision")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "latestCreatedRevision"
+    )]
     pub latest_created_revision: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "latestReadyRevision")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "latestReadyRevision"
+    )]
     pub latest_ready_revision: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "latestRolledoutRevision")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "latestRolledoutRevision"
+    )]
     pub latest_rolledout_revision: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "previousRolledoutRevision")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "previousRolledoutRevision"
+    )]
     pub previous_rolledout_revision: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "restUrl")]
     pub rest_url: Option<String>,
@@ -14511,13 +20332,25 @@ pub struct InferenceServiceStatusComponentsAddress {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InferenceServiceStatusComponentsTraffic {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configurationName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configurationName"
+    )]
     pub configuration_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "latestRevision")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "latestRevision"
+    )]
     pub latest_revision: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub percent: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "revisionName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "revisionName"
+    )]
     pub revision_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tag: Option<String>,
@@ -14529,7 +20362,11 @@ pub struct InferenceServiceStatusComponentsTraffic {
 pub struct InferenceServiceStatusModelStatus {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub copies: Option<InferenceServiceStatusModelStatusCopies>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "lastFailureInfo")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "lastFailureInfo"
+    )]
     pub last_failure_info: Option<InferenceServiceStatusModelStatusLastFailureInfo>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub states: Option<InferenceServiceStatusModelStatusStates>,
@@ -14541,7 +20378,11 @@ pub struct InferenceServiceStatusModelStatus {
 pub struct InferenceServiceStatusModelStatusCopies {
     #[serde(rename = "failedCopies")]
     pub failed_copies: i64,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "totalCopies")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "totalCopies"
+    )]
     pub total_copies: Option<i64>,
 }
 
@@ -14553,7 +20394,11 @@ pub struct InferenceServiceStatusModelStatusLastFailureInfo {
     pub location: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "modelRevisionName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "modelRevisionName"
+    )]
     pub model_revision_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<InferenceServiceStatusModelStatusLastFailureInfoReason>,
@@ -14575,7 +20420,11 @@ pub enum InferenceServiceStatusModelStatusLastFailureInfoReason {
 pub struct InferenceServiceStatusModelStatusStates {
     #[serde(rename = "activeModelState")]
     pub active_model_state: InferenceServiceStatusModelStatusStatesActiveModelState,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetModelState")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetModelState"
+    )]
     pub target_model_state: Option<InferenceServiceStatusModelStatusStatesTargetModelState>,
 }
 
@@ -14610,4 +20459,3 @@ pub enum InferenceServiceStatusModelStatusTransitionStatus {
     BlockedByFailedLoad,
     InvalidSpec,
 }
-

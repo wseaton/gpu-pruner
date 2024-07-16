@@ -4,16 +4,21 @@
 
 #[allow(unused_imports)]
 mod prelude {
-    pub use kube::CustomResource;
-    pub use serde::{Serialize, Deserialize};
-    pub use std::collections::BTreeMap;
-    pub use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
     pub use k8s_openapi::apimachinery::pkg::apis::meta::v1::Condition;
+    pub use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
+    pub use kube::CustomResource;
+    pub use serde::{Deserialize, Serialize};
+    pub use std::collections::BTreeMap;
 }
 use self::prelude::*;
 
 #[derive(CustomResource, Serialize, Deserialize, Clone, Debug)]
-#[kube(group = "kubeflow.org", version = "v1", kind = "Notebook", plural = "notebooks")]
+#[kube(
+    group = "kubeflow.org",
+    version = "v1",
+    kind = "Notebook",
+    plural = "notebooks"
+)]
 #[kube(namespaced)]
 #[kube(status = "NotebookStatus")]
 #[kube(schema = "disabled")]
@@ -30,74 +35,162 @@ pub struct NotebookTemplate {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "activeDeadlineSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "activeDeadlineSeconds"
+    )]
     pub active_deadline_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub affinity: Option<NotebookTemplateSpecAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "automountServiceAccountToken")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "automountServiceAccountToken"
+    )]
     pub automount_service_account_token: Option<bool>,
     pub containers: Vec<NotebookTemplateSpecContainers>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "dnsConfig")]
     pub dns_config: Option<NotebookTemplateSpecDnsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "dnsPolicy")]
     pub dns_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "enableServiceLinks")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "enableServiceLinks"
+    )]
     pub enable_service_links: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "ephemeralContainers")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "ephemeralContainers"
+    )]
     pub ephemeral_containers: Option<Vec<NotebookTemplateSpecEphemeralContainers>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostAliases")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostAliases"
+    )]
     pub host_aliases: Option<Vec<NotebookTemplateSpecHostAliases>>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostIPC")]
     pub host_ipc: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostNetwork")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostNetwork"
+    )]
     pub host_network: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostPID")]
     pub host_pid: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullSecrets")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullSecrets"
+    )]
     pub image_pull_secrets: Option<Vec<NotebookTemplateSpecImagePullSecrets>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initContainers")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initContainers"
+    )]
     pub init_containers: Option<Vec<NotebookTemplateSpecInitContainers>>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeName")]
     pub node_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeSelector"
+    )]
     pub node_selector: Option<BTreeMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub os: Option<NotebookTemplateSpecOs>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overhead: Option<BTreeMap<String, IntOrString>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preemptionPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preemptionPolicy"
+    )]
     pub preemption_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub priority: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "priorityClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "priorityClassName"
+    )]
     pub priority_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessGates")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessGates"
+    )]
     pub readiness_gates: Option<Vec<NotebookTemplateSpecReadinessGates>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "restartPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "restartPolicy"
+    )]
     pub restart_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runtimeClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runtimeClassName"
+    )]
     pub runtime_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "schedulerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "schedulerName"
+    )]
     pub scheduler_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<NotebookTemplateSpecSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccount")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccount"
+    )]
     pub service_account: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountName"
+    )]
     pub service_account_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "setHostnameAsFQDN")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "setHostnameAsFQDN"
+    )]
     pub set_hostname_as_fqdn: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "shareProcessNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "shareProcessNamespace"
+    )]
     pub share_process_namespace: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subdomain: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tolerations: Option<Vec<NotebookTemplateSpecTolerations>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "topologySpreadConstraints")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "topologySpreadConstraints"
+    )]
     pub topology_spread_constraints: Option<Vec<NotebookTemplateSpecTopologySpreadConstraints>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volumes: Option<Vec<NotebookTemplateSpecVolumes>>,
@@ -105,20 +198,46 @@ pub struct NotebookTemplateSpec {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodeAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodeAffinity"
+    )]
     pub node_affinity: Option<NotebookTemplateSpecAffinityNodeAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAffinity"
+    )]
     pub pod_affinity: Option<NotebookTemplateSpecAffinityPodAffinity>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "podAntiAffinity")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "podAntiAffinity"
+    )]
     pub pod_anti_affinity: Option<NotebookTemplateSpecAffinityPodAntiAffinity>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecAffinityNodeAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preferredDuringSchedulingIgnoredDuringExecution")]
-    pub preferred_during_scheduling_ignored_during_execution: Option<Vec<NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecution>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "requiredDuringSchedulingIgnoredDuringExecution")]
-    pub required_during_scheduling_ignored_during_execution: Option<NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecution>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preferredDuringSchedulingIgnoredDuringExecution"
+    )]
+    pub preferred_during_scheduling_ignored_during_execution: Option<
+        Vec<
+            NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecution,
+        >,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "requiredDuringSchedulingIgnoredDuringExecution"
+    )]
+    pub required_during_scheduling_ignored_during_execution: Option<
+        NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecution,
+    >,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -136,7 +255,8 @@ pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgno
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions {
+pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -144,7 +264,8 @@ pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgno
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields {
+pub struct NotebookTemplateSpecAffinityNodeAffinityPreferredDuringSchedulingIgnoredDuringExecutionPreferenceMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -166,7 +287,8 @@ pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnor
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions {
+pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -174,7 +296,8 @@ pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnor
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields {
+pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnoredDuringExecutionNodeSelectorTermsMatchFields
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -183,10 +306,22 @@ pub struct NotebookTemplateSpecAffinityNodeAffinityRequiredDuringSchedulingIgnor
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecAffinityPodAffinity {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "preferredDuringSchedulingIgnoredDuringExecution")]
-    pub preferred_during_scheduling_ignored_during_execution: Option<Vec<NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecution>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "requiredDuringSchedulingIgnoredDuringExecution")]
-    pub required_during_scheduling_ignored_during_execution: Option<Vec<NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecution>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "preferredDuringSchedulingIgnoredDuringExecution"
+    )]
+    pub preferred_during_scheduling_ignored_during_execution: Option<
+        Vec<NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecution>,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "requiredDuringSchedulingIgnoredDuringExecution"
+    )]
+    pub required_during_scheduling_ignored_during_execution: Option<
+        Vec<NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecution>,
+    >,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -217,7 +352,8 @@ pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnor
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -233,7 +369,8 @@ pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnor
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -261,7 +398,8 @@ pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnore
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -277,7 +415,8 @@ pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnore
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -320,7 +459,8 @@ pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -336,7 +476,8 @@ pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingI
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAntiAffinityPreferredDuringSchedulingIgnoredDuringExecutionPodAffinityTermNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -364,7 +505,8 @@ pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIg
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionLabelSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -380,7 +522,8 @@ pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIg
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions {
+pub struct NotebookTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions
+{
     pub key: String,
     pub operator: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -399,38 +542,78 @@ pub struct NotebookTemplateSpecContainers {
     pub env_from: Option<Vec<NotebookTemplateSpecContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<NotebookTemplateSpecContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<NotebookTemplateSpecContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<NotebookTemplateSpecContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<NotebookTemplateSpecContainersReadinessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<NotebookTemplateSpecContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<NotebookTemplateSpecContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<NotebookTemplateSpecContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<NotebookTemplateSpecContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<NotebookTemplateSpecContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -445,13 +628,25 @@ pub struct NotebookTemplateSpecContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<NotebookTemplateSpecContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<NotebookTemplateSpecContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<NotebookTemplateSpecContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<NotebookTemplateSpecContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -466,7 +661,11 @@ pub struct NotebookTemplateSpecContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -474,7 +673,11 @@ pub struct NotebookTemplateSpecContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -492,7 +695,11 @@ pub struct NotebookTemplateSpecContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<NotebookTemplateSpecContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -544,8 +751,13 @@ pub struct NotebookTemplateSpecContainersLifecyclePostStartExec {
 pub struct NotebookTemplateSpecContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -586,7 +798,11 @@ pub struct NotebookTemplateSpecContainersLifecyclePreStopExec {
 pub struct NotebookTemplateSpecContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<NotebookTemplateSpecContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -612,23 +828,47 @@ pub struct NotebookTemplateSpecContainersLifecyclePreStopTcpSocket {
 pub struct NotebookTemplateSpecContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -649,7 +889,11 @@ pub struct NotebookTemplateSpecContainersLivenessProbeGrpc {
 pub struct NotebookTemplateSpecContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<NotebookTemplateSpecContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -689,23 +933,47 @@ pub struct NotebookTemplateSpecContainersPorts {
 pub struct NotebookTemplateSpecContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -726,7 +994,11 @@ pub struct NotebookTemplateSpecContainersReadinessProbeGrpc {
 pub struct NotebookTemplateSpecContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<NotebookTemplateSpecContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -758,7 +1030,11 @@ pub struct NotebookTemplateSpecContainersResources {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<NotebookTemplateSpecContainersSecurityContextCapabilities>,
@@ -766,19 +1042,43 @@ pub struct NotebookTemplateSpecContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<NotebookTemplateSpecContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<NotebookTemplateSpecContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<NotebookTemplateSpecContainersSecurityContextWindowsOptions>,
 }
 
@@ -804,7 +1104,11 @@ pub struct NotebookTemplateSpecContainersSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -812,13 +1116,29 @@ pub struct NotebookTemplateSpecContainersSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -826,23 +1146,47 @@ pub struct NotebookTemplateSpecContainersSecurityContextWindowsOptions {
 pub struct NotebookTemplateSpecContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -863,7 +1207,11 @@ pub struct NotebookTemplateSpecContainersStartupProbeGrpc {
 pub struct NotebookTemplateSpecContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<NotebookTemplateSpecContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -896,14 +1244,22 @@ pub struct NotebookTemplateSpecContainersVolumeDevices {
 pub struct NotebookTemplateSpecContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -937,40 +1293,84 @@ pub struct NotebookTemplateSpecEphemeralContainers {
     pub env_from: Option<Vec<NotebookTemplateSpecEphemeralContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<NotebookTemplateSpecEphemeralContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<NotebookTemplateSpecEphemeralContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<NotebookTemplateSpecEphemeralContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<NotebookTemplateSpecEphemeralContainersReadinessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<NotebookTemplateSpecEphemeralContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<NotebookTemplateSpecEphemeralContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<NotebookTemplateSpecEphemeralContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetContainerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetContainerName"
+    )]
     pub target_container_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<NotebookTemplateSpecEphemeralContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<NotebookTemplateSpecEphemeralContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -985,13 +1385,27 @@ pub struct NotebookTemplateSpecEphemeralContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
-    pub config_map_key_ref: Option<NotebookTemplateSpecEphemeralContainersEnvValueFromConfigMapKeyRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
+    pub config_map_key_ref:
+        Option<NotebookTemplateSpecEphemeralContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<NotebookTemplateSpecEphemeralContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<NotebookTemplateSpecEphemeralContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<NotebookTemplateSpecEphemeralContainersEnvValueFromResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<NotebookTemplateSpecEphemeralContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -1006,7 +1420,11 @@ pub struct NotebookTemplateSpecEphemeralContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -1014,7 +1432,11 @@ pub struct NotebookTemplateSpecEphemeralContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -1032,7 +1454,11 @@ pub struct NotebookTemplateSpecEphemeralContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<NotebookTemplateSpecEphemeralContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -1084,8 +1510,13 @@ pub struct NotebookTemplateSpecEphemeralContainersLifecyclePostStartExec {
 pub struct NotebookTemplateSpecEphemeralContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecEphemeralContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecEphemeralContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1126,8 +1557,13 @@ pub struct NotebookTemplateSpecEphemeralContainersLifecyclePreStopExec {
 pub struct NotebookTemplateSpecEphemeralContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecEphemeralContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecEphemeralContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1152,23 +1588,47 @@ pub struct NotebookTemplateSpecEphemeralContainersLifecyclePreStopTcpSocket {
 pub struct NotebookTemplateSpecEphemeralContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecEphemeralContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecEphemeralContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecEphemeralContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecEphemeralContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1189,8 +1649,13 @@ pub struct NotebookTemplateSpecEphemeralContainersLivenessProbeGrpc {
 pub struct NotebookTemplateSpecEphemeralContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecEphemeralContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecEphemeralContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1229,23 +1694,47 @@ pub struct NotebookTemplateSpecEphemeralContainersPorts {
 pub struct NotebookTemplateSpecEphemeralContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecEphemeralContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecEphemeralContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecEphemeralContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecEphemeralContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1266,8 +1755,13 @@ pub struct NotebookTemplateSpecEphemeralContainersReadinessProbeGrpc {
 pub struct NotebookTemplateSpecEphemeralContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecEphemeralContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecEphemeralContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1298,7 +1792,11 @@ pub struct NotebookTemplateSpecEphemeralContainersResources {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<NotebookTemplateSpecEphemeralContainersSecurityContextCapabilities>,
@@ -1306,20 +1804,47 @@ pub struct NotebookTemplateSpecEphemeralContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
-    pub se_linux_options: Option<NotebookTemplateSpecEphemeralContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
-    pub seccomp_profile: Option<NotebookTemplateSpecEphemeralContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
-    pub windows_options: Option<NotebookTemplateSpecEphemeralContainersSecurityContextWindowsOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
+    pub se_linux_options:
+        Option<NotebookTemplateSpecEphemeralContainersSecurityContextSeLinuxOptions>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
+    pub seccomp_profile:
+        Option<NotebookTemplateSpecEphemeralContainersSecurityContextSeccompProfile>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
+    pub windows_options:
+        Option<NotebookTemplateSpecEphemeralContainersSecurityContextWindowsOptions>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -1344,7 +1869,11 @@ pub struct NotebookTemplateSpecEphemeralContainersSecurityContextSeLinuxOptions 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -1352,13 +1881,29 @@ pub struct NotebookTemplateSpecEphemeralContainersSecurityContextSeccompProfile 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecEphemeralContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -1366,23 +1911,47 @@ pub struct NotebookTemplateSpecEphemeralContainersSecurityContextWindowsOptions 
 pub struct NotebookTemplateSpecEphemeralContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecEphemeralContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecEphemeralContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecEphemeralContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecEphemeralContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1403,8 +1972,13 @@ pub struct NotebookTemplateSpecEphemeralContainersStartupProbeGrpc {
 pub struct NotebookTemplateSpecEphemeralContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecEphemeralContainersStartupProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecEphemeralContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1436,14 +2010,22 @@ pub struct NotebookTemplateSpecEphemeralContainersVolumeDevices {
 pub struct NotebookTemplateSpecEphemeralContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -1473,38 +2055,78 @@ pub struct NotebookTemplateSpecInitContainers {
     pub env_from: Option<Vec<NotebookTemplateSpecInitContainersEnvFrom>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "imagePullPolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "imagePullPolicy"
+    )]
     pub image_pull_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lifecycle: Option<NotebookTemplateSpecInitContainersLifecycle>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "livenessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "livenessProbe"
+    )]
     pub liveness_probe: Option<NotebookTemplateSpecInitContainersLivenessProbe>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ports: Option<Vec<NotebookTemplateSpecInitContainersPorts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readinessProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readinessProbe"
+    )]
     pub readiness_probe: Option<NotebookTemplateSpecInitContainersReadinessProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<NotebookTemplateSpecInitContainersResources>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "securityContext")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "securityContext"
+    )]
     pub security_context: Option<NotebookTemplateSpecInitContainersSecurityContext>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "startupProbe")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "startupProbe"
+    )]
     pub startup_probe: Option<NotebookTemplateSpecInitContainersStartupProbe>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stdin: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "stdinOnce")]
     pub stdin_once: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePath")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePath"
+    )]
     pub termination_message_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationMessagePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationMessagePolicy"
+    )]
     pub termination_message_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tty: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeDevices")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeDevices"
+    )]
     pub volume_devices: Option<Vec<NotebookTemplateSpecInitContainersVolumeDevices>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMounts")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMounts"
+    )]
     pub volume_mounts: Option<Vec<NotebookTemplateSpecInitContainersVolumeMounts>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "workingDir")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "workingDir"
+    )]
     pub working_dir: Option<String>,
 }
 
@@ -1519,13 +2141,25 @@ pub struct NotebookTemplateSpecInitContainersEnv {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersEnvValueFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapKeyRef"
+    )]
     pub config_map_key_ref: Option<NotebookTemplateSpecInitContainersEnvValueFromConfigMapKeyRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fieldRef")]
     pub field_ref: Option<NotebookTemplateSpecInitContainersEnvValueFromFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<NotebookTemplateSpecInitContainersEnvValueFromResourceFieldRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretKeyRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretKeyRef"
+    )]
     pub secret_key_ref: Option<NotebookTemplateSpecInitContainersEnvValueFromSecretKeyRef>,
 }
 
@@ -1540,7 +2174,11 @@ pub struct NotebookTemplateSpecInitContainersEnvValueFromConfigMapKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersEnvValueFromFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -1548,7 +2186,11 @@ pub struct NotebookTemplateSpecInitContainersEnvValueFromFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersEnvValueFromResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -1566,7 +2208,11 @@ pub struct NotebookTemplateSpecInitContainersEnvValueFromSecretKeyRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersEnvFrom {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMapRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "configMapRef"
+    )]
     pub config_map_ref: Option<NotebookTemplateSpecInitContainersEnvFromConfigMapRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prefix: Option<String>,
@@ -1618,8 +2264,13 @@ pub struct NotebookTemplateSpecInitContainersLifecyclePostStartExec {
 pub struct NotebookTemplateSpecInitContainersLifecyclePostStartHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecInitContainersLifecyclePostStartHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1660,8 +2311,13 @@ pub struct NotebookTemplateSpecInitContainersLifecyclePreStopExec {
 pub struct NotebookTemplateSpecInitContainersLifecyclePreStopHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecInitContainersLifecyclePreStopHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1686,23 +2342,47 @@ pub struct NotebookTemplateSpecInitContainersLifecyclePreStopTcpSocket {
 pub struct NotebookTemplateSpecInitContainersLivenessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecInitContainersLivenessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecInitContainersLivenessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecInitContainersLivenessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecInitContainersLivenessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1723,8 +2403,13 @@ pub struct NotebookTemplateSpecInitContainersLivenessProbeGrpc {
 pub struct NotebookTemplateSpecInitContainersLivenessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecInitContainersLivenessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecInitContainersLivenessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1763,23 +2448,47 @@ pub struct NotebookTemplateSpecInitContainersPorts {
 pub struct NotebookTemplateSpecInitContainersReadinessProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecInitContainersReadinessProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecInitContainersReadinessProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecInitContainersReadinessProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecInitContainersReadinessProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1800,8 +2509,13 @@ pub struct NotebookTemplateSpecInitContainersReadinessProbeGrpc {
 pub struct NotebookTemplateSpecInitContainersReadinessProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
-    pub http_headers: Option<Vec<NotebookTemplateSpecInitContainersReadinessProbeHttpGetHttpHeaders>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
+    pub http_headers:
+        Option<Vec<NotebookTemplateSpecInitContainersReadinessProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     pub port: IntOrString,
@@ -1832,7 +2546,11 @@ pub struct NotebookTemplateSpecInitContainersResources {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersSecurityContext {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "allowPrivilegeEscalation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowPrivilegeEscalation"
+    )]
     pub allow_privilege_escalation: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capabilities: Option<NotebookTemplateSpecInitContainersSecurityContextCapabilities>,
@@ -1840,19 +2558,43 @@ pub struct NotebookTemplateSpecInitContainersSecurityContext {
     pub privileged: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "procMount")]
     pub proc_mount: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnlyRootFilesystem")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "readOnlyRootFilesystem"
+    )]
     pub read_only_root_filesystem: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<NotebookTemplateSpecInitContainersSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<NotebookTemplateSpecInitContainersSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<NotebookTemplateSpecInitContainersSecurityContextWindowsOptions>,
 }
 
@@ -1878,7 +2620,11 @@ pub struct NotebookTemplateSpecInitContainersSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -1886,13 +2632,29 @@ pub struct NotebookTemplateSpecInitContainersSecurityContextSeccompProfile {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecInitContainersSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -1900,23 +2662,47 @@ pub struct NotebookTemplateSpecInitContainersSecurityContextWindowsOptions {
 pub struct NotebookTemplateSpecInitContainersStartupProbe {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exec: Option<NotebookTemplateSpecInitContainersStartupProbeExec>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "failureThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "failureThreshold"
+    )]
     pub failure_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grpc: Option<NotebookTemplateSpecInitContainersStartupProbeGrpc>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpGet")]
     pub http_get: Option<NotebookTemplateSpecInitContainersStartupProbeHttpGet>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initialDelaySeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initialDelaySeconds"
+    )]
     pub initial_delay_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "periodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "periodSeconds"
+    )]
     pub period_seconds: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "successThreshold")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "successThreshold"
+    )]
     pub success_threshold: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "tcpSocket")]
     pub tcp_socket: Option<NotebookTemplateSpecInitContainersStartupProbeTcpSocket>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "terminationGracePeriodSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "terminationGracePeriodSeconds"
+    )]
     pub termination_grace_period_seconds: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "timeoutSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "timeoutSeconds"
+    )]
     pub timeout_seconds: Option<i32>,
 }
 
@@ -1937,7 +2723,11 @@ pub struct NotebookTemplateSpecInitContainersStartupProbeGrpc {
 pub struct NotebookTemplateSpecInitContainersStartupProbeHttpGet {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub host: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "httpHeaders")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "httpHeaders"
+    )]
     pub http_headers: Option<Vec<NotebookTemplateSpecInitContainersStartupProbeHttpGetHttpHeaders>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
@@ -1970,14 +2760,22 @@ pub struct NotebookTemplateSpecInitContainersVolumeDevices {
 pub struct NotebookTemplateSpecInitContainersVolumeMounts {
     #[serde(rename = "mountPath")]
     pub mount_path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "mountPropagation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "mountPropagation"
+    )]
     pub mount_propagation: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPath")]
     pub sub_path: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "subPathExpr")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "subPathExpr"
+    )]
     pub sub_path_expr: Option<String>,
 }
 
@@ -1996,23 +2794,51 @@ pub struct NotebookTemplateSpecReadinessGates {
 pub struct NotebookTemplateSpecSecurityContext {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroup")]
     pub fs_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsGroupChangePolicy")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "fsGroupChangePolicy"
+    )]
     pub fs_group_change_policy: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsGroup")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsGroup"
+    )]
     pub run_as_group: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsNonRoot")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsNonRoot"
+    )]
     pub run_as_non_root: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUser")]
     pub run_as_user: Option<i64>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seLinuxOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seLinuxOptions"
+    )]
     pub se_linux_options: Option<NotebookTemplateSpecSecurityContextSeLinuxOptions>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "seccompProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "seccompProfile"
+    )]
     pub seccomp_profile: Option<NotebookTemplateSpecSecurityContextSeccompProfile>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "supplementalGroups")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "supplementalGroups"
+    )]
     pub supplemental_groups: Option<Vec<i64>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sysctls: Option<Vec<NotebookTemplateSpecSecurityContextSysctls>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "windowsOptions")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "windowsOptions"
+    )]
     pub windows_options: Option<NotebookTemplateSpecSecurityContextWindowsOptions>,
 }
 
@@ -2030,7 +2856,11 @@ pub struct NotebookTemplateSpecSecurityContextSeLinuxOptions {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecSecurityContextSeccompProfile {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "localhostProfile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "localhostProfile"
+    )]
     pub localhost_profile: Option<String>,
     #[serde(rename = "type")]
     pub r#type: String,
@@ -2044,13 +2874,29 @@ pub struct NotebookTemplateSpecSecurityContextSysctls {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecSecurityContextWindowsOptions {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpec")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpec"
+    )]
     pub gmsa_credential_spec: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gmsaCredentialSpecName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gmsaCredentialSpecName"
+    )]
     pub gmsa_credential_spec_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "hostProcess")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "hostProcess"
+    )]
     pub host_process: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "runAsUserName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "runAsUserName"
+    )]
     pub run_as_user_name: Option<String>,
 }
 
@@ -2062,7 +2908,11 @@ pub struct NotebookTemplateSpecTolerations {
     pub key: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub operator: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "tolerationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "tolerationSeconds"
+    )]
     pub toleration_seconds: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
@@ -2070,7 +2920,11 @@ pub struct NotebookTemplateSpecTolerations {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecTopologySpreadConstraints {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "labelSelector")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "labelSelector"
+    )]
     pub label_selector: Option<NotebookTemplateSpecTopologySpreadConstraintsLabelSelector>,
     #[serde(rename = "maxSkew")]
     pub max_skew: i32,
@@ -2082,9 +2936,18 @@ pub struct NotebookTemplateSpecTopologySpreadConstraints {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecTopologySpreadConstraintsLabelSelector {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchExpressions")]
-    pub match_expressions: Option<Vec<NotebookTemplateSpecTopologySpreadConstraintsLabelSelectorMatchExpressions>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabels")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchExpressions"
+    )]
+    pub match_expressions:
+        Option<Vec<NotebookTemplateSpecTopologySpreadConstraintsLabelSelectorMatchExpressions>>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabels"
+    )]
     pub match_labels: Option<BTreeMap<String, String>>,
 }
 
@@ -2098,7 +2961,11 @@ pub struct NotebookTemplateSpecTopologySpreadConstraintsLabelSelectorMatchExpres
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumes {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "awsElasticBlockStore")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "awsElasticBlockStore"
+    )]
     pub aws_elastic_block_store: Option<NotebookTemplateSpecVolumesAwsElasticBlockStore>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "azureDisk")]
     pub azure_disk: Option<NotebookTemplateSpecVolumesAzureDisk>,
@@ -2112,7 +2979,11 @@ pub struct NotebookTemplateSpecVolumes {
     pub config_map: Option<NotebookTemplateSpecVolumesConfigMap>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub csi: Option<NotebookTemplateSpecVolumesCsi>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<NotebookTemplateSpecVolumesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "emptyDir")]
     pub empty_dir: Option<NotebookTemplateSpecVolumesEmptyDir>,
@@ -2120,11 +2991,19 @@ pub struct NotebookTemplateSpecVolumes {
     pub ephemeral: Option<NotebookTemplateSpecVolumesEphemeral>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fc: Option<NotebookTemplateSpecVolumesFc>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "flexVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "flexVolume"
+    )]
     pub flex_volume: Option<NotebookTemplateSpecVolumesFlexVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flocker: Option<NotebookTemplateSpecVolumesFlocker>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "gcePersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "gcePersistentDisk"
+    )]
     pub gce_persistent_disk: Option<NotebookTemplateSpecVolumesGcePersistentDisk>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "gitRepo")]
     pub git_repo: Option<NotebookTemplateSpecVolumesGitRepo>,
@@ -2137,11 +3016,23 @@ pub struct NotebookTemplateSpecVolumes {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nfs: Option<NotebookTemplateSpecVolumesNfs>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "persistentVolumeClaim")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "persistentVolumeClaim"
+    )]
     pub persistent_volume_claim: Option<NotebookTemplateSpecVolumesPersistentVolumeClaim>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "photonPersistentDisk")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "photonPersistentDisk"
+    )]
     pub photon_persistent_disk: Option<NotebookTemplateSpecVolumesPhotonPersistentDisk>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "portworxVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "portworxVolume"
+    )]
     pub portworx_volume: Option<NotebookTemplateSpecVolumesPortworxVolume>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub projected: Option<NotebookTemplateSpecVolumesProjected>,
@@ -2155,7 +3046,11 @@ pub struct NotebookTemplateSpecVolumes {
     pub secret: Option<NotebookTemplateSpecVolumesSecret>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub storageos: Option<NotebookTemplateSpecVolumesStorageos>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "vsphereVolume")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "vsphereVolume"
+    )]
     pub vsphere_volume: Option<NotebookTemplateSpecVolumesVsphereVolume>,
 }
 
@@ -2173,7 +3068,11 @@ pub struct NotebookTemplateSpecVolumesAwsElasticBlockStore {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesAzureDisk {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "cachingMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "cachingMode"
+    )]
     pub caching_mode: Option<String>,
     #[serde(rename = "diskName")]
     pub disk_name: String,
@@ -2204,7 +3103,11 @@ pub struct NotebookTemplateSpecVolumesCephfs {
     pub path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretFile")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretFile"
+    )]
     pub secret_file: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<NotebookTemplateSpecVolumesCephfsSecretRef>,
@@ -2238,7 +3141,11 @@ pub struct NotebookTemplateSpecVolumesCinderSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesConfigMap {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<NotebookTemplateSpecVolumesConfigMapItems>>,
@@ -2261,11 +3168,19 @@ pub struct NotebookTemplateSpecVolumesCsi {
     pub driver: String,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nodePublishSecretRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "nodePublishSecretRef"
+    )]
     pub node_publish_secret_ref: Option<NotebookTemplateSpecVolumesCsiNodePublishSecretRef>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeAttributes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeAttributes"
+    )]
     pub volume_attributes: Option<BTreeMap<String, String>>,
 }
 
@@ -2277,7 +3192,11 @@ pub struct NotebookTemplateSpecVolumesCsiNodePublishSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesDownwardApi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<NotebookTemplateSpecVolumesDownwardApiItems>>,
@@ -2290,13 +3209,21 @@ pub struct NotebookTemplateSpecVolumesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
     pub resource_field_ref: Option<NotebookTemplateSpecVolumesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -2304,7 +3231,11 @@ pub struct NotebookTemplateSpecVolumesDownwardApiItemsFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -2321,7 +3252,11 @@ pub struct NotebookTemplateSpecVolumesEmptyDir {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesEphemeral {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeClaimTemplate")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeClaimTemplate"
+    )]
     pub volume_claim_template: Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplate>,
 }
 
@@ -2333,26 +3268,50 @@ pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplate {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateMetadata {
-}
+pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateMetadata {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "accessModes")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "accessModes"
+    )]
     pub access_modes: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSource")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSource"
+    )]
     pub data_source: Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecDataSource>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "dataSourceRef")]
-    pub data_source_ref: Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "dataSourceRef"
+    )]
+    pub data_source_ref:
+        Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecDataSourceRef>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resources: Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecResources>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selector: Option<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecSelector>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageClassName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageClassName"
+    )]
     pub storage_class_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeMode"
+    )]
     pub volume_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -2382,9 +3341,19 @@ pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecResources 
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecSelector {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchExpressions")]
-    pub match_expressions: Option<Vec<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions>>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "matchLabels")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchExpressions"
+    )]
+    pub match_expressions: Option<
+        Vec<NotebookTemplateSpecVolumesEphemeralVolumeClaimTemplateSpecSelectorMatchExpressions>,
+    >,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "matchLabels"
+    )]
     pub match_labels: Option<BTreeMap<String, String>>,
 }
 
@@ -2404,7 +3373,11 @@ pub struct NotebookTemplateSpecVolumesFc {
     pub lun: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "targetWWNs")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "targetWWNs"
+    )]
     pub target_ww_ns: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wwids: Option<Vec<String>>,
@@ -2431,9 +3404,17 @@ pub struct NotebookTemplateSpecVolumesFlexVolumeSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesFlocker {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetName"
+    )]
     pub dataset_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "datasetUUID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "datasetUUID"
+    )]
     pub dataset_uuid: Option<String>,
 }
 
@@ -2475,16 +3456,32 @@ pub struct NotebookTemplateSpecVolumesHostPath {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesIscsi {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthDiscovery")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthDiscovery"
+    )]
     pub chap_auth_discovery: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "chapAuthSession")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "chapAuthSession"
+    )]
     pub chap_auth_session: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "initiatorName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "initiatorName"
+    )]
     pub initiator_name: Option<String>,
     pub iqn: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "iscsiInterface")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "iscsiInterface"
+    )]
     pub iscsi_interface: Option<String>,
     pub lun: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -2539,7 +3536,11 @@ pub struct NotebookTemplateSpecVolumesPortworxVolume {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesProjected {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<NotebookTemplateSpecVolumesProjectedSources>>,
@@ -2549,12 +3550,21 @@ pub struct NotebookTemplateSpecVolumesProjected {
 pub struct NotebookTemplateSpecVolumesProjectedSources {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "configMap")]
     pub config_map: Option<NotebookTemplateSpecVolumesProjectedSourcesConfigMap>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "downwardAPI")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "downwardAPI"
+    )]
     pub downward_api: Option<NotebookTemplateSpecVolumesProjectedSourcesDownwardApi>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub secret: Option<NotebookTemplateSpecVolumesProjectedSourcesSecret>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "serviceAccountToken")]
-    pub service_account_token: Option<NotebookTemplateSpecVolumesProjectedSourcesServiceAccountToken>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "serviceAccountToken"
+    )]
+    pub service_account_token:
+        Option<NotebookTemplateSpecVolumesProjectedSourcesServiceAccountToken>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -2588,13 +3598,22 @@ pub struct NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItems {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<i32>,
     pub path: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "resourceFieldRef")]
-    pub resource_field_ref: Option<NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "resourceFieldRef"
+    )]
+    pub resource_field_ref:
+        Option<NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItemsResourceFieldRef>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItemsFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "apiVersion")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "apiVersion"
+    )]
     pub api_version: Option<String>,
     #[serde(rename = "fieldPath")]
     pub field_path: String,
@@ -2602,7 +3621,11 @@ pub struct NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItemsFieldRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesProjectedSourcesDownwardApiItemsResourceFieldRef {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerName"
+    )]
     pub container_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub divisor: Option<IntOrString>,
@@ -2631,7 +3654,11 @@ pub struct NotebookTemplateSpecVolumesProjectedSourcesSecretItems {
 pub struct NotebookTemplateSpecVolumesProjectedSourcesServiceAccountToken {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "expirationSeconds")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "expirationSeconds"
+    )]
     pub expiration_seconds: Option<i64>,
     pub path: String,
 }
@@ -2679,20 +3706,40 @@ pub struct NotebookTemplateSpecVolumesScaleIo {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
     pub gateway: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "protectionDomain")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "protectionDomain"
+    )]
     pub protection_domain: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "readOnly")]
     pub read_only: Option<bool>,
     #[serde(rename = "secretRef")]
     pub secret_ref: NotebookTemplateSpecVolumesScaleIoSecretRef,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "sslEnabled")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "sslEnabled"
+    )]
     pub ssl_enabled: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storageMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storageMode"
+    )]
     pub storage_mode: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePool")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePool"
+    )]
     pub storage_pool: Option<String>,
     pub system: String,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
 }
 
@@ -2704,13 +3751,21 @@ pub struct NotebookTemplateSpecVolumesScaleIoSecretRef {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookTemplateSpecVolumesSecret {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "defaultMode")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "defaultMode"
+    )]
     pub default_mode: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub items: Option<Vec<NotebookTemplateSpecVolumesSecretItems>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "secretName"
+    )]
     pub secret_name: Option<String>,
 }
 
@@ -2730,9 +3785,17 @@ pub struct NotebookTemplateSpecVolumesStorageos {
     pub read_only: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "secretRef")]
     pub secret_ref: Option<NotebookTemplateSpecVolumesStorageosSecretRef>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeName"
+    )]
     pub volume_name: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "volumeNamespace")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "volumeNamespace"
+    )]
     pub volume_namespace: Option<String>,
 }
 
@@ -2746,9 +3809,17 @@ pub struct NotebookTemplateSpecVolumesStorageosSecretRef {
 pub struct NotebookTemplateSpecVolumesVsphereVolume {
     #[serde(default, skip_serializing_if = "Option::is_none", rename = "fsType")]
     pub fs_type: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyID"
+    )]
     pub storage_policy_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "storagePolicyName")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "storagePolicyName"
+    )]
     pub storage_policy_name: Option<String>,
     #[serde(rename = "volumePath")]
     pub volume_path: String,
@@ -2781,11 +3852,19 @@ pub struct NotebookStatusContainerStateRunning {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NotebookStatusContainerStateTerminated {
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "containerID")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "containerID"
+    )]
     pub container_id: Option<String>,
     #[serde(rename = "exitCode")]
     pub exit_code: i32,
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "finishedAt")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "finishedAt"
+    )]
     pub finished_at: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
@@ -2804,4 +3883,3 @@ pub struct NotebookStatusContainerStateWaiting {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
-

@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: gpu-pruner
-  namespace: your-namespace
+  namespace: gpu-pruner-system
 spec:
   replicas: 1
   selector:
@@ -13,22 +13,16 @@ spec:
       labels:
         app: gpu-pruner
     spec:
-      volumes:
-        - name: secret-volume
-          secret:
-            secretName: example-kubeconfig
-            defaultMode: 420
+      serviceAccountName: gpu-pruner
       containers:
         - name: container
-          image: 'quay.io/wseaton/gpu-pruner:latest'
+          image: 'quay.io/wseaton/gpu-pruner:ubi9'
           args:
             - 'gpu-pruner'
             - '-d'
             - '--run-mode=scale-down'
-            - '--prometheus-url=https://thanos-querier-openshift-monitoring.cluster-url.svc'
+            - '--prometheus-url=http://thanos-querier.openshift-monitoring.svc.cluster.local'
           env:
-            - name: KUBECONFIG
-              value: /kube/config
             - name: RUST_BACKTRACE
               value: '1'
             - name: RUST_LOG
@@ -40,9 +34,5 @@ spec:
             requests:
               cpu: 250m
               memory: 64Mi
-          volumeMounts:
-            - name: secret-volume
-              readOnly: true
-              mountPath: /kube
           imagePullPolicy: Always
       restartPolicy: Always

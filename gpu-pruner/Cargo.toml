@@ -22,3 +22,5 @@ reqwest = "0.12.4"
 
 clap = { version = "4.5.4", features = ["derive"] }
 minijinja = "2.0.3"
+
+secrecy = "0.8.0"
