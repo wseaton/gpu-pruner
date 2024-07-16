@@ -1,8 +1,8 @@
 # gpu-pruner
 
-The `gpu-pruner` is a non-desctuctive idle culler that works with RHOAI/Kubeflow provided APIs (`InferenceService` and `Notebook`), as well as generic `Deployment`, `ReplicaSet` and `StatefulSet`.
+The `gpu-pruner` is a non-destructive idle culler that works with Red Hat OpenShift AI/Kubeflow provided APIs (`InferenceService` and `Notebook`), as well as generic `Deployment`, `ReplicaSet` and `StatefulSet`.
 
-The way it works is by querying cluster NVIDIA DCGM metrics and looking at a window of GPU utiliazation per pod. A scaling decision is made by looking up the pods metadata, and using owner-references to figure out the owning resource.
+The way it works is by querying cluster NVIDIA DCGM metrics and looking at a window of GPU utilization per pod. A scaling decision is made by looking up the pods metadata, and using owner-references to figure out the owning resource.
 
 **Note:** Requires a K8s service account with CRUD access to the resources in the namespaces that you want to prune.
 
@@ -56,4 +56,4 @@ Options:
 
 ## TODOs
 
-- emit a kubernetes event when a scaling action has occured
+- emit a kubernetes event when a scaling action has occurred
