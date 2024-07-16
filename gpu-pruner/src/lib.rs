@@ -1,11 +1,16 @@
-use std::hash::{Hasher, Hash};
+use std::hash::{Hash, Hasher};
 
-
-use k8s_openapi::{api::{apps::v1::{Deployment, ReplicaSet, StatefulSet}, autoscaling::v2::PodsMetricStatus, core::v1::ObjectReference}, Resource};
+use k8s_openapi::{
+    api::{
+        apps::v1::{Deployment, ReplicaSet, StatefulSet},
+        autoscaling::v2::PodsMetricStatus,
+        core::v1::ObjectReference,
+    },
+    Resource,
+};
 use kube::{api::PostParams, client, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use serde::Serialize;
-
 
 use minijinja::{context, Environment};
 
@@ -15,20 +20,18 @@ use uuid::Uuid;
 
 use std::{collections::HashSet, fmt::Debug};
 
-
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
 use k8s_openapi::{
-    api::{
-
-        core::v1::{Event, Pod},
-    }, apimachinery::pkg::apis::meta::v1::Time, chrono::{offset, Duration}
+    api::core::v1::{Event, Pod},
+    apimachinery::pkg::apis::meta::v1::Time,
+    chrono::{offset, Duration},
 };
 use kube::{
-    api::{ObjectMeta, Patch, PatchParams}, Api, Client as KubeClient, Config
+    api::{ObjectMeta, Patch, PatchParams},
+    Api, Client as KubeClient, Config,
 };
-
 
 #[derive(Debug, Clone, Serialize)]
 pub enum ScaleKind {
@@ -61,37 +64,36 @@ impl Hash for ScaleKind {
         match self {
             ScaleKind::Deployment(a) => {
                 a.uid().hash(state);
-            },
+            }
             ScaleKind::ReplicaSet(a) => {
                 a.uid().hash(state);
-            },
+            }
             ScaleKind::StatefulSet(a) => {
                 a.uid().hash(state);
-            },
+            }
             ScaleKind::InferenceService(a) => {
                 a.uid().hash(state);
-            },
+            }
             ScaleKind::Notebook(a) => {
                 a.uid().hash(state);
-            },
+            }
         }
     }
 }
 
 pub trait Meta {
     fn name(&self) -> String;
-    fn namespace(&self) -> Option<String>;    
+    fn namespace(&self) -> Option<String>;
     fn kind(&self) -> String;
     fn uid(&self) -> Option<String>;
-    
 }
 
 pub trait Scaler {
-    fn scale(&self, client: Client) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+    fn scale(&self, client: Client)
+        -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     fn generate_scale_event(&self) -> anyhow::Result<Event>;
 }
-
 
 impl Meta for ScaleKind {
     fn name(&self) -> String {
@@ -132,56 +134,67 @@ impl Meta for ScaleKind {
             ScaleKind::Notebook(d) => d.uid(),
             ScaleKind::InferenceService(d) => d.uid(),
         }
-        
-        }
+    }
 }
-
 
 impl Scaler for ScaleKind {
     async fn scale(&self, client: Client) -> anyhow::Result<()> {
-
         let event = self.generate_scale_event()?;
         let events_api: Api<Event> = Api::all(client.clone());
 
         match events_api.create(&PostParams::default(), &event).await {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 tracing::error!("Failed to push Event for scale down!: {e}");
-            }            
+            }
         };
-
 
         match self {
             ScaleKind::Deployment(d) => {
-                let api: Api<Deployment> = Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
+                let api: Api<Deployment> =
+                    Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
                 scale_to_zero(api, &d.name_unchecked()).await
-            },
+            }
             ScaleKind::ReplicaSet(d) => {
-                let api: Api<ReplicaSet> = Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
+                let api: Api<ReplicaSet> =
+                    Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
                 scale_to_zero(api, &d.name_unchecked()).await
-            },
+            }
             ScaleKind::StatefulSet(d) => {
-                let api: Api<StatefulSet> = Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
+                let api: Api<StatefulSet> =
+                    Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
                 scale_to_zero(api, &d.name_unchecked()).await
-            },
+            }
             ScaleKind::Notebook(d) => {
-                let _ = scale_notebook_to_zero(client.clone(), &d.name_unchecked(), &d.namespace().expect("No namespace!")).await;
+                let _ = scale_notebook_to_zero(
+                    client.clone(),
+                    &d.name_unchecked(),
+                    &d.namespace().expect("No namespace!"),
+                )
+                .await;
                 Ok(())
-            },
+            }
             ScaleKind::InferenceService(d) => {
-                let _ = scale_inference_service_to_zero(client.clone(), &d.name_unchecked(), &d.namespace().expect("No namespace!")).await;
+                let _ = scale_inference_service_to_zero(
+                    client.clone(),
+                    &d.name_unchecked(),
+                    &d.namespace().expect("No namespace!"),
+                )
+                .await;
                 Ok(())
-            },
+            }
         }
-
     }
-
 
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::now_v7();
-        let event: Event = Event { 
+        let event: Event = Event {
             action: Some("scale_down".to_string()),
-            reason: Some(format!("Pod: {:?}:{} was not using GPU", self.namespace(), self.name())),
+            reason: Some(format!(
+                "Pod: {:?}:{} was not using GPU",
+                self.namespace(),
+                self.name()
+            )),
             metadata: ObjectMeta {
                 namespace: self.namespace(),
                 name: Some(format!("gpu-scaler-{}", uuid.as_simple().to_string())),
@@ -200,12 +213,7 @@ impl Scaler for ScaleKind {
         };
         Ok(event)
     }
-
 }
-
-
-
-
 
 /// Generic function to scale a resource to zero replicas
 #[tracing::instrument(skip(api))]
@@ -254,8 +262,8 @@ async fn scale_inference_service_to_zero(
 ) -> anyhow::Result<InferenceService> {
     let is_api: Api<InferenceService> = Api::namespaced(client.clone(), namespace);
 
-    // by setting spec.predictor.minReplicas to 0 we allow Kserve to scale down the request for us, it will get
-    // rescaled automatically when traffic kicks back up. the user will need to manually set minRepliacs
+    // by setting spec.predictor.minReplicas to 0 we allow KServe to scale down the request for us, it will get
+    // rescaled automatically when traffic kicks back up. the user will need to manually set minReplicas
     // back to 1 though to get durable capacity again.
     let patch = serde_json::json!({
         "spec": {

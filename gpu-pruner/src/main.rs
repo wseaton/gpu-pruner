@@ -15,18 +15,14 @@ use k8s_openapi::{
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         core::v1::Pod,
-    }, chrono::{offset, Duration}
+    },
+    chrono::{offset, Duration},
 };
-use kube::{
-    api::ObjectMeta, Api, Client as KubeClient, Config, Resource
-};
+use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
 
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{Meta, ScaleKind, Scaler};
-
-/// Seconds of grace period to allow for metrics to be published.
-const GRACE_PERIOD: i64 = 5 * 60;
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
 /// GPU utilization metrics and scales down pods that have been idle for a certain duration.
@@ -37,7 +33,7 @@ const GRACE_PERIOD: i64 = 5 * 60;
 struct Cli {
     /// time in minutes of no gpu activity to use for pruning
     #[clap(short = 't', long, default_value = "30")]
-    duration: u64,
+    duration: i64,
 
     /// daemon mode to run in, if true, will run indefinitely
     #[clap(short, long)]
@@ -50,6 +46,10 @@ struct Cli {
     /// namespace to use for search filter, is passed down to prometheus as a pattern match
     #[clap(short, long)]
     namespace: Option<String>,
+
+    /// Seconds of grace period to allow for metrics to be published.
+    #[clap(short, long, default_value = "300")]
+    grace_period: i64,
 
     /// model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
     #[clap(short, long)]
@@ -77,7 +77,6 @@ enum Mode {
     #[default]
     DryRun,
 }
-
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -156,7 +155,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-
+#[tracing::instrument(skip_all)]
 async fn run_query_and_scale(
     client: Client,
     query: String,
@@ -214,7 +213,7 @@ async fn run_query_and_scale(
         let age = pod.metadata.creation_timestamp.clone().unwrap();
 
         let lookback_start = offset::Utc::now()
-            - (Duration::minutes(args.duration as i64) + Duration::seconds(GRACE_PERIOD));
+            - (Duration::minutes(args.duration) + Duration::seconds(args.grace_period));
 
         tracing::info!(
             "Pod {pod_name} age: {age} | lookback_start: {lookback_start}",
@@ -252,7 +251,7 @@ async fn run_query_and_scale(
 /// Get the token for the prometheus client
 async fn get_prometheus_token() -> anyhow::Result<String> {
     if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
-        tracing::info!("Getting token from PROMETHEUS_TOKEN");
+        tracing::debug!("Getting token from PROMETHEUS_TOKEN");
         return Ok(token);
     }
 
@@ -297,10 +296,7 @@ fn get_prom_client(url: &str, token: String) -> anyhow::Result<Client> {
 /// Deployments and StatefulSets can have multiple pods, so we shouldn't "double scale-down" them if they share a common parent and
 /// both pods do not have GPU utilization. We only need to send the request once.
 #[tracing::instrument(skip(client, pod_meta), fields(name = pod_meta.name))]
-async fn find_root_object(
-    client: KubeClient,
-    pod_meta: &ObjectMeta,
-) -> anyhow::Result<ScaleKind> {
+async fn find_root_object(client: KubeClient, pod_meta: &ObjectMeta) -> anyhow::Result<ScaleKind> {
     tracing::info!(
         "Finding root object of {name:?} for scale-down.",
         name = &pod_meta.name
@@ -330,7 +326,8 @@ async fn find_root_object(
                             for rs_or in rs_meta {
                                 if rs_or.kind == "Deployment" {
                                     tracing::info!("Found Deployment owning ReplicaSet!");
-                                    let deployment_api: Api<Deployment> = Api::namespaced(client.clone(), &namespace);
+                                    let deployment_api: Api<Deployment> =
+                                        Api::namespaced(client.clone(), &namespace);
                                     let deployment = deployment_api.get(&rs_or.name).await?;
 
                                     return Ok(ScaleKind::Deployment(deployment));
@@ -349,7 +346,8 @@ async fn find_root_object(
                             for ss_or in ss_meta {
                                 if ss_or.kind == "Notebook" {
                                     tracing::info!("Found Notebook owning ReplicaSet!");
-                                    let nb_api: Api<Notebook> = Api::namespaced(client.clone(), &namespace);
+                                    let nb_api: Api<Notebook> =
+                                        Api::namespaced(client.clone(), &namespace);
                                     let nb = nb_api.get(&ss_or.name).await?;
 
                                     return Ok(ScaleKind::Notebook(nb));
@@ -369,5 +367,3 @@ async fn find_root_object(
 
     Err(anyhow::anyhow!("oops, nothing found!"))
 }
-
-
