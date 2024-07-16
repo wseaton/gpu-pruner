@@ -1,0 +1,16 @@
+
+FROM fedora:latest as builder
+
+RUN dnf install -y openssl openssl-devel cargo
+
+WORKDIR /usr/src/myapp
+
+COPY ./ ./
+
+RUN cargo install --path ./gpu-pruner --locked --verbose
+
+FROM fedora:latest
+
+COPY --from=builder /root/.cargo/bin/gpu-pruner /usr/local/bin/gpu-pruner
+
+CMD ["gpu-pruner"]

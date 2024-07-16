@@ -1,0 +1,15 @@
+sum by (Hostname, exported_container, exported_pod, exported_namespace, gpu, modelName) (
+    avg_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
+      exported_pod != ""
+      {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+      {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
+    }
+  [{{ args.duration }}m])
+) * on (Hostname) group_left(node_type) (
+  label_replace(
+    label_replace(node_dmi_info,
+      "Hostname", "$1", "instance", "(.+)"
+    ),
+    "node_type", "$1", "product_name", "(.+)"
+  )
+)

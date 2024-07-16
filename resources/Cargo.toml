@@ -1,0 +1,14 @@
+[package]
+name = "resources"
+version.workspace = true
+edition.workspace = true
+
+
+[dependencies]
+kube.workspace = true
+k8s-openapi.workspace = true
+
+serde.workspace = true
+serde_json.workspace = true
+
+schemars = "0.8.21"

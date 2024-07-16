@@ -1,0 +1,18 @@
+
+FROM registry.access.redhat.com/ubi9/ubi:latest as builder
+
+RUN dnf install -y openssl openssl-devel cargo
+
+WORKDIR /usr/src/myapp
+
+COPY ./ ./
+
+RUN cargo install --path ./gpu-pruner --locked --verbose
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+
+RUN microdnf install -y openssl
+
+COPY --from=builder /root/.cargo/bin/gpu-pruner /usr/local/bin/gpu-pruner
+
+CMD ["gpu-pruner"]
