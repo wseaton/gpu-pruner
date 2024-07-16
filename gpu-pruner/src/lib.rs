@@ -194,7 +194,7 @@ impl Scaler for ScaleKind {
         let event: Event = Event {
             action: Some("scale_down".to_string()),
             reason: Some(format!(
-                "Pod: {:?}:{} was not using GPU",
+                "Pod {:?}:{} was not using GPU",
                 self.namespace(),
                 self.name()
             )),

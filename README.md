@@ -60,4 +60,4 @@ Options:
 
 ## TODOs
 
-- emit a kubernetes event when a scaling action has occurred
+- better mode selection, eg: `NotebooksOnly`
