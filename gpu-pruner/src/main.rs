@@ -9,21 +9,21 @@ use std::{collections::HashSet, fmt::Debug};
 
 use prometheus_http_query::Client;
 use reqwest::header::HeaderMap;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::Serialize;
 
 use k8s_openapi::{
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         core::v1::Pod,
-    },
-    chrono::{offset, Duration},
+    }, chrono::{offset, Duration}
 };
 use kube::{
-    api::{ObjectMeta, Patch, PatchParams},
-    Api, Client as KubeClient, Config, Resource,
+    api::ObjectMeta, Api, Client as KubeClient, Config, Resource
 };
 
 use clap::{Parser, ValueEnum};
+
+use gpu_pruner::{Meta, ScaleKind, Scaler};
 
 /// Seconds of grace period to allow for metrics to be published.
 const GRACE_PERIOD: i64 = 5 * 60;
@@ -78,21 +78,6 @@ enum Mode {
     DryRun,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-struct ScaleResource {
-    kind: ScaleKind,
-    name: String,
-    namespace: String,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-enum ScaleKind {
-    Deployment,
-    ReplicaSet,
-    StatefulSet,
-    InferenceService,
-    Notebook,
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -104,7 +89,7 @@ async fn main() -> anyhow::Result<()> {
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
     tracing::info!("Running w/ Query: {query}");
 
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<ScaleResource>(100);
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<ScaleKind>(100);
 
     // TODO: figure out a way to clean this up and unify the branches better
     let query_task = if args.daemon_mode {
@@ -153,8 +138,8 @@ async fn main() -> anyhow::Result<()> {
             .await
             .expect("failed to get kube client");
 
-        while let Some(sr) = rx.recv().await {
-            match scale_resources(args.clone(), sr, kube_client.clone()).await {
+        while let Some(sk) = rx.recv().await {
+            match sk.scale(kube_client.clone()).await {
                 Ok(_) => {}
                 Err(e) => {
                     tracing::error!("Failed to scale resource! {e}");
@@ -171,56 +156,12 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn scale_resources(
-    args: Cli,
-    sr: ScaleResource,
-    kube_client: KubeClient,
-) -> anyhow::Result<()> {
-    match args.run_mode {
-        Mode::ScaleDown => {
-            tracing::info!("Scale down: {:?}", sr);
-            match sr.kind {
-                ScaleKind::InferenceService => {
-                    let _ = scale_inference_service_to_zero(
-                        kube_client.clone(),
-                        &sr.name,
-                        &sr.namespace,
-                    )
-                    .await?;
-                }
-                ScaleKind::Notebook => {
-                    let _ = scale_notebook_to_zero(kube_client.clone(), &sr.name, &sr.namespace)
-                        .await?;
-                }
-                ScaleKind::Deployment => {
-                    let deployments: Api<Deployment> =
-                        Api::namespaced(kube_client.clone(), &sr.namespace);
-                    scale_to_zero(deployments, &sr.name).await?;
-                }
-                ScaleKind::ReplicaSet => {
-                    let replica_sets: Api<ReplicaSet> =
-                        Api::namespaced(kube_client.clone(), &sr.namespace);
-                    scale_to_zero(replica_sets, &sr.name).await?;
-                }
-                ScaleKind::StatefulSet => {
-                    let stateful_sets: Api<StatefulSet> =
-                        Api::namespaced(kube_client.clone(), &sr.namespace);
-                    scale_to_zero(stateful_sets, &sr.name).await?;
-                }
-            }
-        }
-        Mode::DryRun => {
-            tracing::info!("Would scale down: {:?}", sr);
-        }
-    }
-    Ok(())
-}
 
 async fn run_query_and_scale(
     client: Client,
     query: String,
     args: &Cli,
-    tx: Sender<ScaleResource>,
+    tx: Sender<ScaleKind>,
 ) -> anyhow::Result<()> {
     let response = client.query(query).get().await?;
 
@@ -229,7 +170,7 @@ async fn run_query_and_scale(
 
     let kube_client: KubeClient = KubeClient::try_default().await?;
 
-    let mut shutdown_events: HashSet<ScaleResource> = HashSet::new();
+    let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
 
     for pod in vec {
         let pod_name = pod.metric().get("exported_pod").unwrap();
@@ -301,7 +242,7 @@ async fn run_query_and_scale(
     }
 
     for obj in shutdown_events {
-        tracing::info!("Sending {} for scaledown: {obj:?}", obj.name);
+        tracing::info!("Sending {} for scaledown: {obj:?}", obj.name());
         tx.send(obj).await?;
     }
 
@@ -359,7 +300,7 @@ fn get_prom_client(url: &str, token: String) -> anyhow::Result<Client> {
 async fn find_root_object(
     client: KubeClient,
     pod_meta: &ObjectMeta,
-) -> anyhow::Result<ScaleResource> {
+) -> anyhow::Result<ScaleKind> {
     tracing::info!(
         "Finding root object of {name:?} for scale-down.",
         name = &pod_meta.name
@@ -370,11 +311,10 @@ async fn find_root_object(
     if let Some(labels) = &pod_meta.labels {
         if let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice") {
             let namespace = pod_meta.namespace.clone().unwrap_or_default();
-            return Ok(ScaleResource {
-                kind: ScaleKind::InferenceService,
-                name: ks_label.clone(),
-                namespace: namespace.clone(),
-            });
+            let is_api: Api<InferenceService> = Api::namespaced(client.clone(), &namespace);
+            let is = is_api.get(&ks_label).await?;
+
+            return Ok(ScaleKind::InferenceService(is));
         }
     }
 
@@ -390,20 +330,15 @@ async fn find_root_object(
                             for rs_or in rs_meta {
                                 if rs_or.kind == "Deployment" {
                                     tracing::info!("Found Deployment owning ReplicaSet!");
-                                    return Ok(ScaleResource {
-                                        kind: ScaleKind::Deployment,
-                                        name: rs_or.name.clone(),
-                                        namespace: namespace.clone(),
-                                    });
+                                    let deployment_api: Api<Deployment> = Api::namespaced(client.clone(), &namespace);
+                                    let deployment = deployment_api.get(&rs_or.name).await?;
+
+                                    return Ok(ScaleKind::Deployment(deployment));
                                 }
                             }
                         }
                         // fallthrough, replica set with no owners
-                        return Ok(ScaleResource {
-                            kind: ScaleKind::ReplicaSet,
-                            name: or.name.clone(),
-                            namespace: namespace.clone(),
-                        });
+                        return Ok(ScaleKind::ReplicaSet(rs.clone()));
                     }
                 }
                 "StatefulSet" => {
@@ -414,29 +349,16 @@ async fn find_root_object(
                             for ss_or in ss_meta {
                                 if ss_or.kind == "Notebook" {
                                     tracing::info!("Found Notebook owning ReplicaSet!");
-                                    return Ok(ScaleResource {
-                                        kind: ScaleKind::Notebook,
-                                        name: ss_or.name.clone(),
-                                        namespace: namespace.clone(),
-                                    });
+                                    let nb_api: Api<Notebook> = Api::namespaced(client.clone(), &namespace);
+                                    let nb = nb_api.get(&ss_or.name).await?;
+
+                                    return Ok(ScaleKind::Notebook(nb));
                                 }
                             }
                         }
                         // fallthrough, statefulset with no owners
-                        return Ok(ScaleResource {
-                            kind: ScaleKind::StatefulSet,
-                            name: or.name.clone(),
-                            namespace: namespace.clone(),
-                        });
+                        return Ok(ScaleKind::StatefulSet(ss));
                     }
-                }
-                "Deployment" => {
-                    tracing::info!("Found Deployment!");
-                    return Ok(ScaleResource {
-                        kind: ScaleKind::Deployment,
-                        name: or.name.clone(),
-                        namespace: namespace.clone(),
-                    });
                 }
                 _ => {
                     tracing::warn!("Found no ORs!")
@@ -448,67 +370,4 @@ async fn find_root_object(
     Err(anyhow::anyhow!("oops, nothing found!"))
 }
 
-/// Generic function to scale a resource to zero replicas
-#[tracing::instrument(skip(api))]
-async fn scale_to_zero<K>(api: Api<K>, name: &str) -> anyhow::Result<()>
-where
-    K: DeserializeOwned + Debug + Clone + kube::Resource<DynamicType = ()> + 'static,
-{
-    let patch = serde_json::json!({ "spec": { "replicas": 0 } });
-    let params = PatchParams::default();
-    api.patch(name, &params, &Patch::Strategic(&patch)).await?;
-    Ok(())
-}
 
-/// Special handling for scaling a notebook to zero
-///
-/// TODO: maybe clean up the error handing or logging a bit, actually return the Resource.
-#[tracing::instrument(skip(client))]
-async fn scale_notebook_to_zero(
-    client: KubeClient,
-    name: &str,
-    namespace: &str,
-) -> anyhow::Result<Notebook> {
-    let notebook_api: Api<Notebook> = Api::namespaced(client.clone(), namespace);
-
-    let patch = serde_json::json!({
-        "metadata": {
-            "annotations": {
-                "kubeflow-resource-stopped": offset::Utc::now().to_rfc3339(),
-            }
-        }
-    });
-
-    let res = notebook_api
-        .patch(name, &PatchParams::default(), &Patch::Merge(patch))
-        .await?;
-
-    Ok(res)
-}
-
-/// Special handling for scaling an InferenceService to zero
-#[tracing::instrument(skip(client))]
-async fn scale_inference_service_to_zero(
-    client: KubeClient,
-    name: &str,
-    namespace: &str,
-) -> anyhow::Result<InferenceService> {
-    let is_api: Api<InferenceService> = Api::namespaced(client.clone(), namespace);
-
-    // by setting spec.predictor.minReplicas to 0 we allow Kserve to scale down the request for us, it will get
-    // rescaled automatically when traffic kicks back up. the user will need to manually set minRepliacs
-    // back to 1 though to get durable capacity again.
-    let patch = serde_json::json!({
-        "spec": {
-            "predictor": {
-                "minReplicas": 0
-            }
-        }
-    });
-
-    let res = is_api
-        .patch(name, &PatchParams::default(), &Patch::Merge(patch))
-        .await?;
-
-    Ok(res)
-}

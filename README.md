@@ -8,6 +8,8 @@ The way it works is by querying cluster NVIDIA DCGM metrics and looking at a win
 
 An [example set of k8s deployment manifests](./gpu-pruner/hack/kustomization.yaml) are available along with the role bindings to run in "cluster mode". 
 
+[prebuilt images](https://quay.io/repository/wseaton/gpu-pruner?tab=tags) based on the Dockerfiles in the repository are published quay.io.
+
 ## background
 
 The background for `gpu-pruner` is that in certain environments it is very easy for cluster users to request GPUs and then (either accidentally or not accidentally) not consume GPU resources. We needed a method to proactively identify this type of use, and scale down workloads that are idle from the GPU hardware perspective, compared to the default for `Notebook` resources which is web activity. It is totally possible for a user to consume a GPU from a pod PoV but never actually run a workload on it!
