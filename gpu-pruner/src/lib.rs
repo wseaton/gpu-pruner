@@ -85,6 +85,8 @@ pub trait Meta {
     fn namespace(&self) -> Option<String>;
     fn kind(&self) -> String;
     fn uid(&self) -> Option<String>;
+    fn api_version(&self) -> String;
+    fn resource_version(&self) -> Option<String>;
 }
 
 pub trait Scaler {
@@ -115,6 +117,16 @@ impl Meta for ScaleKind {
         }
     }
 
+    fn api_version(&self) -> String {
+        match self {
+            ScaleKind::Deployment(d) => Deployment::API_VERSION.to_string(),
+            ScaleKind::ReplicaSet(d) => ReplicaSet::API_VERSION.to_string(),
+            ScaleKind::StatefulSet(d) => StatefulSet::API_VERSION.to_string(),
+            ScaleKind::Notebook(d) => "v1".to_string(),
+            ScaleKind::InferenceService(d) => "v1beta1".to_string(),
+        }
+    }
+
     fn kind(&self) -> String {
         match self {
             ScaleKind::Deployment(d) => Deployment::KIND.to_string(),
@@ -134,6 +146,17 @@ impl Meta for ScaleKind {
             ScaleKind::InferenceService(d) => d.uid(),
         }
     }
+
+    fn resource_version(&self) -> Option<String> {
+        match self {
+            ScaleKind::Deployment(d) => d.resource_version(),
+            ScaleKind::ReplicaSet(d) => d.resource_version(),
+            ScaleKind::StatefulSet(d) => d.resource_version(),
+            ScaleKind::Notebook(d) => d.resource_version(),
+            ScaleKind::InferenceService(d) => d.resource_version(),
+        }
+    }
+
 }
 
 impl Scaler for ScaleKind {
@@ -193,10 +216,15 @@ impl Scaler for ScaleKind {
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::new_v4();
         let now: Time = Time(offset::Utc::now());
+
+        // this is intended to be set via pushdown
+        let reporting_instance = Some(std::env::var("POD_NAME").unwrap_or("gpu_pruner".to_string()));
+
         let event: Event = Event {
             last_timestamp: Some(now.clone()),
             first_timestamp: Some(now.clone()),
             reporting_component: Some("gpu-pruner".to_string()),
+            reporting_instance,
             event_time: Some(MicroTime(offset::Utc::now())),
             action: Some("scale_down".to_string()),
             reason: Some(format!(
@@ -211,12 +239,12 @@ impl Scaler for ScaleKind {
                 ..Default::default()
             },
             involved_object: ObjectReference {
-                api_version: None,
+                api_version: Some(self.api_version()),
                 field_path: None,
                 kind: Some(self.kind()),
                 name: Some(self.name()),
                 namespace: self.namespace(),
-                resource_version: None,
+                resource_version: self.resource_version(),
                 uid: self.uid(),
             },
             ..Default::default()
