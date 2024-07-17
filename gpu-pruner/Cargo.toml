@@ -1,6 +1,6 @@
 [package]
 name = "gpu-pruner"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -24,3 +24,8 @@ clap = { version = "4.5.4", features = ["derive"] }
 minijinja = "2.0.3"
 
 secrecy = "0.8.0"
+uuid = {version = "1", features = ["v7", "v4"]}
+serde_yaml = "*"
+
+
+
