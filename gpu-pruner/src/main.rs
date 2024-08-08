@@ -5,7 +5,7 @@ use resources::notebook::Notebook;
 use secrecy::ExposeSecret;
 use tokio::{sync::mpsc::Sender, time};
 
-use std::{collections::HashSet, fmt::Debug};
+use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 
 use prometheus_http_query::Client;
 use reqwest::header::HeaderMap;
@@ -78,6 +78,8 @@ enum Mode {
     DryRun,
 }
 
+static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
@@ -107,9 +109,21 @@ async fn main() -> anyhow::Result<()> {
                 };
                 let client = get_prom_client(&args.prometheus_url, token)
                     .expect("failed to build prometheus client");
-                run_query_and_scale(client, query.clone(), &args, tx.clone())
-                    .await
-                    .expect("failed!");
+                match run_query_and_scale(client, query.clone(), &args, tx.clone())
+                    .await {
+                    Ok(_) => {
+                        // Reset the failure counter
+                        QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
+                    }, 
+                    Err(e) => {
+                        let failures = QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        tracing::error!("Failed to run query and scale: {e}");
+                        if failures > 5 {
+                            tracing::error!("Too many failures, exiting!");
+                            break;
+                        }
+                    }
+                }
             }
         })
     } else {
@@ -210,17 +224,17 @@ async fn run_query_and_scale(
             }
         };
 
-        let age = pod.metadata.creation_timestamp.clone().unwrap();
+        let create_time = pod.metadata.creation_timestamp.clone().unwrap();
 
         let lookback_start = offset::Utc::now()
             - (Duration::minutes(args.duration) + Duration::seconds(args.grace_period));
 
         tracing::info!(
-            "Pod {pod_name} age: {age} | lookback_start: {lookback_start}",
+            "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
             pod_name = pod_name,
-            age = age.0
+            create_time = create_time.0
         );
-        if age.0 < lookback_start {
+        if create_time.0 < lookback_start {
             tracing::info!("Pod older than lookback start, so eligible for scaledown.");
             let obj = find_root_object(kube_client.clone(), pod.clone().meta()).await?;
             shutdown_events.insert(obj);
@@ -228,13 +242,13 @@ async fn run_query_and_scale(
 
         let status = pod.status.unwrap().phase.unwrap().to_string();
         tracing::info!(
-            "Pod {pod_name} | Namespace: {namespace} | Container: {container} | Value: {value} | NodeType: {node_type} | Age: {age} | GPU Model: {gpu_model} | Status: {status}",
+            "Pod {pod_name} | Namespace: {namespace} | Container: {container} | Value: {value} | NodeType: {node_type} | CreateTime: {create_time} | GPU Model: {gpu_model} | Status: {status}",
             pod_name = pod_name,
             namespace = namespace,
             container = container,
             value = value,
             node_type = node_type,
-            age = age.0,
+            create_time = create_time.0,
             gpu_model = gpu_model,
             status = status
         );
