@@ -71,7 +71,7 @@ struct Cli {
     #[clap(long)]
     prometheus_token: Option<String>,
 
-    #[clap(short, long)]
+    #[clap(short, long, default_value = "pretty")]
     log_format: LogFormat,
 }
 
