@@ -21,6 +21,7 @@ use k8s_openapi::{
 use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
 
 use clap::{Parser, ValueEnum};
+use is_terminal::IsTerminal;
 
 use gpu_pruner::{Meta, ScaleKind, Scaler};
 
@@ -69,6 +70,9 @@ struct Cli {
     /// of the currently logged in K8s user.
     #[clap(long)]
     prometheus_token: Option<String>,
+
+    #[clap(short, long)]
+    log_format: LogFormat,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -78,13 +82,27 @@ enum Mode {
     DryRun,
 }
 
+#[derive(Debug, Clone, ValueEnum, Default, Serialize)]
+enum LogFormat {
+    Json,
+    #[default]
+    Pretty,
+}
+
 static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
-
     let args = Cli::parse();
+
+    match (!std::io::stdout().is_terminal(), &args.log_format) {
+        (true, _) | (_, LogFormat::Json) => {
+            tracing_subscriber::fmt().json().init();
+        }
+        _ => {
+            tracing_subscriber::fmt::init();
+        }
+    }
 
     let env: Environment = Environment::new();
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
@@ -109,14 +127,14 @@ async fn main() -> anyhow::Result<()> {
                 };
                 let client = get_prom_client(&args.prometheus_url, token)
                     .expect("failed to build prometheus client");
-                match run_query_and_scale(client, query.clone(), &args, tx.clone())
-                    .await {
+                match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
                     Ok(_) => {
                         // Reset the failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
-                    }, 
+                    }
                     Err(e) => {
-                        let failures = QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        let failures =
+                            QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                         tracing::error!("Failed to run query and scale: {e}");
                         if failures > 5 {
                             tracing::error!("Too many failures, exiting!");
@@ -202,7 +220,7 @@ async fn run_query_and_scale(
         let maybe_pod = match api.get_opt(pod_name).await {
             Ok(pod) => pod,
             Err(e) => {
-                tracing::error!("Skipping pod {pod_name}, retrieval error");
+                tracing::error!("Skipping pod {namespace}:{pod_name}, retrieval error");
                 tracing::debug!("{e}");
                 continue;
             }
@@ -210,7 +228,7 @@ async fn run_query_and_scale(
         let pod = match maybe_pod {
             Some(pod) => pod,
             None => {
-                tracing::info!("Skipping pod {pod_name} because it no longer exists!");
+                tracing::info!("Skipping pod {namespace}:{pod_name} because it no longer exists!");
                 continue;
             }
         };
@@ -218,7 +236,7 @@ async fn run_query_and_scale(
         if let Some(status) = pod.status.as_ref() {
             if let Some(phase) = status.phase.as_ref() {
                 if phase == "Pending" {
-                    tracing::info!("Skipping pod {pod_name}, it's still pending");
+                    tracing::info!("Skipping pod {namespace}:{pod_name}, it's still pending");
                     continue;
                 }
             }
@@ -255,7 +273,11 @@ async fn run_query_and_scale(
     }
 
     for obj in shutdown_events {
-        tracing::info!("Sending {} for scaledown: {obj:?}", obj.name());
+        if let Mode::DryRun = args.run_mode {
+            tracing::info!("Dry-run: Would have sent [{}] {}:{} for scaledown", obj.kind(), obj.namespace().unwrap_or_else(|| "".to_string()), obj.name());
+            continue;
+        }
+        tracing::info!("Sending [{}] {}:{} for scaledown", obj.kind(), obj.namespace().unwrap_or_else(|| "".to_string()), obj.name());
         tx.send(obj).await?;
     }
 
@@ -322,7 +344,7 @@ async fn find_root_object(client: KubeClient, pod_meta: &ObjectMeta) -> anyhow::
         if let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice") {
             let namespace = pod_meta.namespace.clone().unwrap_or_default();
             let is_api: Api<InferenceService> = Api::namespaced(client.clone(), &namespace);
-            let is = is_api.get(&ks_label).await?;
+            let is = is_api.get(ks_label).await?;
 
             return Ok(ScaleKind::InferenceService(is));
         }

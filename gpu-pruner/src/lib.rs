@@ -5,7 +5,9 @@ use k8s_openapi::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         autoscaling::v2::PodsMetricStatus,
         core::v1::ObjectReference,
-    }, apimachinery::pkg::apis::meta::v1::MicroTime, Resource
+    },
+    apimachinery::pkg::apis::meta::v1::MicroTime,
+    Resource,
 };
 use kube::{api::PostParams, client, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
@@ -156,7 +158,6 @@ impl Meta for ScaleKind {
             ScaleKind::InferenceService(d) => d.resource_version(),
         }
     }
-
 }
 
 impl Scaler for ScaleKind {
@@ -174,7 +175,6 @@ impl Scaler for ScaleKind {
                 }
             };
         };
-
 
         match self {
             ScaleKind::Deployment(d) => {
@@ -218,7 +218,8 @@ impl Scaler for ScaleKind {
         let now: Time = Time(offset::Utc::now());
 
         // this is intended to be set via pushdown
-        let reporting_instance = Some(std::env::var("POD_NAME").unwrap_or("gpu_pruner".to_string()));
+        let reporting_instance =
+            Some(std::env::var("POD_NAME").unwrap_or("gpu_pruner".to_string()));
 
         let event: Event = Event {
             last_timestamp: Some(now.clone()),
@@ -318,7 +319,6 @@ async fn scale_inference_service_to_zero(
     Ok(res)
 }
 
-
 #[cfg(test)]
 mod tests {
 
@@ -327,27 +327,26 @@ mod tests {
 
     use crate::Scaler;
 
-    use super::{Notebook, Event, ScaleKind};
+    use super::{Event, Notebook, ScaleKind};
 
     use serde_yaml;
 
     #[test]
     fn make_event() {
-
-        let sk: ScaleKind = ScaleKind::Notebook(Notebook { metadata: ObjectMeta {
-            name: Some("gpu-test".to_string()),
-            namespace: Some("rhoai-internal--weaton-nb".to_string()),
-            ..Default::default()
-        }, spec: NotebookSpec {
-            template: None
-        }, status: None });
+        let sk: ScaleKind = ScaleKind::Notebook(Notebook {
+            metadata: ObjectMeta {
+                name: Some("gpu-test".to_string()),
+                namespace: Some("rhoai-internal--weaton-nb".to_string()),
+                ..Default::default()
+            },
+            spec: NotebookSpec { template: None },
+            status: None,
+        });
 
         let event = sk.generate_scale_event().expect("bar");
 
         println!("{}", serde_yaml::to_string(&event).expect("foo"));
 
         assert_eq!(event.involved_object.name, Some("gpu-test".to_string()))
-
     }
-
 }
