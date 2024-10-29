@@ -3,11 +3,13 @@ use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
 use secrecy::ExposeSecret;
+use std::{any::Any, collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
+use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
 
-use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
+use futures::stream::StreamExt;
 
-use prometheus_http_query::Client;
+use prometheus_http_query::{response::InstantVector, Client};
 use reqwest::header::HeaderMap;
 use serde::Serialize;
 
@@ -170,11 +172,8 @@ async fn main() -> anyhow::Result<()> {
             .expect("failed to get kube client");
 
         while let Some(sk) = rx.recv().await {
-            match sk.scale(kube_client.clone()).await {
-                Ok(_) => {}
-                Err(e) => {
-                    tracing::error!("Failed to scale resource! {e}");
-                }
+            if let Err(e) = sk.scale(kube_client.clone()).await {
+                tracing::error!("Failed to scale resource! {e}");
             }
         }
     });
@@ -185,6 +184,55 @@ async fn main() -> anyhow::Result<()> {
     }?;
 
     Ok(())
+}
+
+#[derive(Debug)]
+struct PodMetricData {
+    name: String,
+    namespace: String,
+    container: String,
+    node_type: String,
+    gpu_model: String,
+    value: f64,
+}
+
+#[derive(Debug, Error)]
+pub enum PodConvertError {
+    #[error("the data for key `{0}` is not available")]
+    UnwrapError(String),
+}
+
+impl TryFrom<InstantVector> for PodMetricData {
+    type Error = PodConvertError;
+
+    fn try_from(value: InstantVector) -> Result<Self, PodConvertError> {
+        let metrics = value.metric();
+        tracing::debug!("Metrics: {metrics:#?}");
+
+        Ok(PodMetricData {
+            name: metrics
+                .get("exported_pod")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
+                .clone(),
+            namespace: metrics
+                .get("exported_namespace")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
+                .clone(),
+            container: metrics
+                .get("exported_container")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
+                .clone(),
+            node_type: metrics
+                .get("node_type")
+                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
+                .clone(),
+            gpu_model: metrics
+                .get("modelName")
+                .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
+                .clone(),
+            value: value.sample().value(),
+        })
+    }
 }
 
 #[tracing::instrument(skip_all)]
@@ -204,52 +252,63 @@ async fn run_query_and_scale(
     let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
 
     for pod in vec {
-        let pod_name = pod.metric().get("exported_pod").unwrap();
-        let namespace = pod.metric().get("exported_namespace").unwrap();
-        let container = pod.metric().get("exported_container").unwrap();
-        let node_type = pod.metric().get("node_type").unwrap();
-        let gpu_model = pod
-            .metric()
-            .get("modelName")
-            .map(|model| model.to_string())
-            .unwrap_or_else(|| "N/A".to_string());
-
-        let value = pod.sample().value();
-
-        let api = Api::<Pod>::namespaced(kube_client.clone(), namespace);
-        let maybe_pod = match api.get_opt(pod_name).await {
-            Ok(pod) => pod,
+        let pmd: PodMetricData = match pod.try_into() {
+            Ok(pmd) => pmd,
             Err(e) => {
-                tracing::error!("Skipping pod {namespace}:{pod_name}, retrieval error");
+                tracing::error!("Failed to unwrap pod fields! {}", e);
+                continue;
+            }
+        };
+
+
+
+        let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
+        let pod = match api
+            .get_opt(&pmd.name)
+            .await
+            .map_err(|e| {
+                tracing::error!(
+                    "Skipping pod {namespace}:{pod_name}, retrieval error",
+                    namespace = &pmd.namespace,
+                    pod_name = &pmd.name
+                );
                 tracing::debug!("{e}");
-                continue;
-            }
-        };
-        let pod = match maybe_pod {
-            Some(pod) => pod,
-            None => {
-                tracing::info!("Skipping pod {namespace}:{pod_name} because it no longer exists!");
-                continue;
-            }
-        };
+            })
+            .ok()
+            .flatten()
+            .or_else(|| {
+                tracing::info!(
+                    "Skipping pod {namespace}:{pod_name} because it no longer exists!",
+                    namespace = &pmd.namespace,
+                    pod_name = &pmd.name
+                );
+                None
+            }) {
+                Some(pod) => pod,
+                None => continue,
+            };
 
         if let Some(status) = pod.status.as_ref() {
             if let Some(phase) = status.phase.as_ref() {
                 if phase == "Pending" {
-                    tracing::info!("Skipping pod {namespace}:{pod_name}, it's still pending");
+                    tracing::info!(
+                        "Skipping pod {namespace}:{pod_name}, it's still pending",
+                        namespace = &pmd.namespace,
+                        pod_name = &pmd.name
+                    );
                     continue;
                 }
             }
         };
 
-        let create_time = pod.metadata.creation_timestamp.clone().unwrap();
+        let create_time = pod.metadata.creation_timestamp.clone().expect("no timestamp");
 
         let lookback_start = offset::Utc::now()
             - (Duration::minutes(args.duration) + Duration::seconds(args.grace_period));
 
         tracing::info!(
             "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
-            pod_name = pod_name,
+            pod_name = &pmd.name,
             create_time = create_time.0
         );
         if create_time.0 < lookback_start {
@@ -260,27 +319,40 @@ async fn run_query_and_scale(
 
         let status = pod.status.unwrap().phase.unwrap().to_string();
         tracing::info!(
-            "Pod {pod_name} | Namespace: {namespace} | Container: {container} | Value: {value} | NodeType: {node_type} | CreateTime: {create_time} | GPU Model: {gpu_model} | Status: {status}",
-            pod_name = pod_name,
-            namespace = namespace,
-            container = container,
-            value = value,
-            node_type = node_type,
+            "Pod [{:#?}] | CreateTime: {create_time} | Status: {status}",
+            &pmd,
             create_time = create_time.0,
-            gpu_model = gpu_model,
             status = status
         );
     }
 
-    for obj in shutdown_events {
+    futures::stream::iter(shutdown_events)
+    .filter_map(|obj| async {
         if let Mode::DryRun = args.run_mode {
-            tracing::info!("Dry-run: Would have sent [{}] {}:{} for scaledown", obj.kind(), obj.namespace().unwrap_or_else(|| "".to_string()), obj.name());
-            continue;
+            tracing::info!(
+                "Dry-run: Would have sent [{}] {}:{} for scaledown",
+                obj.kind(),
+                obj.namespace().unwrap_or_else(|| "".to_string()),
+                obj.name()
+            );
+            None // Filter out in dry-run mode
+        } else {
+            Some(obj) // Keep the object for sending
         }
-        tracing::info!("Sending [{}] {}:{} for scaledown", obj.kind(), obj.namespace().unwrap_or_else(|| "".to_string()), obj.name());
-        tx.send(obj).await?;
-    }
-
+    })
+    .for_each_concurrent(None, |obj| async {
+        tracing::info!(
+            "Sending [{}] {}:{} for scaledown",
+            obj.kind(),
+            obj.namespace().unwrap_or_else(|| "".to_string()),
+            obj.name()
+        );
+        
+        if let Err(e) = tx.send(obj).await {
+            tracing::error!("Failed to send object for scaledown: {:?}", e);
+        }
+    })
+    .await;
     Ok(())
 }
 

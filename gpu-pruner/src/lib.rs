@@ -3,31 +3,25 @@ use std::hash::{Hash, Hasher};
 use k8s_openapi::{
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
-        autoscaling::v2::PodsMetricStatus,
         core::v1::ObjectReference,
     },
     apimachinery::pkg::apis::meta::v1::MicroTime,
     Resource,
 };
-use kube::{api::PostParams, client, Client, ResourceExt};
+use kube::{api::PostParams, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use serde::Serialize;
 
-use minijinja::{context, Environment};
-
-use secrecy::ExposeSecret;
-use tokio::{sync::mpsc::Sender, time};
 use uuid::Uuid;
 
-use std::{collections::HashSet, fmt::Debug};
+use std::fmt::Debug;
 
-use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
 use k8s_openapi::{
-    api::core::v1::{Event, Pod},
+    api::core::v1::Event,
     apimachinery::pkg::apis::meta::v1::Time,
-    chrono::{offset, Duration},
+    chrono::offset,
 };
 use kube::{
     api::{ObjectMeta, Patch, PatchParams},
@@ -166,14 +160,11 @@ impl Scaler for ScaleKind {
             let event = self.generate_scale_event()?;
             let events_api: Api<Event> = Api::namespaced(client.clone(), &ns);
 
-            match events_api.create(&PostParams::default(), &event).await {
-                Ok(_) => {
-                    tracing::debug!("Emitted scale event for: {:?}", event.involved_object);
-                }
-                Err(e) => {
-                    tracing::error!("Failed to push Event for scale down!: {e}");
-                }
-            };
+            if let Err(e) = events_api.create(&PostParams::default(), &event).await {
+                tracing::error!("Failed to push Event for scale down!: {e}");
+            } else {
+                tracing::debug!("Emitted scale event for: {:?}", event.involved_object);
+            }
         };
 
         match self {

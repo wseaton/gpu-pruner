@@ -27,6 +27,8 @@ secrecy = "0.8.0"
 uuid = {version = "1", features = ["v7", "v4"]}
 serde_yaml = "*"
 is-terminal = "0.4.13"
+thiserror.workspace = true
+futures.workspace = true
 
 
 
