@@ -1,4 +1,19 @@
 use minijinja::{context, Environment};
+
+use once_cell::sync::Lazy;
+use opentelemetry::global;
+use opentelemetry::logs::LogError;
+use opentelemetry::metrics::MetricsError;
+use opentelemetry::trace::{TraceError, TracerProvider};
+use opentelemetry::{
+    trace::{TraceContextExt, Tracer},
+    KeyValue,
+};
+use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
+use opentelemetry_otlp::{ExportConfig, WithExportConfig};
+use opentelemetry_sdk::trace::Config as TraceConfig;
+use opentelemetry_sdk::{runtime, trace as sdktrace, Resource as OTELResource};
+
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
@@ -6,6 +21,9 @@ use secrecy::ExposeSecret;
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 
 use futures::stream::StreamExt;
 
@@ -72,9 +90,6 @@ struct Cli {
     /// of the currently logged in K8s user.
     #[clap(long)]
     prometheus_token: Option<String>,
-
-    #[clap(short, long, default_value = "pretty")]
-    log_format: LogFormat,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -93,18 +108,100 @@ enum LogFormat {
 
 static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
+static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
+    OTELResource::new(vec![KeyValue::new(
+        opentelemetry_semantic_conventions::resource::SERVICE_NAME,
+        "gpu-pruner",
+    )])
+});
+
+fn init_tracer_provider() -> Result<sdktrace::TracerProvider, TraceError> {
+    opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+        .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
+        .install_batch(runtime::Tokio)
+}
+
+fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
+    let export_config = ExportConfig::default();
+    opentelemetry_otlp::new_pipeline()
+        .metrics(runtime::Tokio)
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_export_config(export_config),
+        )
+        .with_resource(RESOURCE.clone())
+        .build()
+}
+
+fn init_logs() -> Result<opentelemetry_sdk::logs::LoggerProvider, LogError> {
+    opentelemetry_otlp::new_pipeline()
+        .logging()
+        .with_resource(RESOURCE.clone())
+        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+        .install_batch(runtime::Tokio)
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args = Cli::parse();
+    let result = init_tracer_provider();
+    assert!(
+        result.is_ok(),
+        "Init tracer failed with error: {:?}",
+        result.err()
+    );
+    let tracer_provider = result.unwrap();
+    global::set_tracer_provider(tracer_provider.clone());
 
-    match (!std::io::stdout().is_terminal(), &args.log_format) {
-        (true, _) | (_, LogFormat::Json) => {
-            tracing_subscriber::fmt().json().init();
-        }
-        _ => {
-            tracing_subscriber::fmt::init();
-        }
-    }
+    let result = init_metrics();
+    assert!(
+        result.is_ok(),
+        "Init metrics failed with error: {:?}",
+        result.err()
+    );
+    let meter_provider = result.unwrap();
+    global::set_meter_provider(meter_provider.clone());
+
+    // Initialize logs and save the logger_provider.
+    let logger_provider = init_logs().unwrap();
+
+    // Create a new OpenTelemetryTracingBridge using the above LoggerProvider.
+    let layer = OpenTelemetryTracingBridge::new(&logger_provider);
+
+    // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
+    // The filter levels are set as follows:
+    // - Allow `info` level and above by default.
+    // - Restrict `hyper`, `tonic`, and `reqwest` to `error` level logs only.
+    // This ensures events generated from these crates within the OTLP Exporter are not looped back,
+    // thus preventing infinite event generation.
+    // Note: This will also drop events from these crates used outside the OTLP Exporter.
+    // For more details, see: https://github.com/open-telemetry/opentelemetry-rust/issues/761
+    let filter = EnvFilter::new("info")
+        .add_directive("hyper=error".parse().unwrap())
+        .add_directive("tonic=error".parse().unwrap())
+        .add_directive("reqwest=error".parse().unwrap());
+
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(layer)
+        .init();
+
+    let tracer = global::tracer_provider()
+        .tracer_builder("gpu_pruner::main")
+        //.with_attributes(common_scope_attributes.clone())
+        .build();
+    
+    
+    
+    let meter = global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
+    let query_failures = meter.u64_counter("query_failures").with_description("Number of prometheus query failures").init();
+    let scale_failures = meter.u64_counter("scale_failures").with_description("Number of scale failures").init();
+
+
+
+    let args = Cli::parse();
 
     let env: Environment = Environment::new();
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
@@ -131,13 +228,14 @@ async fn main() -> anyhow::Result<()> {
                     .expect("failed to build prometheus client");
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
                     Ok(_) => {
-                        // Reset the failure counter
+                        // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
                     }
                     Err(e) => {
                         let failures =
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                         tracing::error!("Failed to run query and scale: {e}");
+                        query_failures.add(1, &[]);
                         if failures > 5 {
                             tracing::error!("Too many failures, exiting!");
                             break;
@@ -173,6 +271,7 @@ async fn main() -> anyhow::Result<()> {
 
         while let Some(sk) = rx.recv().await {
             if let Err(e) = sk.scale(kube_client.clone()).await {
+                scale_failures.add(1, &[KeyValue::new("kind", sk.kind())]);
                 tracing::error!("Failed to scale resource! {e}");
             }
         }
