@@ -18,6 +18,7 @@ use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
 use secrecy::ExposeSecret;
+use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
@@ -115,14 +116,6 @@ static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
     )])
 });
 
-fn init_tracer_provider() -> Result<sdktrace::TracerProvider, TraceError> {
-    opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-        .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
-        .install_batch(runtime::Tokio)
-}
-
 fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
     let export_config = ExportConfig::default();
     opentelemetry_otlp::new_pipeline()
@@ -136,24 +129,16 @@ fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, Metric
         .build()
 }
 
-fn init_logs() -> Result<opentelemetry_sdk::logs::LoggerProvider, LogError> {
-    opentelemetry_otlp::new_pipeline()
-        .logging()
-        .with_resource(RESOURCE.clone())
-        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-        .install_batch(runtime::Tokio)
-}
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let result = init_tracer_provider();
-    assert!(
-        result.is_ok(),
-        "Init tracer failed with error: {:?}",
-        result.err()
-    );
-    let tracer_provider = result.unwrap();
-    global::set_tracer_provider(tracer_provider.clone());
+    let provider = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+        .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
+        .install_batch(runtime::Tokio).unwrap();
+    global::set_tracer_provider(provider.clone());
 
     let result = init_metrics();
     assert!(
@@ -163,12 +148,6 @@ async fn main() -> anyhow::Result<()> {
     );
     let meter_provider = result.unwrap();
     global::set_meter_provider(meter_provider.clone());
-
-    // Initialize logs and save the logger_provider.
-    let logger_provider = init_logs().unwrap();
-
-    // Create a new OpenTelemetryTracingBridge using the above LoggerProvider.
-    let layer = OpenTelemetryTracingBridge::new(&logger_provider);
 
     // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
     // The filter levels are set as follows:
@@ -183,23 +162,29 @@ async fn main() -> anyhow::Result<()> {
         .add_directive("tonic=error".parse().unwrap())
         .add_directive("reqwest=error".parse().unwrap());
 
+    let trace = provider.tracer("gpu_pruner::main");
+
     tracing_subscriber::registry()
         .with(filter)
-        .with(layer)
+        .with(tracing_subscriber::fmt::layer().json())
+        .with(MetricsLayer::new(meter_provider.clone()))
+        .with(OpenTelemetryLayer::new(trace))
         .init();
 
-    let tracer = global::tracer_provider()
-        .tracer_builder("gpu_pruner::main")
-        //.with_attributes(common_scope_attributes.clone())
-        .build();
-    
-    
-    
-    let meter = global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
-    let query_failures = meter.u64_counter("query_failures").with_description("Number of prometheus query failures").init();
-    let scale_failures = meter.u64_counter("scale_failures").with_description("Number of scale failures").init();
-
-
+    let meter =
+        global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
+    let query_successes = meter
+        .u64_counter("query_successes")
+        .with_description("Number of prometheus query successes")
+        .init();
+    let query_failures = meter
+        .u64_counter("query_failures")
+        .with_description("Number of prometheus query failures")
+        .init();
+    let scale_failures = meter
+        .u64_counter("scale_failures")
+        .with_description("Number of scale failures")
+        .init();
 
     let args = Cli::parse();
 
@@ -227,9 +212,10 @@ async fn main() -> anyhow::Result<()> {
                 let client = get_prom_client(&args.prometheus_url, token)
                     .expect("failed to build prometheus client");
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
-                    Ok(_) => {
+                    Ok(qr) => {
                         // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
+                        query_successes.add(1, &[KeyValue::new("num_pods", qr.num_pods as i64)]);
                     }
                     Err(e) => {
                         let failures =
@@ -282,6 +268,7 @@ async fn main() -> anyhow::Result<()> {
         scale_down_task
     }?;
 
+
     Ok(())
 }
 
@@ -302,10 +289,10 @@ pub enum PodConvertError {
     UnwrapError(String),
 }
 
-impl TryFrom<InstantVector> for PodMetricData {
+impl TryFrom<&InstantVector> for PodMetricData {
     type Error = PodConvertError;
 
-    fn try_from(value: InstantVector) -> Result<Self, PodConvertError> {
+    fn try_from(value: &InstantVector) -> Result<Self, PodConvertError> {
         let metrics = value.metric();
         tracing::debug!("Metrics: {metrics:#?}");
 
@@ -335,13 +322,17 @@ impl TryFrom<InstantVector> for PodMetricData {
     }
 }
 
+struct QueryResposne {
+    num_pods: usize,
+}
+
 #[tracing::instrument(skip_all)]
 async fn run_query_and_scale(
     client: Client,
     query: String,
     args: &Cli,
     tx: Sender<ScaleKind>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<QueryResposne> {
     let response = client.query(query).get().await?;
 
     let data = response.data();
@@ -351,7 +342,7 @@ async fn run_query_and_scale(
 
     let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
 
-    for pod in vec {
+    for pod in &vec {
         tracing::debug!("{:#?}", pod);
 
         let pmd: PodMetricData = match pod.try_into() {
@@ -457,7 +448,9 @@ async fn run_query_and_scale(
             }
         })
         .await;
-    Ok(())
+    Ok(QueryResposne {
+        num_pods: vec.len(),
+    })
 }
 
 /// Get the token for the prometheus client
