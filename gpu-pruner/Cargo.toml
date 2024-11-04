@@ -37,6 +37,6 @@ opentelemetry_sdk = { version = "0.26", features = ["trace", "rt-tokio", "metric
 opentelemetry-appender-tracing = {version = "0.26.0" }
 opentelemetry-semantic-conventions = {version = "0.26.0" }
 opentelemetry-otlp = {version = "0.26.0", features = ["tonic", "metrics"]}
-tracing-opentelemetry = "0.27.0"
+tracing-opentelemetry = {version = "0.27.0", features = ["metrics"]}
 
 once_cell = "1.19.0"
