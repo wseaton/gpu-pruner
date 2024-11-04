@@ -18,14 +18,10 @@ use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
 
-use k8s_openapi::{
-    api::core::v1::Event,
-    apimachinery::pkg::apis::meta::v1::Time,
-    chrono::offset,
-};
+use k8s_openapi::{api::core::v1::Event, apimachinery::pkg::apis::meta::v1::Time, chrono::offset};
 use kube::{
     api::{ObjectMeta, Patch, PatchParams},
-    Api, Client as KubeClient, Config,
+    Api, Client as KubeClient,
 };
 
 #[derive(Debug, Clone, Serialize)]
@@ -115,21 +111,21 @@ impl Meta for ScaleKind {
 
     fn api_version(&self) -> String {
         match self {
-            ScaleKind::Deployment(d) => Deployment::API_VERSION.to_string(),
-            ScaleKind::ReplicaSet(d) => ReplicaSet::API_VERSION.to_string(),
-            ScaleKind::StatefulSet(d) => StatefulSet::API_VERSION.to_string(),
-            ScaleKind::Notebook(d) => "v1".to_string(),
-            ScaleKind::InferenceService(d) => "v1beta1".to_string(),
+            ScaleKind::Deployment(_) => Deployment::API_VERSION.to_string(),
+            ScaleKind::ReplicaSet(_) => ReplicaSet::API_VERSION.to_string(),
+            ScaleKind::StatefulSet(_) => StatefulSet::API_VERSION.to_string(),
+            ScaleKind::Notebook(_) => "v1".to_string(),
+            ScaleKind::InferenceService(_) => "v1beta1".to_string(),
         }
     }
 
     fn kind(&self) -> String {
         match self {
-            ScaleKind::Deployment(d) => Deployment::KIND.to_string(),
-            ScaleKind::ReplicaSet(d) => ReplicaSet::KIND.to_string(),
-            ScaleKind::StatefulSet(d) => StatefulSet::KIND.to_string(),
-            ScaleKind::Notebook(d) => "Notebook".to_string(),
-            ScaleKind::InferenceService(d) => "InferenceService".to_string(),
+            ScaleKind::Deployment(_) => Deployment::KIND.to_string(),
+            ScaleKind::ReplicaSet(_) => ReplicaSet::KIND.to_string(),
+            ScaleKind::StatefulSet(_) => StatefulSet::KIND.to_string(),
+            ScaleKind::Notebook(_) => "Notebook".to_string(),
+            ScaleKind::InferenceService(_) => "InferenceService".to_string(),
         }
     }
 
@@ -227,7 +223,7 @@ impl Scaler for ScaleKind {
             type_: Some("Normal".to_string()),
             metadata: ObjectMeta {
                 namespace: self.namespace(),
-                name: Some(format!("gpuscaler-{}", uuid.as_simple().to_string())),
+                name: Some(format!("gpuscaler-{}", uuid.as_simple())),
                 ..Default::default()
             },
             involved_object: ObjectReference {
@@ -316,11 +312,8 @@ mod tests {
     use kube::api::ObjectMeta;
     use resources::notebook::NotebookSpec;
 
+    use super::{Notebook, ScaleKind};
     use crate::Scaler;
-
-    use super::{Event, Notebook, ScaleKind};
-
-    use serde_yaml;
 
     #[test]
     fn make_event() {

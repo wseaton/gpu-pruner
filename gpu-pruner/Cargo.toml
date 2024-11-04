@@ -1,6 +1,6 @@
 [package]
 name = "gpu-pruner"
-version = "0.2.0"
+version = "0.2.2"
 edition = "2021"
 
 [dependencies]
@@ -29,6 +29,6 @@ serde_yaml = "*"
 is-terminal = "0.4.13"
 thiserror.workspace = true
 futures.workspace = true
-
+chrono.workspace = true
 
 

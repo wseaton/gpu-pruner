@@ -3,7 +3,7 @@ use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
 use secrecy::ExposeSecret;
-use std::{any::Any, collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
+use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
 
@@ -187,6 +187,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct PodMetricData {
     name: String,
     namespace: String,
@@ -252,6 +253,8 @@ async fn run_query_and_scale(
     let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
 
     for pod in vec {
+        tracing::debug!("{:#?}", pod);
+
         let pmd: PodMetricData = match pod.try_into() {
             Ok(pmd) => pmd,
             Err(e) => {
@@ -259,8 +262,6 @@ async fn run_query_and_scale(
                 continue;
             }
         };
-
-
 
         let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
         let pod = match api
@@ -284,9 +285,9 @@ async fn run_query_and_scale(
                 );
                 None
             }) {
-                Some(pod) => pod,
-                None => continue,
-            };
+            Some(pod) => pod,
+            None => continue,
+        };
 
         if let Some(status) = pod.status.as_ref() {
             if let Some(phase) = status.phase.as_ref() {
@@ -301,7 +302,11 @@ async fn run_query_and_scale(
             }
         };
 
-        let create_time = pod.metadata.creation_timestamp.clone().expect("no timestamp");
+        let create_time = pod
+            .metadata
+            .creation_timestamp
+            .clone()
+            .expect("no timestamp");
 
         let lookback_start = offset::Utc::now()
             - (Duration::minutes(args.duration) + Duration::seconds(args.grace_period));
@@ -327,32 +332,32 @@ async fn run_query_and_scale(
     }
 
     futures::stream::iter(shutdown_events)
-    .filter_map(|obj| async {
-        if let Mode::DryRun = args.run_mode {
+        .filter_map(|obj| async {
+            if let Mode::DryRun = args.run_mode {
+                tracing::info!(
+                    "Dry-run: Would have sent [{}] {}:{} for scaledown",
+                    obj.kind(),
+                    obj.namespace().unwrap_or_default(),
+                    obj.name()
+                );
+                None // Filter out in dry-run mode
+            } else {
+                Some(obj) // Keep the object for sending
+            }
+        })
+        .for_each_concurrent(None, |obj| async {
             tracing::info!(
-                "Dry-run: Would have sent [{}] {}:{} for scaledown",
+                "Sending [{}] {}:{} for scaledown",
                 obj.kind(),
-                obj.namespace().unwrap_or_else(|| "".to_string()),
+                obj.namespace().unwrap_or_default(),
                 obj.name()
             );
-            None // Filter out in dry-run mode
-        } else {
-            Some(obj) // Keep the object for sending
-        }
-    })
-    .for_each_concurrent(None, |obj| async {
-        tracing::info!(
-            "Sending [{}] {}:{} for scaledown",
-            obj.kind(),
-            obj.namespace().unwrap_or_else(|| "".to_string()),
-            obj.name()
-        );
-        
-        if let Err(e) = tx.send(obj).await {
-            tracing::error!("Failed to send object for scaledown: {:?}", e);
-        }
-    })
-    .await;
+
+            if let Err(e) = tx.send(obj).await {
+                tracing::error!("Failed to send object for scaledown: {:?}", e);
+            }
+        })
+        .await;
     Ok(())
 }
 
