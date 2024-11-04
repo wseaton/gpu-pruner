@@ -173,18 +173,6 @@ async fn main() -> anyhow::Result<()> {
 
     let meter =
         global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
-    let query_successes = meter
-        .u64_counter("query_successes")
-        .with_description("Number of prometheus query successes")
-        .init();
-    let query_failures = meter
-        .u64_counter("query_failures")
-        .with_description("Number of prometheus query failures")
-        .init();
-    let scale_failures = meter
-        .u64_counter("scale_failures")
-        .with_description("Number of scale failures")
-        .init();
 
     let args = Cli::parse();
 
@@ -215,13 +203,17 @@ async fn main() -> anyhow::Result<()> {
                     Ok(qr) => {
                         // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
-                        query_successes.add(1, &[KeyValue::new("num_pods", qr.num_pods as i64)]);
+                        tracing::info!(
+                            monotonic_counter.query_successes = 1,
+                            "Query returned {num_pods} pods",
+                            num_pods = qr.num_pods,
+                            
+                        );
                     }
                     Err(e) => {
                         let failures =
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        tracing::error!("Failed to run query and scale: {e}");
-                        query_failures.add(1, &[]);
+                        tracing::error!(monotonic_counter.query_failures = 1, "Failed to run query and scale down! {e}");
                         if failures > 5 {
                             tracing::error!("Too many failures, exiting!");
                             break;
@@ -257,8 +249,7 @@ async fn main() -> anyhow::Result<()> {
 
         while let Some(sk) = rx.recv().await {
             if let Err(e) = sk.scale(kube_client.clone()).await {
-                scale_failures.add(1, &[KeyValue::new("kind", sk.kind())]);
-                tracing::error!("Failed to scale resource! {e}");
+                tracing::error!(monotonic_counter.scale_failures = 1, "Failed to scale resource! {e}");
             }
         }
     });

@@ -151,6 +151,7 @@ impl Meta for ScaleKind {
 }
 
 impl Scaler for ScaleKind {
+    #[tracing::instrument(skip(self, client))]
     async fn scale(&self, client: Client) -> anyhow::Result<()> {
         if let Some(ns) = self.namespace() {
             let event = self.generate_scale_event()?;
@@ -200,6 +201,7 @@ impl Scaler for ScaleKind {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::new_v4();
         let now: Time = Time(offset::Utc::now());
