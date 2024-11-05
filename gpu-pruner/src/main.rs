@@ -4,10 +4,7 @@ use once_cell::sync::Lazy;
 use opentelemetry::global;
 use opentelemetry::metrics::MetricsError;
 use opentelemetry::trace::TracerProvider;
-use opentelemetry::{
-    trace::Tracer,
-    KeyValue,
-};
+use opentelemetry::{trace::Tracer, KeyValue};
 use opentelemetry_otlp::{ExportConfig, WithExportConfig};
 use opentelemetry_sdk::trace::Config as TraceConfig;
 use opentelemetry_sdk::{runtime, Resource as OTELResource};
@@ -41,7 +38,9 @@ use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
 
 use clap::{Parser, ValueEnum};
 
-use gpu_pruner::{Meta, ScaleKind, Scaler};
+use gpu_pruner::{
+    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ScaleKind, Scaler,
+};
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
 /// GPU utilization metrics and scales down pods that have been idle for a certain duration.
@@ -199,11 +198,7 @@ async fn main() -> anyhow::Result<()> {
                     Ok(qr) => {
                         // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
-                        tracing::info!(
-                            monotonic_counter.query_successes = 1,
-                            "Query succeeded"
-
-                        );
+                        tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
                         tracing::info!(
                             counter.query_returned_candidates = qr.num_pods,
                             "Returned candidates"
@@ -278,60 +273,6 @@ async fn main() -> anyhow::Result<()> {
     }?;
 
     Ok(())
-}
-
-#[derive(Debug)]
-#[allow(dead_code)]
-struct PodMetricData {
-    name: String,
-    namespace: String,
-    container: String,
-    node_type: String,
-    gpu_model: String,
-    value: f64,
-}
-
-#[derive(Debug, Error)]
-pub enum PodConvertError {
-    #[error("the data for key `{0}` is not available")]
-    UnwrapError(String),
-}
-
-impl TryFrom<&InstantVector> for PodMetricData {
-    type Error = PodConvertError;
-
-    fn try_from(value: &InstantVector) -> Result<Self, PodConvertError> {
-        let metrics = value.metric();
-        tracing::debug!("Metrics: {metrics:#?}");
-
-        Ok(PodMetricData {
-            name: metrics
-                .get("exported_pod")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
-                .clone(),
-            namespace: metrics
-                .get("exported_namespace")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
-                .clone(),
-            container: metrics
-                .get("exported_container")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
-                .clone(),
-            node_type: metrics
-                .get("node_type")
-                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
-                .clone(),
-            gpu_model: metrics
-                .get("modelName")
-                .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
-                .clone(),
-            value: value.sample().value(),
-        })
-    }
-}
-
-struct QueryResposne {
-    num_pods: usize,
 }
 
 #[tracing::instrument(skip_all)]
@@ -459,48 +400,6 @@ async fn run_query_and_scale(
     Ok(QueryResposne {
         num_pods: vec.len(),
     })
-}
-
-/// Get the token for the prometheus client
-async fn get_prometheus_token() -> anyhow::Result<String> {
-    if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
-        tracing::debug!("Getting token from PROMETHEUS_TOKEN");
-        return Ok(token);
-    }
-
-    tracing::info!("Inferring prometheus token from K8s config");
-    let config: Config = Config::infer().await?;
-    tracing::trace!("{config:#?}");
-    // in cluster config usually causes a token file
-    if let Some(token_file) = config.auth_info.token_file {
-        let token = std::fs::read_to_string(token_file)?;
-        return Ok(token);
-    }
-    if let Some(token) = config.auth_info.token {
-        tracing::info!("Found K8s token");
-        let token = token.expose_secret();
-        return Ok(token.to_string());
-    }
-
-    tracing::info!("No token provided, trying to get token from oc as last resort");
-    let token = std::process::Command::new("oc")
-        .args(["whoami", "-t"])
-        .output()?
-        .stdout;
-    return Ok(std::str::from_utf8(&token)?.trim().to_string());
-}
-
-fn get_prom_client(url: &str, token: String) -> anyhow::Result<Client> {
-    let mut r_client = reqwest::ClientBuilder::new();
-    // add auth token as default header
-    let mut header_map = HeaderMap::new();
-    header_map.insert("Authorization", format!("Bearer {}", token).parse()?);
-
-    r_client = r_client.default_headers(header_map);
-
-    let res = Client::from(r_client.build()?, url)?;
-
-    Ok(res)
 }
 
 /// Crawl up the owner references to find the root Deployment or StatefulSet
