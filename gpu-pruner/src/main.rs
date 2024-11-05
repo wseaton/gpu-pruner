@@ -14,17 +14,18 @@ use {
     tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
 };
 
-
-
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use tokio::{sync::mpsc::Sender, time};
 
-use tracing_subscriber::{layer::{Layered, SubscriberExt}, Layer};
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{
+    layer::{Layered, SubscriberExt},
+    Layer,
+};
 
 use futures::stream::StreamExt;
 
@@ -77,7 +78,7 @@ struct Cli {
     #[clap(short, long)]
     model_name: Option<String>,
 
-    /// Operation mode, either "dry-run" or "scale-down".
+    /// Operation mode of the scaler process
     #[clap(short, long, default_value = "dry-run")]
     run_mode: Mode,
 
@@ -92,8 +93,7 @@ struct Cli {
     #[clap(long)]
     prometheus_token: Option<String>,
 
-    /// Log format to use, either "json" or "pretty"
-    /// Defaults to "pretty"
+    /// Log format to use
     #[clap(short, long, default_value = "pretty")]
     log_format: LogFormat,
 }
@@ -121,7 +121,6 @@ static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
         "gpu-pruner",
     )])
 });
-
 
 #[cfg(feature = "otel")]
 fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
