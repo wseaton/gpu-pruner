@@ -2,26 +2,24 @@ use minijinja::{context, Environment};
 
 use once_cell::sync::Lazy;
 use opentelemetry::global;
-use opentelemetry::logs::LogError;
 use opentelemetry::metrics::MetricsError;
-use opentelemetry::trace::{TraceError, TracerProvider};
+use opentelemetry::trace::TracerProvider;
 use opentelemetry::{
-    trace::{TraceContextExt, Tracer},
+    trace::Tracer,
     KeyValue,
 };
-use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_otlp::{ExportConfig, WithExportConfig};
 use opentelemetry_sdk::trace::Config as TraceConfig;
-use opentelemetry_sdk::{runtime, trace as sdktrace, Resource as OTELResource};
+use opentelemetry_sdk::{runtime, Resource as OTELResource};
 
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
 use secrecy::ExposeSecret;
-use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
+use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
@@ -42,7 +40,6 @@ use k8s_openapi::{
 use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
 
 use clap::{Parser, ValueEnum};
-use is_terminal::IsTerminal;
 
 use gpu_pruner::{Meta, ScaleKind, Scaler};
 
@@ -129,15 +126,14 @@ fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, Metric
         .build()
 }
 
-
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let provider = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(opentelemetry_otlp::new_exporter().tonic())
         .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
-        .install_batch(runtime::Tokio).unwrap();
+        .install_batch(runtime::Tokio)
+        .unwrap();
     global::set_tracer_provider(provider.clone());
 
     let result = init_metrics();
@@ -171,7 +167,7 @@ async fn main() -> anyhow::Result<()> {
         .with(OpenTelemetryLayer::new(trace))
         .init();
 
-    let meter =
+    let _meter =
         global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
 
     let args = Cli::parse();
@@ -205,15 +201,21 @@ async fn main() -> anyhow::Result<()> {
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
                         tracing::info!(
                             monotonic_counter.query_successes = 1,
-                            "Query returned {num_pods} pods",
-                            num_pods = qr.num_pods,
-                            
+                            "Query succeeded"
+
                         );
+                        tracing::info!(
+                            counter.query_returned_candidates = qr.num_pods,
+                            "Returned candidates"
+                        )
                     }
                     Err(e) => {
                         let failures =
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        tracing::error!(monotonic_counter.query_failures = 1, "Failed to run query and scale down! {e}");
+                        tracing::error!(
+                            monotonic_counter.query_failures = 1,
+                            "Failed to run query and scale down! {e}"
+                        );
                         if failures > 5 {
                             tracing::error!("Too many failures, exiting!");
                             break;
@@ -249,8 +251,24 @@ async fn main() -> anyhow::Result<()> {
 
         while let Some(sk) = rx.recv().await {
             if let Err(e) = sk.scale(kube_client.clone()).await {
-                tracing::error!(monotonic_counter.scale_failures = 1, "Failed to scale resource! {e}");
+                tracing::error!(
+                    monotonic_counter.scale_failures = 1,
+                    "Failed to scale resource! {e}"
+                );
+                continue;
             }
+
+            let kind = sk.kind();
+            let name = sk.name();
+            let namespace = sk.namespace().unwrap_or_else(|| "default".to_string());
+
+            tracing::info!(
+                monotonic_counter.scale_successes = 1,
+                "Scaled Resource: [{kind}] - {namespace}:{name}",
+                kind = kind,
+                name = name,
+                namespace = namespace
+            )
         }
     });
 
@@ -258,7 +276,6 @@ async fn main() -> anyhow::Result<()> {
         query_task,
         scale_down_task
     }?;
-
 
     Ok(())
 }
