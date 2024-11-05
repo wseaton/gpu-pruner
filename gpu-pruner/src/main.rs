@@ -1,30 +1,34 @@
 use minijinja::{context, Environment};
 
 use once_cell::sync::Lazy;
-use opentelemetry::global;
-use opentelemetry::metrics::MetricsError;
-use opentelemetry::trace::TracerProvider;
-use opentelemetry::{trace::Tracer, KeyValue};
-use opentelemetry_otlp::{ExportConfig, WithExportConfig};
-use opentelemetry_sdk::trace::Config as TraceConfig;
-use opentelemetry_sdk::{runtime, Resource as OTELResource};
+
+#[cfg(feature = "otel")]
+use {
+    opentelemetry::global,
+    opentelemetry::metrics::MetricsError,
+    opentelemetry::trace::TracerProvider,
+    opentelemetry::KeyValue,
+    opentelemetry_otlp::{ExportConfig, WithExportConfig},
+    opentelemetry_sdk::trace::Config as TraceConfig,
+    opentelemetry_sdk::{runtime, Resource as OTELResource},
+    tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
+};
+
+
 
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
-use secrecy::ExposeSecret;
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
-use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
-use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
-use tracing_subscriber::layer::SubscriberExt;
+
+use tracing_subscriber::{layer::{Layered, SubscriberExt}, Layer};
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 use futures::stream::StreamExt;
 
-use prometheus_http_query::{response::InstantVector, Client};
-use reqwest::header::HeaderMap;
+use prometheus_http_query::Client;
 use serde::Serialize;
 
 use k8s_openapi::{
@@ -34,7 +38,7 @@ use k8s_openapi::{
     },
     chrono::{offset, Duration},
 };
-use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
+use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
 
 use clap::{Parser, ValueEnum};
 
@@ -87,6 +91,11 @@ struct Cli {
     /// of the currently logged in K8s user.
     #[clap(long)]
     prometheus_token: Option<String>,
+
+    /// Log format to use, either "json" or "pretty"
+    /// Defaults to "pretty"
+    #[clap(short, long, default_value = "pretty")]
+    log_format: LogFormat,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -105,6 +114,7 @@ enum LogFormat {
 
 static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
+#[cfg(feature = "otel")]
 static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
     OTELResource::new(vec![KeyValue::new(
         opentelemetry_semantic_conventions::resource::SERVICE_NAME,
@@ -112,6 +122,8 @@ static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
     )])
 });
 
+
+#[cfg(feature = "otel")]
 fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
     let export_config = ExportConfig::default();
     opentelemetry_otlp::new_pipeline()
@@ -125,25 +137,7 @@ fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, Metric
         .build()
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let provider = opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-        .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
-        .install_batch(runtime::Tokio)
-        .unwrap();
-    global::set_tracer_provider(provider.clone());
-
-    let result = init_metrics();
-    assert!(
-        result.is_ok(),
-        "Init metrics failed with error: {:?}",
-        result.err()
-    );
-    let meter_provider = result.unwrap();
-    global::set_meter_provider(meter_provider.clone());
-
+fn setup_logging() {
     // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
     // The filter levels are set as follows:
     // - Allow `info` level and above by default.
@@ -157,17 +151,71 @@ async fn main() -> anyhow::Result<()> {
         .add_directive("tonic=error".parse().unwrap())
         .add_directive("reqwest=error".parse().unwrap());
 
-    let trace = provider.tracer("gpu_pruner::main");
+    let reg = tracing_subscriber::registry().with(filter);
 
-    tracing_subscriber::registry()
-        .with(filter)
-        .with(tracing_subscriber::fmt::layer().json())
-        .with(MetricsLayer::new(meter_provider.clone()))
-        .with(OpenTelemetryLayer::new(trace))
+    let args = Cli::parse();
+
+    let json_layer = if let LogFormat::Json = args.log_format {
+        Some(tracing_subscriber::fmt::layer().json())
+    } else {
+        None
+    };
+
+    let pretty_layer = if let LogFormat::Pretty = args.log_format {
+        Some(tracing_subscriber::fmt::layer().pretty())
+    } else {
+        None
+    };
+
+    #[cfg(feature = "otel")]
+    let metrics_layer = {
+        let result = init_metrics();
+        assert!(
+            result.is_ok(),
+            "Init metrics failed with error: {:?}",
+            result.err()
+        );
+        let meter_provider = result.unwrap();
+        global::set_meter_provider(meter_provider.clone());
+
+        let _meter = global::meter_with_version(
+            "gpu_pruner::main",
+            Some("v0.2.2"),
+            Some("schema_url"),
+            None,
+        );
+        Some(MetricsLayer::new(meter_provider.clone()))
+    };
+
+    #[cfg(not(feature = "otel"))]
+    let metrics_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
+
+    #[cfg(feature = "otel")]
+    let otel_layer = {
+        let provider = opentelemetry_otlp::new_pipeline()
+            .tracing()
+            .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+            .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
+            .install_batch(runtime::Tokio)
+            .unwrap();
+        global::set_tracer_provider(provider.clone());
+        let trace = provider.tracer("gpu_pruner::main");
+        Some(OpenTelemetryLayer::new(trace))
+    };
+
+    #[cfg(not(feature = "otel"))]
+    let otel_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
+
+    reg.with(json_layer)
+        .with(pretty_layer)
+        .with(metrics_layer)
+        .with(otel_layer)
         .init();
+}
 
-    let _meter =
-        global::meter_with_version("gpu_pruner::main", Some("v0.2.2"), Some("schema_url"), None);
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    setup_logging();
 
     let args = Cli::parse();
 
