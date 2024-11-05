@@ -47,7 +47,7 @@ Options:
           model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
 
   -r, --run-mode <RUN_MODE>
-          Operation mode, either "dry-run" or "scale-down"
+          Operation mode of the scaler
 
           [default: dry-run]
           [possible values: scale-down, dry-run]
@@ -58,8 +58,36 @@ Options:
       --prometheus-token <PROMETHEUS_TOKEN>
           Prometheus token to use for authentication, if not provided, will try to authenticate using the service token of the currently logged in K8s user
 
+  -l, --log-format <LOG_FORMAT>
+          Log format to use
+
+          [default: pretty]
+          [possible values: json, pretty]
+
   -h, --help
           Print help (see a summary with '-h')
+```
+
+
+## OTEL via OLTP
+
+When compiled with the `otel` feature, OLTP metrics and trace export is enabled, and can be configured via environment variables, eg:
+
+```
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.hostIP
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: 'http://$(NODE_IP):4317'
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://$(NODE_IP):4317'
 ```
 
 

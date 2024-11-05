@@ -1,16 +1,35 @@
 use minijinja::{context, Environment};
+
+use once_cell::sync::Lazy;
+
+#[cfg(feature = "otel")]
+use {
+    opentelemetry::global,
+    opentelemetry::metrics::MetricsError,
+    opentelemetry::trace::TracerProvider,
+    opentelemetry::KeyValue,
+    opentelemetry_otlp::{ExportConfig, WithExportConfig},
+    opentelemetry_sdk::trace::Config as TraceConfig,
+    opentelemetry_sdk::{runtime, Resource as OTELResource},
+    tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
+};
+
 use resources::inferenceservice::InferenceService;
 use resources::notebook::Notebook;
 
-use secrecy::ExposeSecret;
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
-use thiserror::Error;
 use tokio::{sync::mpsc::Sender, time};
+
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{
+    layer::{Layered, SubscriberExt},
+    Layer,
+};
 
 use futures::stream::StreamExt;
 
-use prometheus_http_query::{response::InstantVector, Client};
-use reqwest::header::HeaderMap;
+use prometheus_http_query::Client;
 use serde::Serialize;
 
 use k8s_openapi::{
@@ -20,12 +39,13 @@ use k8s_openapi::{
     },
     chrono::{offset, Duration},
 };
-use kube::{api::ObjectMeta, Api, Client as KubeClient, Config, Resource};
+use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
 
 use clap::{Parser, ValueEnum};
-use is_terminal::IsTerminal;
 
-use gpu_pruner::{Meta, ScaleKind, Scaler};
+use gpu_pruner::{
+    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ScaleKind, Scaler,
+};
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
 /// GPU utilization metrics and scales down pods that have been idle for a certain duration.
@@ -58,7 +78,7 @@ struct Cli {
     #[clap(short, long)]
     model_name: Option<String>,
 
-    /// Operation mode, either "dry-run" or "scale-down".
+    /// Operation mode of the scaler process
     #[clap(short, long, default_value = "dry-run")]
     run_mode: Mode,
 
@@ -73,6 +93,7 @@ struct Cli {
     #[clap(long)]
     prometheus_token: Option<String>,
 
+    /// Log format to use
     #[clap(short, long, default_value = "pretty")]
     log_format: LogFormat,
 }
@@ -93,18 +114,109 @@ enum LogFormat {
 
 static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+#[cfg(feature = "otel")]
+static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
+    OTELResource::new(vec![KeyValue::new(
+        opentelemetry_semantic_conventions::resource::SERVICE_NAME,
+        "gpu-pruner",
+    )])
+});
+
+#[cfg(feature = "otel")]
+fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
+    let export_config = ExportConfig::default();
+    opentelemetry_otlp::new_pipeline()
+        .metrics(runtime::Tokio)
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_export_config(export_config),
+        )
+        .with_resource(RESOURCE.clone())
+        .build()
+}
+
+fn setup_logging() {
+    // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
+    // The filter levels are set as follows:
+    // - Allow `info` level and above by default.
+    // - Restrict `hyper`, `tonic`, and `reqwest` to `error` level logs only.
+    // This ensures events generated from these crates within the OTLP Exporter are not looped back,
+    // thus preventing infinite event generation.
+    // Note: This will also drop events from these crates used outside the OTLP Exporter.
+    // For more details, see: https://github.com/open-telemetry/opentelemetry-rust/issues/761
+    let filter = EnvFilter::new("info")
+        .add_directive("hyper=error".parse().unwrap())
+        .add_directive("tonic=error".parse().unwrap())
+        .add_directive("reqwest=error".parse().unwrap());
+
+    let reg = tracing_subscriber::registry().with(filter);
+
     let args = Cli::parse();
 
-    match (!std::io::stdout().is_terminal(), &args.log_format) {
-        (true, _) | (_, LogFormat::Json) => {
-            tracing_subscriber::fmt().json().init();
-        }
-        _ => {
-            tracing_subscriber::fmt::init();
-        }
-    }
+    let json_layer = if let LogFormat::Json = args.log_format {
+        Some(tracing_subscriber::fmt::layer().json())
+    } else {
+        None
+    };
+
+    let pretty_layer = if let LogFormat::Pretty = args.log_format {
+        Some(tracing_subscriber::fmt::layer().pretty())
+    } else {
+        None
+    };
+
+    #[cfg(feature = "otel")]
+    let metrics_layer = {
+        let result = init_metrics();
+        assert!(
+            result.is_ok(),
+            "Init metrics failed with error: {:?}",
+            result.err()
+        );
+        let meter_provider = result.unwrap();
+        global::set_meter_provider(meter_provider.clone());
+
+        let _meter = global::meter_with_version(
+            "gpu_pruner::main",
+            Some("v0.2.2"),
+            Some("schema_url"),
+            None,
+        );
+        Some(MetricsLayer::new(meter_provider.clone()))
+    };
+
+    #[cfg(not(feature = "otel"))]
+    let metrics_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
+
+    #[cfg(feature = "otel")]
+    let otel_layer = {
+        let provider = opentelemetry_otlp::new_pipeline()
+            .tracing()
+            .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+            .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
+            .install_batch(runtime::Tokio)
+            .unwrap();
+        global::set_tracer_provider(provider.clone());
+        let trace = provider.tracer("gpu_pruner::main");
+        Some(OpenTelemetryLayer::new(trace))
+    };
+
+    #[cfg(not(feature = "otel"))]
+    let otel_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
+
+    reg.with(json_layer)
+        .with(pretty_layer)
+        .with(metrics_layer)
+        .with(otel_layer)
+        .init();
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    setup_logging();
+
+    let args = Cli::parse();
 
     let env: Environment = Environment::new();
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
@@ -130,14 +242,22 @@ async fn main() -> anyhow::Result<()> {
                 let client = get_prom_client(&args.prometheus_url, token)
                     .expect("failed to build prometheus client");
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
-                    Ok(_) => {
-                        // Reset the failure counter
+                    Ok(qr) => {
+                        // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
+                        tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
+                        tracing::info!(
+                            counter.query_returned_candidates = qr.num_pods,
+                            "Returned candidates"
+                        )
                     }
                     Err(e) => {
                         let failures =
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                        tracing::error!("Failed to run query and scale: {e}");
+                        tracing::error!(
+                            monotonic_counter.query_failures = 1,
+                            "Failed to run query and scale down! {e}"
+                        );
                         if failures > 5 {
                             tracing::error!("Too many failures, exiting!");
                             break;
@@ -173,8 +293,24 @@ async fn main() -> anyhow::Result<()> {
 
         while let Some(sk) = rx.recv().await {
             if let Err(e) = sk.scale(kube_client.clone()).await {
-                tracing::error!("Failed to scale resource! {e}");
+                tracing::error!(
+                    monotonic_counter.scale_failures = 1,
+                    "Failed to scale resource! {e}"
+                );
+                continue;
             }
+
+            let kind = sk.kind();
+            let name = sk.name();
+            let namespace = sk.namespace().unwrap_or_else(|| "default".to_string());
+
+            tracing::info!(
+                monotonic_counter.scale_successes = 1,
+                "Scaled Resource: [{kind}] - {namespace}:{name}",
+                kind = kind,
+                name = name,
+                namespace = namespace
+            )
         }
     });
 
@@ -186,63 +322,13 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Debug)]
-#[allow(dead_code)]
-struct PodMetricData {
-    name: String,
-    namespace: String,
-    container: String,
-    node_type: String,
-    gpu_model: String,
-    value: f64,
-}
-
-#[derive(Debug, Error)]
-pub enum PodConvertError {
-    #[error("the data for key `{0}` is not available")]
-    UnwrapError(String),
-}
-
-impl TryFrom<InstantVector> for PodMetricData {
-    type Error = PodConvertError;
-
-    fn try_from(value: InstantVector) -> Result<Self, PodConvertError> {
-        let metrics = value.metric();
-        tracing::debug!("Metrics: {metrics:#?}");
-
-        Ok(PodMetricData {
-            name: metrics
-                .get("exported_pod")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
-                .clone(),
-            namespace: metrics
-                .get("exported_namespace")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
-                .clone(),
-            container: metrics
-                .get("exported_container")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
-                .clone(),
-            node_type: metrics
-                .get("node_type")
-                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
-                .clone(),
-            gpu_model: metrics
-                .get("modelName")
-                .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
-                .clone(),
-            value: value.sample().value(),
-        })
-    }
-}
-
 #[tracing::instrument(skip_all)]
 async fn run_query_and_scale(
     client: Client,
     query: String,
     args: &Cli,
     tx: Sender<ScaleKind>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<QueryResposne> {
     let response = client.query(query).get().await?;
 
     let data = response.data();
@@ -252,7 +338,7 @@ async fn run_query_and_scale(
 
     let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
 
-    for pod in vec {
+    for pod in &vec {
         tracing::debug!("{:#?}", pod);
 
         let pmd: PodMetricData = match pod.try_into() {
@@ -358,49 +444,9 @@ async fn run_query_and_scale(
             }
         })
         .await;
-    Ok(())
-}
-
-/// Get the token for the prometheus client
-async fn get_prometheus_token() -> anyhow::Result<String> {
-    if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
-        tracing::debug!("Getting token from PROMETHEUS_TOKEN");
-        return Ok(token);
-    }
-
-    tracing::info!("Inferring prometheus token from K8s config");
-    let config: Config = Config::infer().await?;
-    tracing::trace!("{config:#?}");
-    // in cluster config usually causes a token file
-    if let Some(token_file) = config.auth_info.token_file {
-        let token = std::fs::read_to_string(token_file)?;
-        return Ok(token);
-    }
-    if let Some(token) = config.auth_info.token {
-        tracing::info!("Found K8s token");
-        let token = token.expose_secret();
-        return Ok(token.to_string());
-    }
-
-    tracing::info!("No token provided, trying to get token from oc as last resort");
-    let token = std::process::Command::new("oc")
-        .args(["whoami", "-t"])
-        .output()?
-        .stdout;
-    return Ok(std::str::from_utf8(&token)?.trim().to_string());
-}
-
-fn get_prom_client(url: &str, token: String) -> anyhow::Result<Client> {
-    let mut r_client = reqwest::ClientBuilder::new();
-    // add auth token as default header
-    let mut header_map = HeaderMap::new();
-    header_map.insert("Authorization", format!("Bearer {}", token).parse()?);
-
-    r_client = r_client.default_headers(header_map);
-
-    let res = Client::from(r_client.build()?, url)?;
-
-    Ok(res)
+    Ok(QueryResposne {
+        num_pods: vec.len(),
+    })
 }
 
 /// Crawl up the owner references to find the root Deployment or StatefulSet

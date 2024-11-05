@@ -1,5 +1,3 @@
-use std::hash::{Hash, Hasher};
-
 use k8s_openapi::{
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
@@ -10,15 +8,24 @@ use k8s_openapi::{
 };
 use kube::{api::PostParams, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
+use secrecy::ExposeSecret;
 use serde::Serialize;
+use std::hash::{Hash, Hasher};
+use thiserror::Error;
 
 use uuid::Uuid;
 
 use std::fmt::Debug;
 
+use prometheus_http_query::{response::InstantVector, Client as PromClient};
+use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use k8s_openapi::{api::core::v1::Event, apimachinery::pkg::apis::meta::v1::Time, chrono::offset};
+use k8s_openapi::{
+    api::core::v1::Event,
+    apimachinery::pkg::apis::meta::v1::Time,
+    chrono::{offset, Duration},
+};
 use kube::{
     api::{ObjectMeta, Patch, PatchParams},
     Api, Client as KubeClient,
@@ -72,6 +79,59 @@ impl Hash for ScaleKind {
     }
 }
 
+pub struct QueryResposne {
+    pub num_pods: usize,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct PodMetricData {
+    pub name: String,
+    pub namespace: String,
+    pub container: String,
+    pub node_type: String,
+    pub gpu_model: String,
+    pub value: f64,
+}
+
+#[derive(Debug, Error)]
+pub enum PodConvertError {
+    #[error("the data for key `{0}` is not available")]
+    UnwrapError(String),
+}
+
+impl TryFrom<&InstantVector> for PodMetricData {
+    type Error = PodConvertError;
+
+    fn try_from(value: &InstantVector) -> Result<Self, PodConvertError> {
+        let metrics = value.metric();
+        tracing::debug!("Metrics: {metrics:#?}");
+
+        Ok(PodMetricData {
+            name: metrics
+                .get("exported_pod")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
+                .clone(),
+            namespace: metrics
+                .get("exported_namespace")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
+                .clone(),
+            container: metrics
+                .get("exported_container")
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
+                .clone(),
+            node_type: metrics
+                .get("node_type")
+                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
+                .clone(),
+            gpu_model: metrics
+                .get("modelName")
+                .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
+                .clone(),
+            value: value.sample().value(),
+        })
+    }
+}
 pub trait Meta {
     fn name(&self) -> String;
     fn namespace(&self) -> Option<String>;
@@ -86,6 +146,48 @@ pub trait Scaler {
         -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     fn generate_scale_event(&self) -> anyhow::Result<Event>;
+}
+
+/// Get the token for the prometheus client
+pub async fn get_prometheus_token() -> anyhow::Result<String> {
+    if let Ok(token) = std::env::var("PROMETHEUS_TOKEN") {
+        tracing::debug!("Getting token from PROMETHEUS_TOKEN");
+        return Ok(token);
+    }
+
+    tracing::info!("Inferring prometheus token from K8s config");
+    let config: kube::Config = kube::Config::infer().await?;
+    tracing::trace!("{config:#?}");
+    // in cluster config usually causes a token file
+    if let Some(token_file) = config.auth_info.token_file {
+        let token = std::fs::read_to_string(token_file)?;
+        return Ok(token);
+    }
+    if let Some(token) = config.auth_info.token {
+        tracing::info!("Found K8s token");
+        let token = token.expose_secret();
+        return Ok(token.to_string());
+    }
+
+    tracing::info!("No token provided, trying to get token from oc as last resort");
+    let token = std::process::Command::new("oc")
+        .args(["whoami", "-t"])
+        .output()?
+        .stdout;
+    return Ok(std::str::from_utf8(&token)?.trim().to_string());
+}
+
+pub fn get_prom_client(url: &str, token: String) -> anyhow::Result<PromClient> {
+    let mut r_client = reqwest::ClientBuilder::new();
+    // add auth token as default header
+    let mut header_map = HeaderMap::new();
+    header_map.insert("Authorization", format!("Bearer {}", token).parse()?);
+
+    r_client = r_client.default_headers(header_map);
+
+    let res = PromClient::from(r_client.build()?, url)?;
+
+    Ok(res)
 }
 
 impl Meta for ScaleKind {
@@ -151,6 +253,7 @@ impl Meta for ScaleKind {
 }
 
 impl Scaler for ScaleKind {
+    #[tracing::instrument(skip(self, client))]
     async fn scale(&self, client: Client) -> anyhow::Result<()> {
         if let Some(ns) = self.namespace() {
             let event = self.generate_scale_event()?;
@@ -200,6 +303,7 @@ impl Scaler for ScaleKind {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::new_v4();
         let now: Time = Time(offset::Utc::now());
