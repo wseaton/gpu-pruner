@@ -1,8 +1,6 @@
 use minijinja::{context, Environment};
 
 use once_cell::sync::Lazy;
-use tracing_opentelemetry::layer;
-
 #[cfg(feature = "otel")]
 use {
     opentelemetry::global,
@@ -25,7 +23,7 @@ use tokio::{sync::mpsc::Sender, time};
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{
-    layer::{Layered, SubscriberExt},
+    layer::SubscriberExt,
     Layer,
 };
 
