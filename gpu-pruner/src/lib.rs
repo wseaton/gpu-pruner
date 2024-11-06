@@ -30,6 +30,8 @@ use kube::{
     api::{ObjectMeta, Patch, PatchParams},
     Api, Client as KubeClient,
 };
+use bitflags::bitflags;
+
 
 #[derive(Debug, Clone, Serialize)]
 pub enum ScaleKind {
@@ -78,6 +80,33 @@ impl Hash for ScaleKind {
         }
     }
 }
+
+
+impl From<ScaleKind> for ResourceKind {
+    fn from(kind: ScaleKind) -> Self {
+        match kind {
+            ScaleKind::Deployment(_) => ResourceKind::DEPLOYMENT,
+            ScaleKind::ReplicaSet(_) => ResourceKind::REPLICA_SET,
+            ScaleKind::StatefulSet(_) => ResourceKind::STATEFUL_SET,
+            ScaleKind::InferenceService(_) => ResourceKind::INFERENCE_SERVICE,
+            ScaleKind::Notebook(_) => ResourceKind::NOTEBOOK,
+        }
+    }
+}
+
+
+bitflags! {
+    #[derive(Debug)]
+    pub struct ResourceKind: u8 {
+        const DEPLOYMENT = 0b00001;
+        const REPLICA_SET = 0b00010;
+        const STATEFUL_SET = 0b00100;
+        const INFERENCE_SERVICE = 0b01000;
+        const NOTEBOOK = 0b10000;
+    }
+}
+
+
 
 pub struct QueryResposne {
     pub num_pods: usize,

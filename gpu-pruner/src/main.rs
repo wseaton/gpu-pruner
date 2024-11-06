@@ -46,8 +46,10 @@ use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ScaleKind, Scaler,
+    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, ResourceKind
 };
+
+
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
 /// GPU utilization metrics and scales down pods that have been idle for a certain duration.
@@ -63,6 +65,16 @@ struct Cli {
     /// daemon mode to run in, if true, will run indefinitely
     #[clap(short, long)]
     daemon_mode: bool,
+
+    /// Specifcy enabled resources with a string of letters
+    /// 
+    /// - `d` for Deployment
+    /// - `r` for ReplicaSet
+    /// - `s` for StatefulSet
+    /// - `i` for InferenceService
+    /// - `n` for Notebook
+    #[clap(short, long, default_value = "drsin")]
+    enabled_resources: String,
 
     /// interval in seconds to check for idle pods, only used in daemon mode
     #[clap(short, long, default_value = "180")]
@@ -255,11 +267,30 @@ impl Drop for OtelGuard {
     }
 }
 
+
+fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
+    let mut resource_kind = ResourceKind::empty();
+    for c in enabled_resources.chars() {
+        match c {
+            'd' => resource_kind |= ResourceKind::DEPLOYMENT,
+            'r' => resource_kind |= ResourceKind::REPLICA_SET,
+            's' => resource_kind |= ResourceKind::STATEFUL_SET,
+            'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
+            'n' => resource_kind |= ResourceKind::NOTEBOOK,
+            _ => {}
+        }
+    }
+    resource_kind
+}
+
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    setup_logging();
+    let _guard = setup_logging();
 
     let args = Cli::parse();
+    let enabled_resources = get_enabled_resources(&args.enabled_resources);
+    tracing::info!("Enabled resources: {enabled_resources:?}");
 
     let env: Environment = Environment::new();
     let query = env.render_str(include_str!("query.promql.j2"), context! { args })?;
@@ -350,6 +381,15 @@ async fn main() -> anyhow::Result<()> {
             .expect("failed to get kube client");
 
         while let Some(sk) = rx.recv().await {
+            // Check if the resource is enabled
+            if !enabled_resources.contains(sk.clone().into()) {
+                tracing::info!(
+                    "Skipping resource type {kind:?} because it is not enabled",
+                    kind = sk.kind()
+                );
+                continue;
+            }
+
             if let Err(e) = sk.scale(kube_client.clone()).await {
                 tracing::error!(
                     monotonic_counter.scale_failures = 1,

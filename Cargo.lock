@@ -778,6 +778,7 @@ name = "gpu-pruner"
 version = "0.2.3"
 dependencies = [
  "anyhow",
+ "bitflags 2.6.0",
  "chrono",
  "clap",
  "csv",

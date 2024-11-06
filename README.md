@@ -30,6 +30,13 @@ Options:
   -d, --daemon-mode
           daemon mode to run in, if true, will run indefinitely
 
+  -e, --enabled-resources <ENABLED_RESOURCES>
+          Specifcy enabled resources with a string of letters
+
+          - `d` for Deployment - `r` for ReplicaSet - `s` for StatefulSet - `i` for InferenceService - `n` for Notebook
+
+          [default: drsin]
+
   -c, --check-interval <CHECK_INTERVAL>
           interval in seconds to check for idle pods, only used in daemon mode
 
@@ -47,7 +54,7 @@ Options:
           model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
 
   -r, --run-mode <RUN_MODE>
-          Operation mode of the scaler
+          Operation mode of the scaler process
 
           [default: dry-run]
           [possible values: scale-down, dry-run]
@@ -61,17 +68,17 @@ Options:
   -l, --log-format <LOG_FORMAT>
           Log format to use
 
-          [default: pretty]
-          [possible values: json, pretty]
+          [default: default]
+          [possible values: json, default, pretty]
 
   -h, --help
           Print help (see a summary with '-h')
 ```
 
 
-## OTEL via OLTP
+## OTEL via OTLP
 
-When compiled with the `otel` feature, OLTP metrics and trace export is enabled, and can be configured via environment variables, eg:
+When compiled with the `otel` feature, OTLP metrics and trace export is enabled, and can be configured via environment variables, eg:
 
 ```
           env:
@@ -90,7 +97,3 @@ When compiled with the `otel` feature, OLTP metrics and trace export is enabled,
               value: 'http://$(NODE_IP):4317'
 ```
 
-
-## TODOs
-
-- better mode selection, eg: `NotebooksOnly`
