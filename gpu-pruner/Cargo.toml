@@ -13,7 +13,7 @@ path = "src/bin/querytest.rs"
 
 
 [features]
-default = ["otel"]
+default = []
 otel = ["opentelemetry", "opentelemetry_sdk", "opentelemetry-appender-tracing", "opentelemetry-semantic-conventions", "opentelemetry-otlp", "tracing-opentelemetry"]
 
 [dependencies]
