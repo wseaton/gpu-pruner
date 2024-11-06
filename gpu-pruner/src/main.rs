@@ -1,6 +1,7 @@
 use minijinja::{context, Environment};
 
 use once_cell::sync::Lazy;
+use tracing_opentelemetry::layer;
 
 #[cfg(feature = "otel")]
 use {
@@ -9,6 +10,7 @@ use {
     opentelemetry::trace::TracerProvider,
     opentelemetry::KeyValue,
     opentelemetry_otlp::{ExportConfig, WithExportConfig},
+    opentelemetry_sdk::metrics::SdkMeterProvider,
     opentelemetry_sdk::trace::Config as TraceConfig,
     opentelemetry_sdk::{runtime, Resource as OTELResource},
     tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
@@ -94,7 +96,7 @@ struct Cli {
     prometheus_token: Option<String>,
 
     /// Log format to use
-    #[clap(short, long, default_value = "pretty")]
+    #[clap(short, long, default_value = "default")]
     log_format: LogFormat,
 }
 
@@ -109,6 +111,7 @@ enum Mode {
 enum LogFormat {
     Json,
     #[default]
+    Default,
     Pretty,
 }
 
@@ -136,7 +139,7 @@ fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, Metric
         .build()
 }
 
-fn setup_logging() {
+fn setup_logging() -> OtelGuard {
     // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
     // The filter levels are set as follows:
     // - Allow `info` level and above by default.
@@ -145,7 +148,7 @@ fn setup_logging() {
     // thus preventing infinite event generation.
     // Note: This will also drop events from these crates used outside the OTLP Exporter.
     // For more details, see: https://github.com/open-telemetry/opentelemetry-rust/issues/761
-    let filter = EnvFilter::new("info")
+    let filter = EnvFilter::from_default_env()
         .add_directive("hyper=error".parse().unwrap())
         .add_directive("tonic=error".parse().unwrap())
         .add_directive("reqwest=error".parse().unwrap());
@@ -166,17 +169,17 @@ fn setup_logging() {
         None
     };
 
+    let default_layer = if let LogFormat::Default = args.log_format {
+        Some(tracing_subscriber::fmt::layer())
+    } else {
+    None
+};
+
+    #[cfg(feature = "otel")]
+    let meter_provider = get_meter_provider();
+
     #[cfg(feature = "otel")]
     let metrics_layer = {
-        let result = init_metrics();
-        assert!(
-            result.is_ok(),
-            "Init metrics failed with error: {:?}",
-            result.err()
-        );
-        let meter_provider = result.unwrap();
-        global::set_meter_provider(meter_provider.clone());
-
         let _meter = global::meter_with_version(
             "gpu_pruner::main",
             Some("v0.2.2"),
@@ -206,10 +209,50 @@ fn setup_logging() {
     let otel_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
 
     reg.with(json_layer)
+        .with(default_layer)
         .with(pretty_layer)
         .with(metrics_layer)
         .with(otel_layer)
         .init();
+
+    #[cfg(feature = "otel")]
+    {
+        OtelGuard { meter_provider }
+    }
+
+    #[cfg(not(feature = "otel"))]
+    OtelGuard
+}
+
+#[cfg(feature = "otel")]
+fn get_meter_provider() -> SdkMeterProvider {
+    let result = init_metrics();
+    assert!(
+        result.is_ok(),
+        "Init metrics failed with error: {:?}",
+        result.err()
+    );
+    let meter_provider = result.unwrap();
+    global::set_meter_provider(meter_provider.clone());
+    meter_provider
+}
+
+#[cfg(feature = "otel")]
+struct OtelGuard {
+    meter_provider: SdkMeterProvider,
+}
+
+#[cfg(not(feature = "otel"))]
+struct OtelGuard;
+
+#[cfg(feature = "otel")]
+impl Drop for OtelGuard {
+    fn drop(&mut self) {
+        if let Err(err) = self.meter_provider.shutdown() {
+            eprintln!("{err:?}");
+        }
+        opentelemetry::global::shutdown_tracer_provider();
+    }
 }
 
 #[tokio::main]
@@ -249,7 +292,11 @@ async fn main() -> anyhow::Result<()> {
                         tracing::info!(
                             counter.query_returned_candidates = qr.num_pods,
                             "Returned candidates"
-                        )
+                        );
+                        tracing::info!(
+                            counter.query_returned_shutdown_events = qr.shutdown_events,
+                            "Returned shutdown events"
+                        );
                     }
                     Err(e) => {
                         let failures =
@@ -278,9 +325,20 @@ async fn main() -> anyhow::Result<()> {
             };
             let client = get_prom_client(&args.prometheus_url, token)
                 .expect("failed to build prometheus client");
-            run_query_and_scale(client, query, &args, tx.clone())
-                .await
-                .expect("failed!");
+            match run_query_and_scale(client, query, &args, tx.clone()).await {
+                Ok(qr) => {
+                    tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
+                    tracing::info!(
+                        counter.query_returned_candidates = qr.num_pods,
+                        "Returned candidates"
+                    );
+                    tracing::info!(
+                        counter.query_returned_shutdown_events = qr.shutdown_events,
+                        "Returned shutdown events"
+                    );
+                }
+                Err(e) => tracing::error!("Failed to scale down! {e}"),
+            }
             // Explicitly drop the sender to indicate no more messages will be sent
             drop(tx);
         })
@@ -417,7 +475,7 @@ async fn run_query_and_scale(
         );
     }
 
-    futures::stream::iter(shutdown_events)
+    futures::stream::iter(shutdown_events.clone())
         .filter_map(|obj| async {
             if let Mode::DryRun = args.run_mode {
                 tracing::info!(
@@ -446,6 +504,7 @@ async fn run_query_and_scale(
         .await;
     Ok(QueryResposne {
         num_pods: vec.len(),
+        shutdown_events: shutdown_events.len(),
     })
 }
 

@@ -81,6 +81,7 @@ impl Hash for ScaleKind {
 
 pub struct QueryResposne {
     pub num_pods: usize,
+    pub shutdown_events: usize,
 }
 
 #[derive(Debug)]
