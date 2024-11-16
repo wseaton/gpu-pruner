@@ -44,7 +44,7 @@ use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, ResourceKind
+    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ResourceKind, ScaleKind, Scaler, TlsMode
 };
 
 
@@ -105,6 +105,15 @@ struct Cli {
     #[clap(long)]
     prometheus_token: Option<String>,
 
+
+    #[clap(long)]
+    prometheus_tls_mode: TlsMode,
+
+    /// Custom .crt file to use for TLS verification
+    #[clap(long)]
+    prometheus_tls_cert: Option<String>,
+
+
     /// Log format to use
     #[clap(short, long, default_value = "default")]
     log_format: LogFormat,
@@ -116,6 +125,8 @@ enum Mode {
     #[default]
     DryRun,
 }
+
+
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
 enum LogFormat {
@@ -311,7 +322,7 @@ async fn main() -> anyhow::Result<()> {
                         panic!("failed to get prometheus  token!");
                     }
                 };
-                let client = get_prom_client(&args.prometheus_url, token)
+                let client = get_prom_client(&args.prometheus_url, token, args.prometheus_tls_mode, args.prometheus_tls_cert.clone())
                     .expect("failed to build prometheus client");
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
                     Ok(qr) => {
@@ -352,7 +363,7 @@ async fn main() -> anyhow::Result<()> {
                     panic!("failed to get prometheus  token!");
                 }
             };
-            let client = get_prom_client(&args.prometheus_url, token)
+            let client = get_prom_client(&args.prometheus_url, token, args.prometheus_tls_mode, args.prometheus_tls_cert.clone())
                 .expect("failed to build prometheus client");
             match run_query_and_scale(client, query, &args, tx.clone()).await {
                 Ok(qr) => {

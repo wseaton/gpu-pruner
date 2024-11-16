@@ -11,13 +11,15 @@ async fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     let query = args.get(1).expect("Query is required");
-    let prometheus_url = args.get(2).expect("Prometheus URL is required");
+    let prometheus_url: &str = args.get(2).expect("Prometheus URL is required");
+
+    let prometheus_tls_cert: Option<&str> = None;
 
     tracing::info!("Prometheus URL: {}", &prometheus_url);
     tracing::info!("Query: {}", &query);
 
     let token = get_prometheus_token().await?;
-    let client = get_prom_client(&prometheus_url, token)?;
+    let client = get_prom_client(prometheus_url, token, TlsMode::Verify, prometheus_tls_cert)?;
 
     let data = client.query(query).get().await?;
 

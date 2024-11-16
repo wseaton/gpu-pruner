@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use k8s_openapi::{
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
@@ -10,7 +11,7 @@ use kube::{api::PostParams, Client, ResourceExt};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use secrecy::ExposeSecret;
 use serde::Serialize;
-use std::hash::{Hash, Hasher};
+use std::{hash::{Hash, Hasher}, path::Path};
 use thiserror::Error;
 
 use uuid::Uuid;
@@ -207,8 +208,26 @@ pub async fn get_prometheus_token() -> anyhow::Result<String> {
     return Ok(std::str::from_utf8(&token)?.trim().to_string());
 }
 
-pub fn get_prom_client(url: &str, token: String) -> anyhow::Result<PromClient> {
+
+#[derive(Debug, Clone, Copy, ValueEnum, Default, Serialize)]
+pub enum TlsMode {
+    Skip,
+    #[default]
+    Verify,
+}
+
+
+pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: TlsMode, certfile: Option<P>) -> anyhow::Result<PromClient> {
     let mut r_client = reqwest::ClientBuilder::new();
+
+    if let TlsMode::Skip = verify_tls {
+        r_client = r_client.danger_accept_invalid_certs(true);
+    }
+
+    if let Some(certfile) = certfile {
+        r_client = r_client.add_root_certificate(reqwest::Certificate::from_pem(&std::fs::read(certfile)?)?);
+    }
+
     // add auth token as default header
     let mut header_map = HeaderMap::new();
     header_map.insert("Authorization", format!("Bearer {}", token).parse()?);
