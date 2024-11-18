@@ -106,7 +106,7 @@ struct Cli {
     prometheus_token: Option<String>,
 
 
-    #[clap(long)]
+    #[clap(long, default_value = "verify")]
     prometheus_tls_mode: TlsMode,
 
     /// Custom .crt file to use for TLS verification
