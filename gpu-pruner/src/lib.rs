@@ -226,8 +226,11 @@ pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: Tls
 
     if let Some(certfile) = certfile {
         if let Ok(cert_data) = std::fs::read(certfile) {
+            tracing::debug!("Read certificate file");
             if let Ok(certs) = Certificate::from_pem_bundle(&cert_data) {
+                tracing::debug!("Parsed certificates from PEM bundle");
                 for cert in certs {
+                    tracing::debug!("Adding root certificate");
                     r_client = r_client.add_root_certificate(cert);
                 }
             } else {

@@ -169,11 +169,14 @@ fn setup_logging() -> OtelGuard {
     // thus preventing infinite event generation.
     // Note: This will also drop events from these crates used outside the OTLP Exporter.
     // For more details, see: https://github.com/open-telemetry/opentelemetry-rust/issues/761
+    #[cfg(feature = "otel")]
     let filter = EnvFilter::from_default_env()
         .add_directive("hyper=error".parse().unwrap())
         .add_directive("tonic=error".parse().unwrap())
         .add_directive("reqwest=error".parse().unwrap());
 
+    #[cfg(not(feature = "otel"))]
+    let filter = EnvFilter::from_default_env();
     let reg = tracing_subscriber::registry().with(filter);
 
     let args = Cli::parse();
@@ -436,7 +439,13 @@ async fn run_query_and_scale(
     args: &Cli,
     tx: Sender<ScaleKind>,
 ) -> anyhow::Result<QueryResposne> {
-    let response = client.query(query).get().await?;
+    let response = match client.query(query).get().await {
+        Ok(response) => response,
+        Err(e) => {
+            tracing::error!("Failed to run query! {e}");
+            return Err(anyhow::anyhow!("Failed to run query! {e}"));
+        }
+    };
 
     let data = response.data();
     let vec = data.clone().into_vector().unwrap();
@@ -511,7 +520,18 @@ async fn run_query_and_scale(
         );
         if create_time.0 < lookback_start {
             tracing::info!("Pod older than lookback start, so eligible for scaledown.");
-            let obj = find_root_object(kube_client.clone(), pod.clone().meta()).await?;
+            let obj = match find_root_object(kube_client.clone(), pod.clone().meta()).await {
+                Ok(obj) => obj,
+                Err(e) => {
+                    tracing::warn!("Failed to find root object! {e}");
+                    tracing::info!(
+                        "Skipping pod {namespace}:{pod_name} because it has no visible root object!",
+                        namespace = &pmd.namespace,
+                        pod_name = &pmd.name
+                    );
+                    continue;
+                }
+            };
             shutdown_events.insert(obj);
         };
 

@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
     let query = args.get(1).expect("Query is required");
     let prometheus_url: &str = args.get(2).expect("Prometheus URL is required");
 
-    let prometheus_tls_cert: Option<&str> = None;
+    let prometheus_tls_cert: Option<&str> = Some("certs/prometheus.crt");
 
     tracing::info!("Prometheus URL: {}", &prometheus_url);
     tracing::info!("Query: {}", &query);
