@@ -19,7 +19,7 @@ use uuid::Uuid;
 use std::fmt::Debug;
 
 use prometheus_http_query::{response::InstantVector, Client as PromClient};
-use reqwest::header::HeaderMap;
+use reqwest::{header::HeaderMap, Certificate};
 use serde::de::DeserializeOwned;
 
 use k8s_openapi::{
@@ -225,7 +225,19 @@ pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: Tls
     }
 
     if let Some(certfile) = certfile {
-        r_client = r_client.add_root_certificate(reqwest::Certificate::from_pem(&std::fs::read(certfile)?)?);
+        if let Ok(cert_data) = std::fs::read(certfile) {
+            if let Ok(certs) = Certificate::from_pem_bundle(&cert_data) {
+                for cert in certs {
+                    r_client = r_client.add_root_certificate(cert);
+                }
+            } else {
+                tracing::error!("Failed to parse certificates from PEM bundle");
+                return Err(anyhow::anyhow!("Failed to parse certificates from PEM bundle"));
+            }
+        } else {
+            tracing::error!("Failed to read certificate file");
+            return Err(anyhow::anyhow!("Failed to read certificate file"));
+        }
     }
 
     // add auth token as default header
