@@ -4,7 +4,10 @@ FROM registry.access.redhat.com/ubi9/ubi:latest as builder
 
 ARG FEATURES
 
-RUN dnf install -y openssl openssl-devel cargo
+RUN dnf install -y openssl openssl-devel gcc
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y 
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /usr/src/myapp
 

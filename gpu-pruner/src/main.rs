@@ -22,10 +22,7 @@ use tokio::{sync::mpsc::Sender, time};
 
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::{
-    layer::SubscriberExt,
-    Layer,
-};
+use tracing_subscriber::{layer::SubscriberExt, Layer};
 
 use futures::stream::StreamExt;
 
@@ -44,10 +41,9 @@ use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ResourceKind, ScaleKind, Scaler, TlsMode
+    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ResourceKind,
+    ScaleKind, Scaler, TlsMode,
 };
-
-
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
 /// GPU utilization metrics and scales down pods that have been idle for a certain duration.
@@ -65,7 +61,7 @@ struct Cli {
     daemon_mode: bool,
 
     /// Specifcy enabled resources with a string of letters
-    /// 
+    ///
     /// - `d` for Deployment
     /// - `r` for ReplicaSet
     /// - `s` for StatefulSet
@@ -105,14 +101,12 @@ struct Cli {
     #[clap(long)]
     prometheus_token: Option<String>,
 
-
     #[clap(long, default_value = "verify")]
     prometheus_tls_mode: TlsMode,
 
     /// Custom .crt file to use for TLS verification
     #[clap(long)]
     prometheus_tls_cert: Option<String>,
-
 
     /// Log format to use
     #[clap(short, long, default_value = "default")]
@@ -125,8 +119,6 @@ enum Mode {
     #[default]
     DryRun,
 }
-
-
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
 enum LogFormat {
@@ -196,8 +188,8 @@ fn setup_logging() -> OtelGuard {
     let default_layer = if let LogFormat::Default = args.log_format {
         Some(tracing_subscriber::fmt::layer())
     } else {
-    None
-};
+        None
+    };
 
     #[cfg(feature = "otel")]
     let meter_provider = get_meter_provider();
@@ -279,7 +271,6 @@ impl Drop for OtelGuard {
     }
 }
 
-
 fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
     let mut resource_kind = ResourceKind::empty();
     for c in enabled_resources.chars() {
@@ -294,7 +285,6 @@ fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
     }
     resource_kind
 }
-
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -325,8 +315,13 @@ async fn main() -> anyhow::Result<()> {
                         panic!("failed to get prometheus  token!");
                     }
                 };
-                let client = get_prom_client(&args.prometheus_url, token, args.prometheus_tls_mode, args.prometheus_tls_cert.clone())
-                    .expect("failed to build prometheus client");
+                let client = get_prom_client(
+                    &args.prometheus_url,
+                    token,
+                    args.prometheus_tls_mode,
+                    args.prometheus_tls_cert.clone(),
+                )
+                .expect("failed to build prometheus client");
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
                     Ok(qr) => {
                         // Reset the consecutive failure counter
@@ -366,8 +361,13 @@ async fn main() -> anyhow::Result<()> {
                     panic!("failed to get prometheus  token!");
                 }
             };
-            let client = get_prom_client(&args.prometheus_url, token, args.prometheus_tls_mode, args.prometheus_tls_cert.clone())
-                .expect("failed to build prometheus client");
+            let client = get_prom_client(
+                &args.prometheus_url,
+                token,
+                args.prometheus_tls_mode,
+                args.prometheus_tls_cert.clone(),
+            )
+            .expect("failed to build prometheus client");
             match run_query_and_scale(client, query, &args, tx.clone()).await {
                 Ok(qr) => {
                     tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");

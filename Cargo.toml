@@ -11,10 +11,10 @@ members = [
 
 
 [workspace.package]
-version= "0.3.2"
+version= "0.3.3"
 readme = "README.md"
 edition = "2021"
-rust-version = "1.79.0"
+rust-version = "1.83"
 
 
 [workspace.dependencies]
