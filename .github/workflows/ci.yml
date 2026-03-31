@@ -37,6 +37,24 @@ jobs:
       - name: Test (otel)
         run: cargo test --all --all-features
 
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: gpu-pruner-e2e
+
+      - name: Run e2e tests
+        run: cargo test --all -- --ignored --test-threads=1
+
   image:
     runs-on: ubuntu-latest
     strategy:

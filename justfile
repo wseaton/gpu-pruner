@@ -21,3 +21,21 @@ build-docker-non-otel:
 
 
 build-all : build-docker build-docker-non-otel
+
+# ── testing ──────────────────────────────────────────────────────────
+
+test:
+  cargo test --all
+
+test-all:
+  cargo test --all --all-features
+
+kind-create:
+  kind create cluster --name gpu-pruner-e2e
+
+kind-delete:
+  kind delete cluster --name gpu-pruner-e2e
+
+test-e2e: kind-create
+  cargo test --all -- --ignored --test-threads=1
+  just kind-delete

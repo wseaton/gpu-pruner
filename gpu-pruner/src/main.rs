@@ -13,9 +13,6 @@ use {
     tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
 };
 
-use resources::inferenceservice::InferenceService;
-use resources::notebook::Notebook;
-
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use tokio::{sync::mpsc::Sender, time};
 
@@ -31,17 +28,14 @@ use prometheus_http_query::Client;
 use serde::Serialize;
 
 use jiff::{SignedDuration, Timestamp};
-use k8s_openapi::api::{
-    apps::v1::{Deployment, ReplicaSet, StatefulSet},
-    core::v1::Pod,
-};
-use kube::{Api, Client as KubeClient, Resource, api::ObjectMeta};
+use k8s_openapi::api::core::v1::Pod;
+use kube::{Api, Client as KubeClient, Resource};
 
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, get_enabled_resources,
-    get_prom_client, get_prometheus_token,
+    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, find_root_object,
+    get_enabled_resources, get_prom_client, get_prometheus_token,
 };
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
@@ -555,82 +549,4 @@ async fn run_query_and_scale(
         num_pods: vec.len(),
         shutdown_events: shutdown_events.len(),
     })
-}
-
-/// Crawl up the owner references to find the root Deployment or StatefulSet
-/// and allows an action like scaling to be performed
-///
-/// Deployments and StatefulSets can have multiple pods, so we shouldn't "double scale-down" them if they share a common parent and
-/// both pods do not have GPU utilization. We only need to send the request once.
-#[tracing::instrument(skip(client, pod_meta), fields(name = pod_meta.name))]
-async fn find_root_object(client: KubeClient, pod_meta: &ObjectMeta) -> anyhow::Result<ScaleKind> {
-    tracing::info!(
-        "Finding root object of {name:?} for scale-down.",
-        name = &pod_meta.name
-    );
-    // first, check for the special kserve label
-    // if it exists, we can go directly to the InferenceService
-    // and scale it down
-    if let Some(labels) = &pod_meta.labels
-        && let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice")
-    {
-        let namespace = pod_meta.namespace.clone().unwrap_or_default();
-        let is_api: Api<InferenceService> = Api::namespaced(client.clone(), &namespace);
-        let is = is_api.get(ks_label).await?;
-
-        return Ok(ScaleKind::InferenceService(Box::new(is)));
-    }
-
-    if let Some(ors) = &pod_meta.owner_references {
-        for or in ors {
-            let namespace = pod_meta.namespace.clone().unwrap_or_default();
-            match or.kind.as_str() {
-                "ReplicaSet" => {
-                    tracing::info!("Found ReplicaSet!");
-                    let rs_api: Api<ReplicaSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(rs) = rs_api.get(&or.name).await {
-                        if let Some(rs_meta) = rs.metadata.owner_references.as_ref() {
-                            for rs_or in rs_meta {
-                                if rs_or.kind == "Deployment" {
-                                    tracing::info!("Found Deployment owning ReplicaSet!");
-                                    let deployment_api: Api<Deployment> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let deployment = deployment_api.get(&rs_or.name).await?;
-
-                                    return Ok(ScaleKind::Deployment(deployment));
-                                }
-                            }
-                        }
-                        // fallthrough, replica set with no owners
-                        return Ok(ScaleKind::ReplicaSet(rs.clone()));
-                    }
-                }
-                "StatefulSet" => {
-                    tracing::info!("Found StatefulSet!");
-                    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(ss) = ss_api.get(&or.name).await {
-                        if let Some(ss_meta) = ss.metadata.owner_references.as_ref() {
-                            for ss_or in ss_meta {
-                                if ss_or.kind == "Notebook" {
-                                    tracing::info!("Found Notebook owning ReplicaSet!");
-                                    let nb_api: Api<Notebook> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let nb = nb_api.get(&ss_or.name).await?;
-
-                                    return Ok(ScaleKind::Notebook(nb));
-                                }
-                            }
-                        }
-                        // fallthrough, statefulset with no owners
-                        return Ok(ScaleKind::StatefulSet(ss));
-                    }
-                }
-                _ => {
-                    tracing::warn!("Found no ORs!")
-                }
-            }
-        }
-    }
-
-    Err(anyhow::anyhow!("oops, nothing found!"))
 }
