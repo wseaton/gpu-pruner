@@ -8,7 +8,7 @@ The way it works is by querying cluster NVIDIA DCGM metrics and looking at a win
 
 An [example set of k8s deployment manifests](./gpu-pruner/hack/kustomization.yaml) are available along with the role bindings to run in "cluster mode". 
 
-[prebuilt images](https://quay.io/repository/wseaton/gpu-pruner?tab=tags) based on the Dockerfiles in the repository are published quay.io.
+[prebuilt images](https://github.com/wseaton/gpu-pruner/pkgs/container/gpu-pruner) based on the Dockerfiles in the repository are published to ghcr.io.
 
 ## background
 

@@ -1,45 +1,44 @@
 use clap::ValueEnum;
 use k8s_openapi::{
+    Resource,
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         core::v1::ObjectReference,
     },
     apimachinery::pkg::apis::meta::v1::MicroTime,
-    Resource,
 };
-use kube::{api::PostParams, Client, ResourceExt};
+use kube::{Client, ResourceExt, api::PostParams};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use secrecy::ExposeSecret;
 use serde::Serialize;
-use std::{hash::{Hash, Hasher}, path::Path};
+use std::{
+    hash::{Hash, Hasher},
+    path::Path,
+};
 use thiserror::Error;
 
 use uuid::Uuid;
 
 use std::fmt::Debug;
 
-use prometheus_http_query::{response::InstantVector, Client as PromClient};
-use reqwest::{header::HeaderMap, Certificate};
+use prometheus_http_query::{Client as PromClient, response::InstantVector};
+use reqwest::{Certificate, header::HeaderMap};
 use serde::de::DeserializeOwned;
 
-use k8s_openapi::{
-    api::core::v1::Event,
-    apimachinery::pkg::apis::meta::v1::Time,
-    chrono::{offset, Duration},
-};
-use kube::{
-    api::{ObjectMeta, Patch, PatchParams},
-    Api, Client as KubeClient,
-};
 use bitflags::bitflags;
-
+use jiff::Timestamp;
+use k8s_openapi::{api::core::v1::Event, apimachinery::pkg::apis::meta::v1::Time};
+use kube::{
+    Api, Client as KubeClient,
+    api::{ObjectMeta, Patch, PatchParams},
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub enum ScaleKind {
     Deployment(Deployment),
     ReplicaSet(ReplicaSet),
     StatefulSet(StatefulSet),
-    InferenceService(InferenceService),
+    InferenceService(Box<InferenceService>),
     Notebook(Notebook),
 }
 
@@ -82,7 +81,6 @@ impl Hash for ScaleKind {
     }
 }
 
-
 impl From<ScaleKind> for ResourceKind {
     fn from(kind: ScaleKind) -> Self {
         match kind {
@@ -95,9 +93,8 @@ impl From<ScaleKind> for ResourceKind {
     }
 }
 
-
 bitflags! {
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq, Eq)]
     pub struct ResourceKind: u8 {
         const DEPLOYMENT = 0b00001;
         const REPLICA_SET = 0b00010;
@@ -107,7 +104,29 @@ bitflags! {
     }
 }
 
-
+/// Parse a string of resource flag characters into a [`ResourceKind`] bitflag set.
+///
+/// - `d` → Deployment
+/// - `r` → ReplicaSet
+/// - `s` → StatefulSet
+/// - `i` → InferenceService
+/// - `n` → Notebook
+///
+/// Unknown characters are silently ignored.
+pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
+    let mut resource_kind = ResourceKind::empty();
+    for c in enabled_resources.chars() {
+        match c {
+            'd' => resource_kind |= ResourceKind::DEPLOYMENT,
+            'r' => resource_kind |= ResourceKind::REPLICA_SET,
+            's' => resource_kind |= ResourceKind::STATEFUL_SET,
+            'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
+            'n' => resource_kind |= ResourceKind::NOTEBOOK,
+            _ => {}
+        }
+    }
+    resource_kind
+}
 
 pub struct QueryResposne {
     pub num_pods: usize,
@@ -174,7 +193,7 @@ pub trait Meta {
 
 pub trait Scaler {
     fn scale(&self, client: Client)
-        -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+    -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     fn generate_scale_event(&self) -> anyhow::Result<Event>;
 }
@@ -205,9 +224,8 @@ pub async fn get_prometheus_token() -> anyhow::Result<String> {
         .args(["whoami", "-t"])
         .output()?
         .stdout;
-    return Ok(std::str::from_utf8(&token)?.trim().to_string());
+    Ok(std::str::from_utf8(&token)?.trim().to_string())
 }
-
 
 #[derive(Debug, Clone, Copy, ValueEnum, Default, Serialize)]
 pub enum TlsMode {
@@ -216,8 +234,12 @@ pub enum TlsMode {
     Verify,
 }
 
-
-pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: TlsMode, certfile: Option<P>) -> anyhow::Result<PromClient> {
+pub fn get_prom_client<P: AsRef<Path>>(
+    url: &str,
+    token: String,
+    verify_tls: TlsMode,
+    certfile: Option<P>,
+) -> anyhow::Result<PromClient> {
     let mut r_client = reqwest::ClientBuilder::new();
 
     if let TlsMode::Skip = verify_tls {
@@ -235,7 +257,9 @@ pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: Tls
                 }
             } else {
                 tracing::error!("Failed to parse certificates from PEM bundle");
-                return Err(anyhow::anyhow!("Failed to parse certificates from PEM bundle"));
+                return Err(anyhow::anyhow!(
+                    "Failed to parse certificates from PEM bundle"
+                ));
             }
         } else {
             tracing::error!("Failed to read certificate file");
@@ -370,7 +394,7 @@ impl Scaler for ScaleKind {
     #[tracing::instrument(skip(self))]
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::new_v4();
-        let now: Time = Time(offset::Utc::now());
+        let now: Time = Time(Timestamp::now());
 
         // this is intended to be set via pushdown
         let reporting_instance =
@@ -381,7 +405,7 @@ impl Scaler for ScaleKind {
             first_timestamp: Some(now.clone()),
             reporting_component: Some("gpu-pruner".to_string()),
             reporting_instance,
-            event_time: Some(MicroTime(offset::Utc::now())),
+            event_time: Some(MicroTime(Timestamp::now())),
             action: Some("scale_down".to_string()),
             reason: Some(format!(
                 "Pod {}::{} was not using GPU",
@@ -409,15 +433,97 @@ impl Scaler for ScaleKind {
     }
 }
 
-/// Generic function to scale a resource to zero replicas
+/// Crawl up the owner references to find the root Deployment or StatefulSet
+/// and allows an action like scaling to be performed.
+///
+/// Deployments and StatefulSets can have multiple pods, so we shouldn't
+/// "double scale-down" them if they share a common parent and both pods
+/// do not have GPU utilization. We only need to send the request once.
+#[tracing::instrument(skip(client, pod_meta), fields(name = pod_meta.name))]
+pub async fn find_root_object(
+    client: KubeClient,
+    pod_meta: &ObjectMeta,
+) -> anyhow::Result<ScaleKind> {
+    tracing::info!(
+        "Finding root object of {name:?} for scale-down.",
+        name = &pod_meta.name
+    );
+    // first, check for the special kserve label
+    // if it exists, we can go directly to the InferenceService
+    // and scale it down
+    if let Some(labels) = &pod_meta.labels
+        && let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice")
+    {
+        let namespace = pod_meta.namespace.clone().unwrap_or_default();
+        let is_api: Api<InferenceService> = Api::namespaced(client.clone(), &namespace);
+        let is = is_api.get(ks_label).await?;
+
+        return Ok(ScaleKind::InferenceService(Box::new(is)));
+    }
+
+    if let Some(ors) = &pod_meta.owner_references {
+        for or in ors {
+            let namespace = pod_meta.namespace.clone().unwrap_or_default();
+            match or.kind.as_str() {
+                "ReplicaSet" => {
+                    tracing::info!("Found ReplicaSet!");
+                    let rs_api: Api<ReplicaSet> = Api::namespaced(client.clone(), &namespace);
+                    if let Ok(rs) = rs_api.get(&or.name).await {
+                        if let Some(rs_meta) = rs.metadata.owner_references.as_ref() {
+                            for rs_or in rs_meta {
+                                if rs_or.kind == "Deployment" {
+                                    tracing::info!("Found Deployment owning ReplicaSet!");
+                                    let deployment_api: Api<Deployment> =
+                                        Api::namespaced(client.clone(), &namespace);
+                                    let deployment = deployment_api.get(&rs_or.name).await?;
+
+                                    return Ok(ScaleKind::Deployment(deployment));
+                                }
+                            }
+                        }
+                        // fallthrough, replica set with no owners
+                        return Ok(ScaleKind::ReplicaSet(rs.clone()));
+                    }
+                }
+                "StatefulSet" => {
+                    tracing::info!("Found StatefulSet!");
+                    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &namespace);
+                    if let Ok(ss) = ss_api.get(&or.name).await {
+                        if let Some(ss_meta) = ss.metadata.owner_references.as_ref() {
+                            for ss_or in ss_meta {
+                                if ss_or.kind == "Notebook" {
+                                    tracing::info!("Found Notebook owning ReplicaSet!");
+                                    let nb_api: Api<Notebook> =
+                                        Api::namespaced(client.clone(), &namespace);
+                                    let nb = nb_api.get(&ss_or.name).await?;
+
+                                    return Ok(ScaleKind::Notebook(nb));
+                                }
+                            }
+                        }
+                        // fallthrough, statefulset with no owners
+                        return Ok(ScaleKind::StatefulSet(ss));
+                    }
+                }
+                _ => {
+                    tracing::warn!("Found no ORs!")
+                }
+            }
+        }
+    }
+
+    Err(anyhow::anyhow!("oops, nothing found!"))
+}
+
+/// Scale a resource to zero replicas via the /scale subresource endpoint
 #[tracing::instrument(skip(api))]
 async fn scale_to_zero<K>(api: Api<K>, name: &str) -> anyhow::Result<()>
 where
     K: DeserializeOwned + Debug + Clone + kube::Resource<DynamicType = ()> + 'static,
 {
     let patch = serde_json::json!({ "spec": { "replicas": 0 } });
-    let params = PatchParams::default();
-    api.patch(name, &params, &Patch::Strategic(&patch)).await?;
+    api.patch_scale(name, &PatchParams::default(), &Patch::Merge(&patch))
+        .await?;
     Ok(())
 }
 
@@ -435,7 +541,7 @@ async fn scale_notebook_to_zero(
     let patch = serde_json::json!({
         "metadata": {
             "annotations": {
-                "kubeflow-resource-stopped": offset::Utc::now().to_rfc3339(),
+                "kubeflow-resource-stopped": Timestamp::now().to_string(),
             }
         }
     });
@@ -476,29 +582,422 @@ async fn scale_inference_service_to_zero(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
 
+    use k8s_openapi::api::apps::v1::{Deployment, ReplicaSet, StatefulSet};
     use kube::api::ObjectMeta;
-    use resources::notebook::NotebookSpec;
+    use resources::{inferenceservice::InferenceService, notebook::NotebookSpec};
 
-    use super::{Notebook, ScaleKind};
-    use crate::Scaler;
+    use crate::{Meta, Notebook, ResourceKind, ScaleKind, Scaler, get_enabled_resources};
 
-    #[test]
-    fn make_event() {
-        let sk: ScaleKind = ScaleKind::Notebook(Notebook {
+    // ── helpers ──────────────────────────────────────────────────────────
+
+    fn make_notebook(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        ScaleKind::Notebook(Notebook {
             metadata: ObjectMeta {
-                name: Some("gpu-test".to_string()),
-                namespace: Some("rhoai-internal--weaton-nb".to_string()),
+                name: Some(name.into()),
+                namespace: Some(ns.into()),
+                uid: uid.map(Into::into),
                 ..Default::default()
             },
             spec: NotebookSpec { template: None },
             status: None,
+        })
+    }
+
+    fn make_deployment(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        ScaleKind::Deployment(Deployment {
+            metadata: ObjectMeta {
+                name: Some(name.into()),
+                namespace: Some(ns.into()),
+                uid: uid.map(Into::into),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+    }
+
+    fn make_replica_set(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        ScaleKind::ReplicaSet(ReplicaSet {
+            metadata: ObjectMeta {
+                name: Some(name.into()),
+                namespace: Some(ns.into()),
+                uid: uid.map(Into::into),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+    }
+
+    fn make_stateful_set(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        ScaleKind::StatefulSet(StatefulSet {
+            metadata: ObjectMeta {
+                name: Some(name.into()),
+                namespace: Some(ns.into()),
+                uid: uid.map(Into::into),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+    }
+
+    fn make_inference_service(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        let mut is: InferenceService = serde_json::from_value(serde_json::json!({
+            "metadata": {
+                "name": name,
+                "namespace": ns,
+            },
+            "spec": {
+                "predictor": {}
+            }
+        }))
+        .expect("valid InferenceService JSON");
+        is.metadata.uid = uid.map(Into::into);
+        ScaleKind::InferenceService(Box::new(is))
+    }
+
+    // ── get_enabled_resources ────────────────────────────────────────────
+
+    #[test]
+    fn enabled_resources_all_flags() {
+        let rk = get_enabled_resources("drsin");
+        assert!(rk.contains(ResourceKind::DEPLOYMENT));
+        assert!(rk.contains(ResourceKind::REPLICA_SET));
+        assert!(rk.contains(ResourceKind::STATEFUL_SET));
+        assert!(rk.contains(ResourceKind::INFERENCE_SERVICE));
+        assert!(rk.contains(ResourceKind::NOTEBOOK));
+    }
+
+    #[test]
+    fn enabled_resources_single_flag() {
+        let rk = get_enabled_resources("n");
+        assert!(rk.contains(ResourceKind::NOTEBOOK));
+        assert!(!rk.contains(ResourceKind::DEPLOYMENT));
+        assert!(!rk.contains(ResourceKind::REPLICA_SET));
+        assert!(!rk.contains(ResourceKind::STATEFUL_SET));
+        assert!(!rk.contains(ResourceKind::INFERENCE_SERVICE));
+    }
+
+    #[test]
+    fn enabled_resources_subset() {
+        let rk = get_enabled_resources("di");
+        assert!(rk.contains(ResourceKind::DEPLOYMENT));
+        assert!(rk.contains(ResourceKind::INFERENCE_SERVICE));
+        assert!(!rk.contains(ResourceKind::NOTEBOOK));
+        assert!(!rk.contains(ResourceKind::REPLICA_SET));
+        assert!(!rk.contains(ResourceKind::STATEFUL_SET));
+    }
+
+    #[test]
+    fn enabled_resources_empty_string() {
+        let rk = get_enabled_resources("");
+        assert!(rk.is_empty());
+    }
+
+    #[test]
+    fn enabled_resources_ignores_unknown_chars() {
+        let rk = get_enabled_resources("xdqz");
+        assert!(rk.contains(ResourceKind::DEPLOYMENT));
+        assert!(!rk.contains(ResourceKind::NOTEBOOK));
+    }
+
+    #[test]
+    fn enabled_resources_duplicate_chars_are_idempotent() {
+        let rk = get_enabled_resources("dddd");
+        assert_eq!(rk, get_enabled_resources("d"));
+    }
+
+    // ── ResourceKind bitflags ────────────────────────────────────────────
+
+    #[test]
+    fn resource_kind_union() {
+        let combined = ResourceKind::DEPLOYMENT | ResourceKind::NOTEBOOK;
+        assert!(combined.contains(ResourceKind::DEPLOYMENT));
+        assert!(combined.contains(ResourceKind::NOTEBOOK));
+        assert!(!combined.contains(ResourceKind::STATEFUL_SET));
+    }
+
+    #[test]
+    fn resource_kind_empty_contains_nothing() {
+        let empty = ResourceKind::empty();
+        assert!(!empty.contains(ResourceKind::DEPLOYMENT));
+        assert!(!empty.contains(ResourceKind::REPLICA_SET));
+        assert!(!empty.contains(ResourceKind::STATEFUL_SET));
+        assert!(!empty.contains(ResourceKind::INFERENCE_SERVICE));
+        assert!(!empty.contains(ResourceKind::NOTEBOOK));
+    }
+
+    // ── ScaleKind → ResourceKind conversion ──────────────────────────────
+
+    #[test]
+    fn scale_kind_to_resource_kind_deployment() {
+        let rk: ResourceKind = make_deployment("d", "ns", None).into();
+        assert_eq!(rk, ResourceKind::DEPLOYMENT);
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_replica_set() {
+        let rk: ResourceKind = make_replica_set("r", "ns", None).into();
+        assert_eq!(rk, ResourceKind::REPLICA_SET);
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_stateful_set() {
+        let rk: ResourceKind = make_stateful_set("s", "ns", None).into();
+        assert_eq!(rk, ResourceKind::STATEFUL_SET);
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_inference_service() {
+        let rk: ResourceKind = make_inference_service("i", "ns", None).into();
+        assert_eq!(rk, ResourceKind::INFERENCE_SERVICE);
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_notebook() {
+        let rk: ResourceKind = make_notebook("n", "ns", None).into();
+        assert_eq!(rk, ResourceKind::NOTEBOOK);
+    }
+
+    // ── ScaleKind equality ───────────────────────────────────────────────
+
+    #[test]
+    fn same_deployment_is_equal() {
+        let a = make_deployment("d", "ns", Some("uid-1"));
+        let b = make_deployment("d", "ns", Some("uid-1"));
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn different_uid_deployments_not_equal() {
+        let a = make_deployment("d", "ns", Some("uid-1"));
+        let b = make_deployment("d", "ns", Some("uid-2"));
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn different_variants_not_equal() {
+        let dep = make_deployment("x", "ns", Some("uid-1"));
+        let rs = make_replica_set("x", "ns", Some("uid-1"));
+        assert_ne!(dep, rs);
+    }
+
+    #[test]
+    fn notebook_equality_uses_uid() {
+        let a = make_notebook("nb-a", "ns", Some("same-uid"));
+        let b = make_notebook("nb-b", "ns", Some("same-uid"));
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn inference_service_equality_uses_uid() {
+        let a = make_inference_service("is-a", "ns", Some("uid-x"));
+        let b = make_inference_service("is-b", "ns", Some("uid-x"));
+        assert_eq!(a, b);
+    }
+
+    // ── ScaleKind hashing / HashSet dedup ────────────────────────────────
+
+    #[test]
+    fn hashset_deduplicates_same_deployment() {
+        let mut set = HashSet::new();
+        set.insert(make_deployment("d", "ns", Some("uid-1")));
+        set.insert(make_deployment("d", "ns", Some("uid-1")));
+        assert_eq!(set.len(), 1);
+    }
+
+    #[test]
+    fn hashset_keeps_different_uid_deployments() {
+        let mut set = HashSet::new();
+        set.insert(make_deployment("d", "ns", Some("uid-1")));
+        set.insert(make_deployment("d", "ns", Some("uid-2")));
+        assert_eq!(set.len(), 2);
+    }
+
+    #[test]
+    fn hashset_keeps_different_variants_same_uid() {
+        let mut set = HashSet::new();
+        set.insert(make_deployment("x", "ns", Some("uid-1")));
+        set.insert(make_replica_set("x", "ns", Some("uid-1")));
+        assert_eq!(set.len(), 2);
+    }
+
+    #[test]
+    fn hashset_deduplicates_notebooks_by_uid() {
+        let mut set = HashSet::new();
+        set.insert(make_notebook("nb-a", "ns", Some("uid-nb")));
+        set.insert(make_notebook("nb-b", "ns", Some("uid-nb")));
+        assert_eq!(set.len(), 1);
+    }
+
+    #[test]
+    fn hashset_mixed_resources() {
+        let mut set = HashSet::new();
+        set.insert(make_deployment("d1", "ns", Some("uid-d")));
+        set.insert(make_replica_set("r1", "ns", Some("uid-r")));
+        set.insert(make_stateful_set("s1", "ns", Some("uid-s")));
+        set.insert(make_inference_service("i1", "ns", Some("uid-i")));
+        set.insert(make_notebook("n1", "ns", Some("uid-n")));
+        // duplicate of first deployment
+        set.insert(make_deployment("d1", "ns", Some("uid-d")));
+        assert_eq!(set.len(), 5);
+    }
+
+    // ── Meta trait ───────────────────────────────────────────────────────
+
+    #[test]
+    fn meta_deployment() {
+        let sk = make_deployment("my-dep", "prod", Some("dep-uid"));
+        assert_eq!(sk.name(), "my-dep");
+        assert_eq!(sk.namespace(), Some("prod".into()));
+        assert_eq!(sk.kind(), "Deployment");
+        assert_eq!(sk.uid(), Some("dep-uid".into()));
+        assert_eq!(sk.api_version(), "apps/v1");
+    }
+
+    #[test]
+    fn meta_replica_set() {
+        let sk = make_replica_set("my-rs", "staging", Some("rs-uid"));
+        assert_eq!(sk.name(), "my-rs");
+        assert_eq!(sk.namespace(), Some("staging".into()));
+        assert_eq!(sk.kind(), "ReplicaSet");
+        assert_eq!(sk.uid(), Some("rs-uid".into()));
+        assert_eq!(sk.api_version(), "apps/v1");
+    }
+
+    #[test]
+    fn meta_stateful_set() {
+        let sk = make_stateful_set("my-ss", "dev", Some("ss-uid"));
+        assert_eq!(sk.name(), "my-ss");
+        assert_eq!(sk.namespace(), Some("dev".into()));
+        assert_eq!(sk.kind(), "StatefulSet");
+        assert_eq!(sk.uid(), Some("ss-uid".into()));
+        assert_eq!(sk.api_version(), "apps/v1");
+    }
+
+    #[test]
+    fn meta_notebook() {
+        let sk = make_notebook("my-nb", "ml", Some("nb-uid"));
+        assert_eq!(sk.name(), "my-nb");
+        assert_eq!(sk.namespace(), Some("ml".into()));
+        assert_eq!(sk.kind(), "Notebook");
+        assert_eq!(sk.uid(), Some("nb-uid".into()));
+        assert_eq!(sk.api_version(), "v1");
+    }
+
+    #[test]
+    fn meta_inference_service() {
+        let sk = make_inference_service("my-is", "serving", Some("is-uid"));
+        assert_eq!(sk.name(), "my-is");
+        assert_eq!(sk.namespace(), Some("serving".into()));
+        assert_eq!(sk.kind(), "InferenceService");
+        assert_eq!(sk.uid(), Some("is-uid".into()));
+        assert_eq!(sk.api_version(), "v1beta1");
+    }
+
+    // ── Event generation ─────────────────────────────────────────────────
+
+    #[test]
+    fn event_for_notebook() {
+        let sk = make_notebook("gpu-test", "rhoai--weaton", Some("nb-uid-1"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.name, Some("gpu-test".into()));
+        assert_eq!(
+            event.involved_object.namespace,
+            Some("rhoai--weaton".into())
+        );
+        assert_eq!(event.involved_object.kind, Some("Notebook".into()));
+        assert_eq!(event.involved_object.uid, Some("nb-uid-1".into()));
+        assert_eq!(event.involved_object.api_version, Some("v1".into()));
+        assert_eq!(event.action, Some("scale_down".into()));
+        assert_eq!(event.type_, Some("Normal".into()));
+        assert_eq!(
+            event.reason,
+            Some("Pod rhoai--weaton::gpu-test was not using GPU".into())
+        );
+        assert_eq!(event.reporting_component, Some("gpu-pruner".into()));
+        assert!(event.metadata.name.unwrap().starts_with("gpuscaler-"));
+        assert_eq!(event.metadata.namespace, Some("rhoai--weaton".into()));
+        assert!(event.first_timestamp.is_some());
+        assert!(event.last_timestamp.is_some());
+        assert!(event.event_time.is_some());
+    }
+
+    #[test]
+    fn event_for_deployment() {
+        let sk = make_deployment("my-dep", "prod", Some("dep-uid"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.kind, Some("Deployment".into()));
+        assert_eq!(event.involved_object.api_version, Some("apps/v1".into()));
+        assert_eq!(
+            event.reason,
+            Some("Pod prod::my-dep was not using GPU".into())
+        );
+    }
+
+    #[test]
+    fn event_for_replica_set() {
+        let sk = make_replica_set("my-rs", "staging", None);
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.kind, Some("ReplicaSet".into()));
+        assert_eq!(event.involved_object.uid, None);
+    }
+
+    #[test]
+    fn event_for_stateful_set() {
+        let sk = make_stateful_set("my-ss", "dev", Some("ss-uid"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.kind, Some("StatefulSet".into()));
+        assert_eq!(event.involved_object.api_version, Some("apps/v1".into()));
+    }
+
+    #[test]
+    fn event_for_inference_service() {
+        let sk = make_inference_service("my-is", "serving", Some("is-uid"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.kind, Some("InferenceService".into()));
+        assert_eq!(event.involved_object.api_version, Some("v1beta1".into()));
+    }
+
+    #[test]
+    fn event_names_are_unique() {
+        let sk = make_notebook("nb", "ns", None);
+        let e1 = sk.generate_scale_event().unwrap();
+        let e2 = sk.generate_scale_event().unwrap();
+        assert_ne!(e1.metadata.name, e2.metadata.name);
+    }
+
+    #[test]
+    fn event_with_no_namespace() {
+        let sk = ScaleKind::Deployment(Deployment {
+            metadata: ObjectMeta {
+                name: Some("orphan".into()),
+                namespace: None,
+                ..Default::default()
+            },
+            ..Default::default()
         });
+        let event = sk.generate_scale_event().unwrap();
+        assert_eq!(event.involved_object.namespace, None);
+        assert_eq!(event.reason, Some("Pod ::orphan was not using GPU".into()));
+    }
 
-        let event = sk.generate_scale_event().expect("bar");
+    // ── resource filtering integration ───────────────────────────────────
 
-        println!("{}", serde_yaml::to_string(&event).expect("foo"));
+    #[test]
+    fn enabled_resources_filter_accepts_matching_scale_kind() {
+        let enabled = get_enabled_resources("dn");
+        let dep: ResourceKind = make_deployment("d", "ns", None).into();
+        let nb: ResourceKind = make_notebook("n", "ns", None).into();
+        let ss: ResourceKind = make_stateful_set("s", "ns", None).into();
 
-        assert_eq!(event.involved_object.name, Some("gpu-test".to_string()))
+        assert!(enabled.contains(dep));
+        assert!(enabled.contains(nb));
+        assert!(!enabled.contains(ss));
     }
 }

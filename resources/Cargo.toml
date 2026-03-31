@@ -11,4 +11,4 @@ k8s-openapi.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
-schemars = "0.8.21"
+schemars = "1"

@@ -1,48 +1,41 @@
-use minijinja::{context, Environment};
+use minijinja::{Environment, context};
 
-use once_cell::sync::Lazy;
+#[cfg(feature = "otel")]
+use std::sync::LazyLock;
 #[cfg(feature = "otel")]
 use {
     opentelemetry::global,
-    opentelemetry::metrics::MetricsError,
     opentelemetry::trace::TracerProvider,
-    opentelemetry::KeyValue,
-    opentelemetry_otlp::{ExportConfig, WithExportConfig},
+    opentelemetry_otlp::{MetricExporter, SpanExporter},
+    opentelemetry_sdk::Resource as OTELResource,
     opentelemetry_sdk::metrics::SdkMeterProvider,
-    opentelemetry_sdk::trace::Config as TraceConfig,
-    opentelemetry_sdk::{runtime, Resource as OTELResource},
+    opentelemetry_sdk::trace::SdkTracerProvider,
     tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer},
 };
-
-use resources::inferenceservice::InferenceService;
-use resources::notebook::Notebook;
 
 use std::{collections::HashSet, fmt::Debug, sync::atomic::AtomicUsize};
 use tokio::{sync::mpsc::Sender, time};
 
-use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::{layer::SubscriberExt, Layer};
+#[cfg(not(feature = "otel"))]
+use tracing_subscriber::Layer;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 use futures::stream::StreamExt;
 
 use prometheus_http_query::Client;
 use serde::Serialize;
 
-use k8s_openapi::{
-    api::{
-        apps::v1::{Deployment, ReplicaSet, StatefulSet},
-        core::v1::Pod,
-    },
-    chrono::{offset, Duration},
-};
-use kube::{api::ObjectMeta, Api, Client as KubeClient, Resource};
+use jiff::{SignedDuration, Timestamp};
+use k8s_openapi::api::core::v1::Pod;
+use kube::{Api, Client as KubeClient, Resource};
 
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    get_prom_client, get_prometheus_token, Meta, PodMetricData, QueryResposne, ResourceKind,
-    ScaleKind, Scaler, TlsMode,
+    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, find_root_object,
+    get_enabled_resources, get_prom_client, get_prometheus_token,
 };
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
@@ -131,25 +124,22 @@ enum LogFormat {
 static QUERY_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
 #[cfg(feature = "otel")]
-static RESOURCE: Lazy<OTELResource> = Lazy::new(|| {
-    OTELResource::new(vec![KeyValue::new(
-        opentelemetry_semantic_conventions::resource::SERVICE_NAME,
-        "gpu-pruner",
-    )])
+static RESOURCE: LazyLock<OTELResource> = LazyLock::new(|| {
+    OTELResource::builder()
+        .with_service_name("gpu-pruner")
+        .build()
 });
 
 #[cfg(feature = "otel")]
-fn init_metrics() -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, MetricsError> {
-    let export_config = ExportConfig::default();
-    opentelemetry_otlp::new_pipeline()
-        .metrics(runtime::Tokio)
-        .with_exporter(
-            opentelemetry_otlp::new_exporter()
-                .tonic()
-                .with_export_config(export_config),
-        )
+fn init_metrics() -> anyhow::Result<SdkMeterProvider> {
+    let exporter = MetricExporter::builder().with_tonic().build()?;
+
+    let provider = SdkMeterProvider::builder()
+        .with_periodic_exporter(exporter)
         .with_resource(RESOURCE.clone())
-        .build()
+        .build();
+
+    Ok(provider)
 }
 
 fn setup_logging() -> OtelGuard {
@@ -196,12 +186,7 @@ fn setup_logging() -> OtelGuard {
 
     #[cfg(feature = "otel")]
     let metrics_layer = {
-        let _meter = global::meter_with_version(
-            "gpu_pruner::main",
-            Some("v0.2.2"),
-            Some("schema_url"),
-            None,
-        );
+        let _meter = global::meter("gpu_pruner::main");
         Some(MetricsLayer::new(meter_provider.clone()))
     };
 
@@ -209,16 +194,20 @@ fn setup_logging() -> OtelGuard {
     let metrics_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
 
     #[cfg(feature = "otel")]
-    let otel_layer = {
-        let provider = opentelemetry_otlp::new_pipeline()
-            .tracing()
-            .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-            .with_trace_config(TraceConfig::default().with_resource(RESOURCE.clone()))
-            .install_batch(runtime::Tokio)
-            .unwrap();
+    let (otel_layer, tracer_provider) = {
+        let exporter = SpanExporter::builder()
+            .with_tonic()
+            .build()
+            .expect("failed to create span exporter");
+
+        let provider = SdkTracerProvider::builder()
+            .with_resource(RESOURCE.clone())
+            .with_batch_exporter(exporter)
+            .build();
+
         global::set_tracer_provider(provider.clone());
-        let trace = provider.tracer("gpu_pruner::main");
-        Some(OpenTelemetryLayer::new(trace))
+        let tracer = provider.tracer("gpu_pruner::main");
+        (Some(OpenTelemetryLayer::new(tracer)), provider)
     };
 
     #[cfg(not(feature = "otel"))]
@@ -233,7 +222,10 @@ fn setup_logging() -> OtelGuard {
 
     #[cfg(feature = "otel")]
     {
-        OtelGuard { meter_provider }
+        OtelGuard {
+            meter_provider,
+            tracer_provider,
+        }
     }
 
     #[cfg(not(feature = "otel"))]
@@ -242,13 +234,7 @@ fn setup_logging() -> OtelGuard {
 
 #[cfg(feature = "otel")]
 fn get_meter_provider() -> SdkMeterProvider {
-    let result = init_metrics();
-    assert!(
-        result.is_ok(),
-        "Init metrics failed with error: {:?}",
-        result.err()
-    );
-    let meter_provider = result.unwrap();
+    let meter_provider = init_metrics().expect("failed to init metrics");
     global::set_meter_provider(meter_provider.clone());
     meter_provider
 }
@@ -256,6 +242,7 @@ fn get_meter_provider() -> SdkMeterProvider {
 #[cfg(feature = "otel")]
 struct OtelGuard {
     meter_provider: SdkMeterProvider,
+    tracer_provider: SdkTracerProvider,
 }
 
 #[cfg(not(feature = "otel"))]
@@ -264,26 +251,13 @@ struct OtelGuard;
 #[cfg(feature = "otel")]
 impl Drop for OtelGuard {
     fn drop(&mut self) {
+        if let Err(err) = self.tracer_provider.shutdown() {
+            eprintln!("{err:?}");
+        }
         if let Err(err) = self.meter_provider.shutdown() {
             eprintln!("{err:?}");
         }
-        opentelemetry::global::shutdown_tracer_provider();
     }
-}
-
-fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
-    let mut resource_kind = ResourceKind::empty();
-    for c in enabled_resources.chars() {
-        match c {
-            'd' => resource_kind |= ResourceKind::DEPLOYMENT,
-            'r' => resource_kind |= ResourceKind::REPLICA_SET,
-            's' => resource_kind |= ResourceKind::STATEFUL_SET,
-            'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
-            'n' => resource_kind |= ResourceKind::NOTEBOOK,
-            _ => {}
-        }
-    }
-    resource_kind
 }
 
 #[tokio::main]
@@ -491,18 +465,17 @@ async fn run_query_and_scale(
             None => continue,
         };
 
-        if let Some(status) = pod.status.as_ref() {
-            if let Some(phase) = status.phase.as_ref() {
-                if phase == "Pending" {
-                    tracing::info!(
-                        "Skipping pod {namespace}:{pod_name}, it's still pending",
-                        namespace = &pmd.namespace,
-                        pod_name = &pmd.name
-                    );
-                    continue;
-                }
-            }
-        };
+        if let Some(status) = pod.status.as_ref()
+            && let Some(phase) = status.phase.as_ref()
+            && phase == "Pending"
+        {
+            tracing::info!(
+                "Skipping pod {namespace}:{pod_name}, it's still pending",
+                namespace = &pmd.namespace,
+                pod_name = &pmd.name
+            );
+            continue;
+        }
 
         let create_time = pod
             .metadata
@@ -510,8 +483,9 @@ async fn run_query_and_scale(
             .clone()
             .expect("no timestamp");
 
-        let lookback_start = offset::Utc::now()
-            - (Duration::minutes(args.duration) + Duration::seconds(args.grace_period));
+        let lookback_duration =
+            SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
+        let lookback_start = Timestamp::now() - lookback_duration;
 
         tracing::info!(
             "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
@@ -575,82 +549,4 @@ async fn run_query_and_scale(
         num_pods: vec.len(),
         shutdown_events: shutdown_events.len(),
     })
-}
-
-/// Crawl up the owner references to find the root Deployment or StatefulSet
-/// and allows an action like scaling to be performed
-///
-/// Deployments and StatefulSets can have multiple pods, so we shouldn't "double scale-down" them if they share a common parent and
-/// both pods do not have GPU utilization. We only need to send the request once.
-#[tracing::instrument(skip(client, pod_meta), fields(name = pod_meta.name))]
-async fn find_root_object(client: KubeClient, pod_meta: &ObjectMeta) -> anyhow::Result<ScaleKind> {
-    tracing::info!(
-        "Finding root object of {name:?} for scale-down.",
-        name = &pod_meta.name
-    );
-    // first, check for the special kserve label
-    // if it exists, we can go directly to the InferenceService
-    // and scale it down
-    if let Some(labels) = &pod_meta.labels {
-        if let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice") {
-            let namespace = pod_meta.namespace.clone().unwrap_or_default();
-            let is_api: Api<InferenceService> = Api::namespaced(client.clone(), &namespace);
-            let is = is_api.get(ks_label).await?;
-
-            return Ok(ScaleKind::InferenceService(is));
-        }
-    }
-
-    if let Some(ors) = &pod_meta.owner_references {
-        for or in ors {
-            let namespace = pod_meta.namespace.clone().unwrap_or_default();
-            match or.kind.as_str() {
-                "ReplicaSet" => {
-                    tracing::info!("Found ReplicaSet!");
-                    let rs_api: Api<ReplicaSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(rs) = rs_api.get(&or.name).await {
-                        if let Some(rs_meta) = rs.metadata.owner_references.as_ref() {
-                            for rs_or in rs_meta {
-                                if rs_or.kind == "Deployment" {
-                                    tracing::info!("Found Deployment owning ReplicaSet!");
-                                    let deployment_api: Api<Deployment> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let deployment = deployment_api.get(&rs_or.name).await?;
-
-                                    return Ok(ScaleKind::Deployment(deployment));
-                                }
-                            }
-                        }
-                        // fallthrough, replica set with no owners
-                        return Ok(ScaleKind::ReplicaSet(rs.clone()));
-                    }
-                }
-                "StatefulSet" => {
-                    tracing::info!("Found StatefulSet!");
-                    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(ss) = ss_api.get(&or.name).await {
-                        if let Some(ss_meta) = ss.metadata.owner_references.as_ref() {
-                            for ss_or in ss_meta {
-                                if ss_or.kind == "Notebook" {
-                                    tracing::info!("Found Notebook owning ReplicaSet!");
-                                    let nb_api: Api<Notebook> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let nb = nb_api.get(&ss_or.name).await?;
-
-                                    return Ok(ScaleKind::Notebook(nb));
-                                }
-                            }
-                        }
-                        // fallthrough, statefulset with no owners
-                        return Ok(ScaleKind::StatefulSet(ss));
-                    }
-                }
-                _ => {
-                    tracing::warn!("Found no ORs!")
-                }
-            }
-        }
-    }
-
-    Err(anyhow::anyhow!("oops, nothing found!"))
 }
