@@ -1,6 +1,6 @@
 set dotenv-load := true 
 
-repository := "quay.io/wseaton"
+repository := "ghcr.io/wseaton"
 project := "gpu-pruner"
 version := `yq -oy ".workspace.package.version" Cargo.toml`
 

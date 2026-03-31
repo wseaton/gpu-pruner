@@ -16,7 +16,7 @@ spec:
       serviceAccountName: gpu-pruner
       containers:
         - name: container
-          image: 'quay.io/wseaton/gpu-pruner:ubi9'
+          image: 'ghcr.io/wseaton/gpu-pruner:latest-otel'
           args:
             - 'gpu-pruner'
             - '-d'

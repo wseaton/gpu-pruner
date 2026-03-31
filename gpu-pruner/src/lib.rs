@@ -1,45 +1,44 @@
 use clap::ValueEnum;
 use k8s_openapi::{
+    Resource,
     api::{
         apps::v1::{Deployment, ReplicaSet, StatefulSet},
         core::v1::ObjectReference,
     },
     apimachinery::pkg::apis::meta::v1::MicroTime,
-    Resource,
 };
-use kube::{api::PostParams, Client, ResourceExt};
+use kube::{Client, ResourceExt, api::PostParams};
 use resources::{inferenceservice::InferenceService, notebook::Notebook};
 use secrecy::ExposeSecret;
 use serde::Serialize;
-use std::{hash::{Hash, Hasher}, path::Path};
+use std::{
+    hash::{Hash, Hasher},
+    path::Path,
+};
 use thiserror::Error;
 
 use uuid::Uuid;
 
 use std::fmt::Debug;
 
-use prometheus_http_query::{response::InstantVector, Client as PromClient};
-use reqwest::{header::HeaderMap, Certificate};
+use prometheus_http_query::{Client as PromClient, response::InstantVector};
+use reqwest::{Certificate, header::HeaderMap};
 use serde::de::DeserializeOwned;
 
-use k8s_openapi::{
-    api::core::v1::Event,
-    apimachinery::pkg::apis::meta::v1::Time,
-    chrono::{offset, Duration},
-};
-use kube::{
-    api::{ObjectMeta, Patch, PatchParams},
-    Api, Client as KubeClient,
-};
 use bitflags::bitflags;
-
+use jiff::Timestamp;
+use k8s_openapi::{api::core::v1::Event, apimachinery::pkg::apis::meta::v1::Time};
+use kube::{
+    Api, Client as KubeClient,
+    api::{ObjectMeta, Patch, PatchParams},
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub enum ScaleKind {
     Deployment(Deployment),
     ReplicaSet(ReplicaSet),
     StatefulSet(StatefulSet),
-    InferenceService(InferenceService),
+    InferenceService(Box<InferenceService>),
     Notebook(Notebook),
 }
 
@@ -82,7 +81,6 @@ impl Hash for ScaleKind {
     }
 }
 
-
 impl From<ScaleKind> for ResourceKind {
     fn from(kind: ScaleKind) -> Self {
         match kind {
@@ -95,7 +93,6 @@ impl From<ScaleKind> for ResourceKind {
     }
 }
 
-
 bitflags! {
     #[derive(Debug)]
     pub struct ResourceKind: u8 {
@@ -106,8 +103,6 @@ bitflags! {
         const NOTEBOOK = 0b10000;
     }
 }
-
-
 
 pub struct QueryResposne {
     pub num_pods: usize,
@@ -174,7 +169,7 @@ pub trait Meta {
 
 pub trait Scaler {
     fn scale(&self, client: Client)
-        -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
+    -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 
     fn generate_scale_event(&self) -> anyhow::Result<Event>;
 }
@@ -205,9 +200,8 @@ pub async fn get_prometheus_token() -> anyhow::Result<String> {
         .args(["whoami", "-t"])
         .output()?
         .stdout;
-    return Ok(std::str::from_utf8(&token)?.trim().to_string());
+    Ok(std::str::from_utf8(&token)?.trim().to_string())
 }
-
 
 #[derive(Debug, Clone, Copy, ValueEnum, Default, Serialize)]
 pub enum TlsMode {
@@ -216,8 +210,12 @@ pub enum TlsMode {
     Verify,
 }
 
-
-pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: TlsMode, certfile: Option<P>) -> anyhow::Result<PromClient> {
+pub fn get_prom_client<P: AsRef<Path>>(
+    url: &str,
+    token: String,
+    verify_tls: TlsMode,
+    certfile: Option<P>,
+) -> anyhow::Result<PromClient> {
     let mut r_client = reqwest::ClientBuilder::new();
 
     if let TlsMode::Skip = verify_tls {
@@ -235,7 +233,9 @@ pub fn get_prom_client<P: AsRef<Path>>(url: &str, token: String, verify_tls: Tls
                 }
             } else {
                 tracing::error!("Failed to parse certificates from PEM bundle");
-                return Err(anyhow::anyhow!("Failed to parse certificates from PEM bundle"));
+                return Err(anyhow::anyhow!(
+                    "Failed to parse certificates from PEM bundle"
+                ));
             }
         } else {
             tracing::error!("Failed to read certificate file");
@@ -370,7 +370,7 @@ impl Scaler for ScaleKind {
     #[tracing::instrument(skip(self))]
     fn generate_scale_event(&self) -> anyhow::Result<Event> {
         let uuid = Uuid::new_v4();
-        let now: Time = Time(offset::Utc::now());
+        let now: Time = Time(Timestamp::now());
 
         // this is intended to be set via pushdown
         let reporting_instance =
@@ -381,7 +381,7 @@ impl Scaler for ScaleKind {
             first_timestamp: Some(now.clone()),
             reporting_component: Some("gpu-pruner".to_string()),
             reporting_instance,
-            event_time: Some(MicroTime(offset::Utc::now())),
+            event_time: Some(MicroTime(Timestamp::now())),
             action: Some("scale_down".to_string()),
             reason: Some(format!(
                 "Pod {}::{} was not using GPU",
@@ -409,15 +409,15 @@ impl Scaler for ScaleKind {
     }
 }
 
-/// Generic function to scale a resource to zero replicas
+/// Scale a resource to zero replicas via the /scale subresource endpoint
 #[tracing::instrument(skip(api))]
 async fn scale_to_zero<K>(api: Api<K>, name: &str) -> anyhow::Result<()>
 where
     K: DeserializeOwned + Debug + Clone + kube::Resource<DynamicType = ()> + 'static,
 {
     let patch = serde_json::json!({ "spec": { "replicas": 0 } });
-    let params = PatchParams::default();
-    api.patch(name, &params, &Patch::Strategic(&patch)).await?;
+    api.patch_scale(name, &PatchParams::default(), &Patch::Merge(&patch))
+        .await?;
     Ok(())
 }
 
@@ -435,7 +435,7 @@ async fn scale_notebook_to_zero(
     let patch = serde_json::json!({
         "metadata": {
             "annotations": {
-                "kubeflow-resource-stopped": offset::Utc::now().to_rfc3339(),
+                "kubeflow-resource-stopped": Timestamp::now().to_string(),
             }
         }
     });
@@ -497,7 +497,7 @@ mod tests {
 
         let event = sk.generate_scale_event().expect("bar");
 
-        println!("{}", serde_yaml::to_string(&event).expect("foo"));
+        println!("{}", serde_json::to_string_pretty(&event).expect("bar"));
 
         assert_eq!(event.involved_object.name, Some("gpu-test".to_string()))
     }

@@ -1,6 +1,6 @@
 [workspace]
 default-members = ["gpu-pruner"]
-resolver = "1"
+resolver = "2"
 members = [
     "resources",
     "gpu-pruner",
@@ -11,29 +11,28 @@ members = [
 
 
 [workspace.package]
-version= "0.3.3"
+version = "0.4.0"
 readme = "README.md"
-edition = "2021"
-rust-version = "1.83"
+edition = "2024"
+rust-version = "1.88"
 
 
 [workspace.dependencies]
 
 
-kube = { version = "0.92", features = ["derive", "runtime"] }
-k8s-openapi = { version = "0.22", features = ["latest"] }
+kube = { version = "3", features = ["derive", "runtime"] }
+k8s-openapi = { version = "0.27", features = ["latest", "schemars"] }
 
-tokio = { version = "1.37.0", features = ["full"] }
-tracing = "0.1.40"
-tracing-subscriber = {version = "0.3", features = ["env-filter", "json"]}
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = "1.0.115"
-anyhow = "1.0.81"
-chrono = "0.4.37"
-clap = { version = "4.5.4", features = ["derive"] }
-futures = "0.3.30"
-thiserror = "1"
-serde_yaml = "0.9.34"
-camino = "1.1.6"
-ldap3 = { version = "0.11.3" }
-once_cell = "1.19.0"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+futures = "0.3"
+thiserror = "2"
+jiff = "0.2"
+camino = "1"
+ldap3 = "0.12"
