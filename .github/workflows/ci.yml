@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (default)
+        run: cargo clippy --all --benches --tests --examples -- -D warnings
+
+      - name: Clippy (otel)
+        run: cargo clippy --all --benches --tests --examples --all-features -- -D warnings
+
+      - name: Test
+        run: cargo test --all
+
+      - name: Test (otel)
+        run: cargo test --all --all-features
+
+  image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - features: "otel"
+            suffix: "-otel"
+          - features: "default"
+            suffix: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.rhel
+          push: false
+          build-args: |
+            FEATURES=${{ matrix.features }}
+          tags: |
+            gpu-pruner:ci${{ matrix.suffix }}

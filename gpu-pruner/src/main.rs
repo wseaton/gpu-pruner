@@ -40,8 +40,8 @@ use kube::{Api, Client as KubeClient, Resource, api::ObjectMeta};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    Meta, PodMetricData, QueryResposne, ResourceKind, ScaleKind, Scaler, TlsMode, get_prom_client,
-    get_prometheus_token,
+    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, get_enabled_resources,
+    get_prom_client, get_prometheus_token,
 };
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
@@ -264,21 +264,6 @@ impl Drop for OtelGuard {
             eprintln!("{err:?}");
         }
     }
-}
-
-fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
-    let mut resource_kind = ResourceKind::empty();
-    for c in enabled_resources.chars() {
-        match c {
-            'd' => resource_kind |= ResourceKind::DEPLOYMENT,
-            'r' => resource_kind |= ResourceKind::REPLICA_SET,
-            's' => resource_kind |= ResourceKind::STATEFUL_SET,
-            'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
-            'n' => resource_kind |= ResourceKind::NOTEBOOK,
-            _ => {}
-        }
-    }
-    resource_kind
 }
 
 #[tokio::main]
