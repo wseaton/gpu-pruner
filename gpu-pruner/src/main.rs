@@ -414,23 +414,41 @@ async fn run_query_and_scale(
     let lookback_duration =
         SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
 
+    // Dedup by (pod, namespace) before processing. Multi-GPU pods produce one
+    // series per GPU, but we only need to resolve the owner chain once per pod.
+    let num_pods = vec.len();
+    let mut seen_pods = HashSet::new();
+    let unique_pods: Vec<_> = vec
+        .into_iter()
+        .filter_map(|v| {
+            let pmd: PodMetricData = match (&v).try_into() {
+                Ok(pmd) => pmd,
+                Err(e) => {
+                    tracing::error!("Failed to unwrap pod fields: {e}");
+                    return None;
+                }
+            };
+            let key = (pmd.name.clone(), pmd.namespace.clone());
+            if seen_pods.insert(key) {
+                Some(pmd)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    tracing::info!(
+        "Query returned {num_pods} series across {} unique pods",
+        unique_pods.len()
+    );
+
     // Process pods concurrently (up to 10 at a time) instead of serially.
     // Each pod requires 1-3 API calls (get pod, walk owner refs), so parallelism
     // cuts wall-clock time significantly on large result sets.
-    let num_pods = vec.len();
-    let results: Vec<Option<ScaleKind>> = futures::stream::iter(vec)
-        .map(|pod| {
+    let results: Vec<Option<ScaleKind>> = futures::stream::iter(unique_pods)
+        .map(|pmd| {
             let kube_client = kube_client.clone();
             async move {
-                tracing::debug!("{:#?}", pod);
-
-                let pmd: PodMetricData = match (&pod).try_into() {
-                    Ok(pmd) => pmd,
-                    Err(e) => {
-                        tracing::error!("Failed to unwrap pod fields! {}", e);
-                        return None;
-                    }
-                };
 
                 let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
                 let pod = match api.get_opt(&pmd.name).await {
