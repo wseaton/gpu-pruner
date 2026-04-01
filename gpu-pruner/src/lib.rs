@@ -128,7 +128,7 @@ pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
     resource_kind
 }
 
-pub struct QueryResposne {
+pub struct QueryResponse {
     pub num_pods: usize,
     pub shutdown_events: usize,
 }
@@ -160,20 +160,23 @@ impl TryFrom<&InstantVector> for PodMetricData {
         Ok(PodMetricData {
             name: metrics
                 .get("exported_pod")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
+                .or_else(|| metrics.get("pod"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod/pod".into()))?
                 .clone(),
             namespace: metrics
                 .get("exported_namespace")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
+                .or_else(|| metrics.get("namespace"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace/namespace".into()))?
                 .clone(),
             container: metrics
                 .get("exported_container")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
+                .or_else(|| metrics.get("container"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_container/container".into()))?
                 .clone(),
             node_type: metrics
                 .get("node_type")
-                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
-                .clone(),
+                .cloned()
+                .unwrap_or_else(|| "unknown".into()),
             gpu_model: metrics
                 .get("modelName")
                 .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
@@ -278,25 +281,28 @@ pub fn get_prom_client<P: AsRef<Path>>(
     Ok(res)
 }
 
+/// Dispatches a method call through every ScaleKind variant.
+/// All inner types implement ResourceExt, so this avoids repeating
+/// the same match block for each delegating Meta method.
+macro_rules! delegate_resource_ext {
+    ($self:expr, $method:ident) => {
+        match $self {
+            ScaleKind::Deployment(d) => d.$method(),
+            ScaleKind::ReplicaSet(d) => d.$method(),
+            ScaleKind::StatefulSet(d) => d.$method(),
+            ScaleKind::InferenceService(d) => d.$method(),
+            ScaleKind::Notebook(d) => d.$method(),
+        }
+    };
+}
+
 impl Meta for ScaleKind {
     fn name(&self) -> String {
-        match self {
-            ScaleKind::Deployment(d) => d.name_unchecked(),
-            ScaleKind::ReplicaSet(d) => d.name_unchecked(),
-            ScaleKind::StatefulSet(d) => d.name_unchecked(),
-            ScaleKind::Notebook(d) => d.name_unchecked(),
-            ScaleKind::InferenceService(d) => d.name_unchecked(),
-        }
+        delegate_resource_ext!(self, name_unchecked)
     }
 
     fn namespace(&self) -> Option<String> {
-        match self {
-            ScaleKind::Deployment(d) => d.namespace(),
-            ScaleKind::ReplicaSet(d) => d.namespace(),
-            ScaleKind::StatefulSet(d) => d.namespace(),
-            ScaleKind::Notebook(d) => d.namespace(),
-            ScaleKind::InferenceService(d) => d.namespace(),
-        }
+        delegate_resource_ext!(self, namespace)
     }
 
     fn api_version(&self) -> String {
@@ -320,23 +326,11 @@ impl Meta for ScaleKind {
     }
 
     fn uid(&self) -> Option<String> {
-        match self {
-            ScaleKind::Deployment(d) => d.uid(),
-            ScaleKind::ReplicaSet(d) => d.uid(),
-            ScaleKind::StatefulSet(d) => d.uid(),
-            ScaleKind::Notebook(d) => d.uid(),
-            ScaleKind::InferenceService(d) => d.uid(),
-        }
+        delegate_resource_ext!(self, uid)
     }
 
     fn resource_version(&self) -> Option<String> {
-        match self {
-            ScaleKind::Deployment(d) => d.resource_version(),
-            ScaleKind::ReplicaSet(d) => d.resource_version(),
-            ScaleKind::StatefulSet(d) => d.resource_version(),
-            ScaleKind::Notebook(d) => d.resource_version(),
-            ScaleKind::InferenceService(d) => d.resource_version(),
-        }
+        delegate_resource_ext!(self, resource_version)
     }
 }
 
@@ -371,21 +365,21 @@ impl Scaler for ScaleKind {
                 scale_to_zero(api, &d.name_unchecked()).await
             }
             ScaleKind::Notebook(d) => {
-                let _ = scale_notebook_to_zero(
+                scale_notebook_to_zero(
                     client.clone(),
                     &d.name_unchecked(),
                     &d.namespace().expect("No namespace!"),
                 )
-                .await;
+                .await?;
                 Ok(())
             }
             ScaleKind::InferenceService(d) => {
-                let _ = scale_inference_service_to_zero(
+                scale_inference_service_to_zero(
                     client.clone(),
                     &d.name_unchecked(),
                     &d.namespace().expect("No namespace!"),
                 )
-                .await;
+                .await?;
                 Ok(())
             }
         }
@@ -492,7 +486,7 @@ pub async fn find_root_object(
                         if let Some(ss_meta) = ss.metadata.owner_references.as_ref() {
                             for ss_or in ss_meta {
                                 if ss_or.kind == "Notebook" {
-                                    tracing::info!("Found Notebook owning ReplicaSet!");
+                                    tracing::info!("Found Notebook owning StatefulSet!");
                                     let nb_api: Api<Notebook> =
                                         Api::namespaced(client.clone(), &namespace);
                                     let nb = nb_api.get(&ss_or.name).await?;
@@ -505,14 +499,17 @@ pub async fn find_root_object(
                         return Ok(ScaleKind::StatefulSet(ss));
                     }
                 }
-                _ => {
-                    tracing::warn!("Found no ORs!")
+                kind => {
+                    tracing::debug!("Ignoring unrecognized owner ref kind: {kind}");
                 }
             }
         }
     }
 
-    Err(anyhow::anyhow!("oops, nothing found!"))
+    Err(anyhow::anyhow!(
+        "no scalable root object found for pod {:?}",
+        pod_meta.name
+    ))
 }
 
 /// Scale a resource to zero replicas via the /scale subresource endpoint
@@ -528,8 +525,6 @@ where
 }
 
 /// Special handling for scaling a notebook to zero
-///
-/// TODO: maybe clean up the error handing or logging a bit, actually return the Resource.
 #[tracing::instrument(skip(client))]
 async fn scale_notebook_to_zero(
     client: KubeClient,

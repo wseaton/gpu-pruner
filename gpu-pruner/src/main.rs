@@ -34,7 +34,7 @@ use kube::{Api, Client as KubeClient, Resource};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, find_root_object,
+    Meta, PodMetricData, QueryResponse, ScaleKind, Scaler, TlsMode, find_root_object,
     get_enabled_resources, get_prom_client, get_prometheus_token,
 };
 
@@ -53,7 +53,7 @@ struct Cli {
     #[clap(short, long)]
     daemon_mode: bool,
 
-    /// Specifcy enabled resources with a string of letters
+    /// Specify enabled resources with a string of letters
     ///
     /// - `d` for Deployment
     /// - `r` for ReplicaSet
@@ -78,6 +78,18 @@ struct Cli {
     /// model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
     #[clap(short, long)]
     model_name: Option<String>,
+
+    /// Power draw threshold in watts. When set, GPUs showing peak power usage above this value
+    /// over the lookback window are excluded from idle candidates even if compute utilization is zero.
+    /// Useful as a corroborating signal (e.g. 100 for A10G, 150 for A100/H100).
+    #[clap(long)]
+    power_threshold: Option<f64>,
+
+    /// Set when the Prometheus ServiceMonitor uses honorLabels: true.
+    /// Controls whether the query uses native DCGM label names (pod/namespace/container)
+    /// or the Prometheus-prefixed names (exported_pod/exported_namespace/exported_container).
+    #[clap(long, default_value = "false")]
+    honor_labels: bool,
 
     /// Operation mode of the scaler process
     #[clap(short, long, default_value = "dry-run")]
@@ -142,7 +154,7 @@ fn init_metrics() -> anyhow::Result<SdkMeterProvider> {
     Ok(provider)
 }
 
-fn setup_logging() -> OtelGuard {
+fn setup_logging(args: &Cli) -> OtelGuard {
     // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
     // The filter levels are set as follows:
     // - Allow `info` level and above by default.
@@ -160,8 +172,6 @@ fn setup_logging() -> OtelGuard {
     #[cfg(not(feature = "otel"))]
     let filter = EnvFilter::from_default_env();
     let reg = tracing_subscriber::registry().with(filter);
-
-    let args = Cli::parse();
 
     let json_layer = if let LogFormat::Json = args.log_format {
         Some(tracing_subscriber::fmt::layer().json())
@@ -262,9 +272,8 @@ impl Drop for OtelGuard {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let _guard = setup_logging();
-
     let args = Cli::parse();
+    let _guard = setup_logging(&args);
     let enabled_resources = get_enabled_resources(&args.enabled_resources);
     tracing::info!("Enabled resources: {enabled_resources:?}");
 
@@ -274,31 +283,19 @@ async fn main() -> anyhow::Result<()> {
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<ScaleKind>(100);
 
-    // TODO: figure out a way to clean this up and unify the branches better
-    let query_task = if args.daemon_mode {
+    let query_task = {
         let args = args.clone();
         tokio::spawn(async move {
             let mut interval =
                 time::interval(tokio::time::Duration::from_secs(args.check_interval));
             loop {
-                interval.tick().await;
-                let token = match get_prometheus_token().await {
-                    Ok(token) => token,
-                    Err(e) => {
-                        tracing::error!("failed to get prom token: {e}");
-                        panic!("failed to get prometheus  token!");
-                    }
-                };
-                let client = get_prom_client(
-                    &args.prometheus_url,
-                    token,
-                    args.prometheus_tls_mode,
-                    args.prometheus_tls_cert.clone(),
-                )
-                .expect("failed to build prometheus client");
+                if args.daemon_mode {
+                    interval.tick().await;
+                }
+
+                let client = build_prom_client(&args).await;
                 match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
                     Ok(qr) => {
-                        // Reset the consecutive failure counter
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
                         tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
                         tracing::info!(
@@ -315,48 +312,19 @@ async fn main() -> anyhow::Result<()> {
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                         tracing::error!(
                             monotonic_counter.query_failures = 1,
-                            "Failed to run query and scale down! {e}"
+                            "Failed to run query and scale down: {e}"
                         );
                         if failures > 5 {
-                            tracing::error!("Too many failures, exiting!");
+                            tracing::error!("Too many consecutive failures, exiting");
                             break;
                         }
                     }
                 }
-            }
-        })
-    } else {
-        let args = args.clone();
-        tokio::spawn(async move {
-            let token = match get_prometheus_token().await {
-                Ok(token) => token,
-                Err(e) => {
-                    tracing::error!("failed to get prom token: {e}");
-                    panic!("failed to get prometheus  token!");
+
+                if !args.daemon_mode {
+                    break;
                 }
-            };
-            let client = get_prom_client(
-                &args.prometheus_url,
-                token,
-                args.prometheus_tls_mode,
-                args.prometheus_tls_cert.clone(),
-            )
-            .expect("failed to build prometheus client");
-            match run_query_and_scale(client, query, &args, tx.clone()).await {
-                Ok(qr) => {
-                    tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
-                    tracing::info!(
-                        counter.query_returned_candidates = qr.num_pods,
-                        "Returned candidates"
-                    );
-                    tracing::info!(
-                        counter.query_returned_shutdown_events = qr.shutdown_events,
-                        "Returned shutdown events"
-                    );
-                }
-                Err(e) => tracing::error!("Failed to scale down! {e}"),
             }
-            // Explicitly drop the sender to indicate no more messages will be sent
             drop(tx);
         })
     };
@@ -406,13 +374,26 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn build_prom_client(args: &Cli) -> Client {
+    let token = get_prometheus_token()
+        .await
+        .expect("failed to get prometheus token");
+    get_prom_client(
+        &args.prometheus_url,
+        token,
+        args.prometheus_tls_mode,
+        args.prometheus_tls_cert.clone(),
+    )
+    .expect("failed to build prometheus client")
+}
+
 #[tracing::instrument(skip_all)]
 async fn run_query_and_scale(
     client: Client,
     query: String,
     args: &Cli,
     tx: Sender<ScaleKind>,
-) -> anyhow::Result<QueryResposne> {
+) -> anyhow::Result<QueryResponse> {
     let response = match client.query(query).get().await {
         Ok(response) => response,
         Err(e) => {
@@ -421,104 +402,122 @@ async fn run_query_and_scale(
         }
     };
 
-    let data = response.data();
-    let vec = data.clone().into_vector().unwrap();
+    let vec = response
+        .data()
+        .clone()
+        .into_vector()
+        .expect("expected vector response from prometheus");
 
     let kube_client: KubeClient = KubeClient::try_default().await?;
 
-    let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
+    let lookback_duration =
+        SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
 
-    for pod in &vec {
-        tracing::debug!("{:#?}", pod);
+    // Process pods concurrently (up to 10 at a time) instead of serially.
+    // Each pod requires 1-3 API calls (get pod, walk owner refs), so parallelism
+    // cuts wall-clock time significantly on large result sets.
+    let num_pods = vec.len();
+    let results: Vec<Option<ScaleKind>> = futures::stream::iter(vec)
+        .map(|pod| {
+            let kube_client = kube_client.clone();
+            async move {
+                tracing::debug!("{:#?}", pod);
 
-        let pmd: PodMetricData = match pod.try_into() {
-            Ok(pmd) => pmd,
-            Err(e) => {
-                tracing::error!("Failed to unwrap pod fields! {}", e);
-                continue;
-            }
-        };
+                let pmd: PodMetricData = match (&pod).try_into() {
+                    Ok(pmd) => pmd,
+                    Err(e) => {
+                        tracing::error!("Failed to unwrap pod fields! {}", e);
+                        return None;
+                    }
+                };
 
-        let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
-        let pod = match api
-            .get_opt(&pmd.name)
-            .await
-            .map_err(|e| {
-                tracing::error!(
-                    "Skipping pod {namespace}:{pod_name}, retrieval error",
-                    namespace = &pmd.namespace,
-                    pod_name = &pmd.name
-                );
-                tracing::debug!("{e}");
-            })
-            .ok()
-            .flatten()
-            .or_else(|| {
-                tracing::info!(
-                    "Skipping pod {namespace}:{pod_name} because it no longer exists!",
-                    namespace = &pmd.namespace,
-                    pod_name = &pmd.name
-                );
-                None
-            }) {
-            Some(pod) => pod,
-            None => continue,
-        };
+                let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
+                let pod = match api.get_opt(&pmd.name).await {
+                    Ok(Some(pod)) => pod,
+                    Ok(None) => {
+                        tracing::info!(
+                            "Skipping {ns}:{name}, pod no longer exists",
+                            ns = &pmd.namespace,
+                            name = &pmd.name
+                        );
+                        return None;
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            "Skipping {ns}:{name}, retrieval error: {e}",
+                            ns = &pmd.namespace,
+                            name = &pmd.name
+                        );
+                        return None;
+                    }
+                };
 
-        if let Some(status) = pod.status.as_ref()
-            && let Some(phase) = status.phase.as_ref()
-            && phase == "Pending"
-        {
-            tracing::info!(
-                "Skipping pod {namespace}:{pod_name}, it's still pending",
-                namespace = &pmd.namespace,
-                pod_name = &pmd.name
-            );
-            continue;
-        }
-
-        let create_time = pod
-            .metadata
-            .creation_timestamp
-            .clone()
-            .expect("no timestamp");
-
-        let lookback_duration =
-            SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
-        let lookback_start = Timestamp::now() - lookback_duration;
-
-        tracing::info!(
-            "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
-            pod_name = &pmd.name,
-            create_time = create_time.0
-        );
-        if create_time.0 < lookback_start {
-            tracing::info!("Pod older than lookback start, so eligible for scaledown.");
-            let obj = match find_root_object(kube_client.clone(), pod.clone().meta()).await {
-                Ok(obj) => obj,
-                Err(e) => {
-                    tracing::warn!("Failed to find root object! {e}");
+                if let Some(status) = pod.status.as_ref()
+                    && let Some(phase) = status.phase.as_ref()
+                    && phase == "Pending"
+                {
                     tracing::info!(
-                        "Skipping pod {namespace}:{pod_name} because it has no visible root object!",
+                        "Skipping pod {namespace}:{pod_name}, it's still pending",
                         namespace = &pmd.namespace,
                         pod_name = &pmd.name
                     );
-                    continue;
+                    return None;
                 }
-            };
-            shutdown_events.insert(obj);
-        };
 
-        let status = pod.status.unwrap().phase.unwrap().to_string();
-        tracing::info!(
-            "Pod [{:#?}] | CreateTime: {create_time} | Status: {status}",
-            &pmd,
-            create_time = create_time.0,
-            status = status
-        );
-    }
+                let Some(create_time) = pod.metadata.creation_timestamp.clone() else {
+                    tracing::warn!(
+                        "Pod {namespace}:{pod_name} has no creation timestamp, skipping",
+                        namespace = &pmd.namespace,
+                        pod_name = &pmd.name
+                    );
+                    return None;
+                };
 
-    futures::stream::iter(shutdown_events.clone())
+                let lookback_start = Timestamp::now() - lookback_duration;
+                let status = pod
+                    .status
+                    .as_ref()
+                    .and_then(|s| s.phase.as_deref())
+                    .unwrap_or("Unknown");
+
+                tracing::info!(
+                    "Pod {ns}:{name} | status={status} | created={created} | lookback={lookback_start}",
+                    ns = &pmd.namespace,
+                    name = &pmd.name,
+                    created = create_time.0,
+                );
+
+                if create_time.0 >= lookback_start {
+                    return None;
+                }
+
+                tracing::info!(
+                    "Pod {ns}:{name} is idle and eligible for scaledown",
+                    ns = &pmd.namespace,
+                    name = &pmd.name,
+                );
+                match find_root_object(kube_client.clone(), pod.meta()).await {
+                    Ok(obj) => Some(obj),
+                    Err(e) => {
+                        tracing::warn!(
+                            "Skipping {ns}:{name}, no scalable root object: {e}",
+                            ns = &pmd.namespace,
+                            name = &pmd.name,
+                        );
+                        None
+                    }
+                }
+            }
+        })
+        .buffer_unordered(10)
+        .collect()
+        .await;
+
+    let shutdown_events: HashSet<ScaleKind> = results.into_iter().flatten().collect();
+
+    let num_shutdown_events = shutdown_events.len();
+
+    futures::stream::iter(shutdown_events)
         .filter_map(|obj| async {
             if let Mode::DryRun = args.run_mode {
                 tracing::info!(
@@ -527,9 +526,9 @@ async fn run_query_and_scale(
                     obj.namespace().unwrap_or_default(),
                     obj.name()
                 );
-                None // Filter out in dry-run mode
+                None
             } else {
-                Some(obj) // Keep the object for sending
+                Some(obj)
             }
         })
         .for_each_concurrent(None, |obj| async {
@@ -545,8 +544,179 @@ async fn run_query_and_scale(
             }
         })
         .await;
-    Ok(QueryResposne {
-        num_pods: vec.len(),
-        shutdown_events: shutdown_events.len(),
+
+    Ok(QueryResponse {
+        num_pods,
+        shutdown_events: num_shutdown_events,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use minijinja::{Environment, context};
+    use serde_json::json;
+
+    const TEMPLATE: &str = include_str!("query.promql.j2");
+
+    fn render(args: serde_json::Value) -> String {
+        let env = Environment::new();
+        env.render_str(TEMPLATE, context! { args }).unwrap()
+    }
+
+    #[test]
+    fn query_uses_max_over_time() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("max_over_time("),
+            "should use max_over_time, not avg_over_time"
+        );
+        assert!(
+            !query.contains("avg_over_time("),
+            "should not contain avg_over_time"
+        );
+    }
+
+    #[test]
+    fn query_includes_gpu_util_fallback() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("DCGM_FI_PROF_GR_ENGINE_ACTIVE"),
+            "primary metric missing"
+        );
+        assert!(
+            query.contains("DCGM_FI_DEV_GPU_UTIL"),
+            "fallback metric missing"
+        );
+        assert!(
+            query.contains("/ 100"),
+            "fallback should normalize 0-100 to 0-1"
+        );
+    }
+
+    #[test]
+    fn query_without_power_threshold_has_no_unless() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            !query.contains("unless"),
+            "should not have unless clause without power_threshold"
+        );
+        assert!(
+            !query.contains("DCGM_FI_DEV_POWER_USAGE"),
+            "should not reference power metric"
+        );
+    }
+
+    #[test]
+    fn query_with_power_threshold_adds_unless() {
+        let query = render(json!({ "duration": 30, "power_threshold": 150.0 }));
+        assert!(
+            query.contains("unless on (exported_pod, exported_namespace)"),
+            "should have unless clause"
+        );
+        assert!(
+            query.contains("DCGM_FI_DEV_POWER_USAGE"),
+            "should reference power metric"
+        );
+        assert!(
+            query.contains(">= 150"),
+            "should use the configured threshold"
+        );
+    }
+
+    #[test]
+    fn query_with_namespace_filter() {
+        let query = render(json!({ "duration": 15, "namespace": "ml-team" }));
+        let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // idle_gpus block appears twice (enriched + bare fallback), 2 metrics each = 4
+        assert_eq!(
+            count, 4,
+            "namespace filter should appear in all compute metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_with_namespace_and_power_threshold() {
+        let query = render(json!({
+            "duration": 15,
+            "namespace": "ml-team",
+            "power_threshold": 100.0
+        }));
+        let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // 4 from compute (2 paths x 2 metrics) + 1 from power = 5
+        assert_eq!(
+            count, 5,
+            "namespace filter should appear in all metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_with_model_name_filter() {
+        let query = render(json!({ "duration": 30, "model_name": "NVIDIA A100" }));
+        let count = query.matches("modelName =~ \"NVIDIA A100\"").count();
+        // idle_gpus block appears twice (enriched + bare fallback), 2 metrics each = 4
+        assert_eq!(
+            count, 4,
+            "model_name filter should appear in all compute metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_duration_is_interpolated() {
+        let query = render(json!({ "duration": 45 }));
+        assert!(
+            query.contains("[45m]"),
+            "duration should be interpolated into range selector"
+        );
+    }
+
+    #[test]
+    fn query_default_uses_exported_labels() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("exported_pod"),
+            "default should use exported_pod"
+        );
+        assert!(
+            query.contains("exported_namespace"),
+            "default should use exported_namespace"
+        );
+        assert!(
+            query.contains("exported_container"),
+            "default should use exported_container"
+        );
+    }
+
+    #[test]
+    fn query_honor_labels_uses_native_labels() {
+        let query = render(json!({ "duration": 30, "honor_labels": true }));
+        assert!(
+            !query.contains("exported_pod"),
+            "honor_labels should not use exported_pod"
+        );
+        assert!(
+            !query.contains("exported_namespace"),
+            "honor_labels should not use exported_namespace"
+        );
+        assert!(
+            query.contains("pod !="),
+            "honor_labels should filter on pod"
+        );
+        assert!(
+            query.contains("sum by (Hostname, container, pod, namespace"),
+            "honor_labels should group by native labels"
+        );
+    }
+
+    #[test]
+    fn query_honor_labels_with_power_threshold() {
+        let query = render(json!({
+            "duration": 30,
+            "honor_labels": true,
+            "power_threshold": 120.0
+        }));
+        assert!(
+            query.contains("unless on (pod, namespace)"),
+            "honor_labels power unless should use native labels"
+        );
+    }
 }
