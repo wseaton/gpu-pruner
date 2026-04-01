@@ -660,12 +660,14 @@ mod tests {
     }
 
     #[test]
+    #[test]
     fn query_with_namespace_filter() {
         let query = render(json!({ "duration": 15, "namespace": "ml-team" }));
         let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // idle_gpus block appears twice (enriched + bare fallback), 2 metrics each = 4
         assert_eq!(
-            count, 2,
-            "namespace filter should appear in both compute metric selectors"
+            count, 4,
+            "namespace filter should appear in all compute metric selectors"
         );
     }
 
@@ -677,9 +679,10 @@ mod tests {
             "power_threshold": 100.0
         }));
         let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // 4 from compute (2 paths x 2 metrics) + 1 from power = 5
         assert_eq!(
-            count, 3,
-            "namespace filter should appear in all three metric selectors"
+            count, 5,
+            "namespace filter should appear in all metric selectors"
         );
     }
 
@@ -687,9 +690,10 @@ mod tests {
     fn query_with_model_name_filter() {
         let query = render(json!({ "duration": 30, "model_name": "NVIDIA A100" }));
         let count = query.matches("modelName =~ \"NVIDIA A100\"").count();
+        // idle_gpus block appears twice (enriched + bare fallback), 2 metrics each = 4
         assert_eq!(
-            count, 2,
-            "model_name filter should appear in both compute metric selectors"
+            count, 4,
+            "model_name filter should appear in all compute metric selectors"
         );
     }
 

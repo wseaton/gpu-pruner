@@ -5,6 +5,7 @@
 {%- set pl = "pod" if args.honor_labels else "exported_pod" -%}
 {%- set nl = "namespace" if args.honor_labels else "exported_namespace" -%}
 {%- set cl = "container" if args.honor_labels else "exported_container" -%}
+{%- set idle_gpus -%}
 sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
     max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
       {{ pl }} != ""
@@ -17,13 +18,19 @@ sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
       {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
     }[{{ args.duration }}m]) / 100
-) * on (Hostname) group_left(node_type) (
-  label_replace(
-    label_replace(node_dmi_info,
-      "Hostname", "$1", "instance", "(.+)"
-    ),
-    "node_type", "$1", "product_name", "(.+)"
+)
+{%- endset -%}
+(
+  {{ idle_gpus }} * on (Hostname) group_left(node_type) (
+    label_replace(
+      label_replace(node_dmi_info,
+        "Hostname", "$1", "instance", "(.+)"
+      ),
+      "node_type", "$1", "product_name", "(.+)"
+    )
   )
+  or
+  {{ idle_gpus }}
 )
 == 0
 {%- if args.power_threshold %}
