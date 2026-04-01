@@ -160,19 +160,22 @@ impl TryFrom<&InstantVector> for PodMetricData {
         Ok(PodMetricData {
             name: metrics
                 .get("exported_pod")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod".into()))?
+                .or_else(|| metrics.get("pod"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_pod/pod".into()))?
                 .clone(),
             namespace: metrics
                 .get("exported_namespace")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace".into()))?
+                .or_else(|| metrics.get("namespace"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_namespace/namespace".into()))?
                 .clone(),
             container: metrics
                 .get("exported_container")
-                .ok_or_else(|| PodConvertError::UnwrapError("exported_container".into()))?
+                .or_else(|| metrics.get("container"))
+                .ok_or_else(|| PodConvertError::UnwrapError("exported_container/container".into()))?
                 .clone(),
             node_type: metrics
                 .get("node_type")
-                .ok_or_else(|| PodConvertError::UnwrapError("node_type".into()))?
+                .unwrap_or(&"unknown".to_string())
                 .clone(),
             gpu_model: metrics
                 .get("modelName")

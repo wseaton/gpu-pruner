@@ -1,13 +1,20 @@
-sum by (Hostname, exported_container, exported_pod, exported_namespace, gpu, modelName) (
+{#- Label convention: depends on Prometheus scrape config.
+    honorLabels: true  → pod/namespace/container (dcgm-exporter native)
+    honorLabels: false → exported_pod/exported_namespace/exported_container (Prometheus default)
+-#}
+{%- set pl = "pod" if args.honor_labels else "exported_pod" -%}
+{%- set nl = "namespace" if args.honor_labels else "exported_namespace" -%}
+{%- set cl = "container" if args.honor_labels else "exported_container" -%}
+sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
     max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
-      exported_pod != ""
-      {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+      {{ pl }} != ""
+      {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
     }[{{ args.duration }}m])
     or
     max_over_time(DCGM_FI_DEV_GPU_UTIL{
-      exported_pod != ""
-      {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+      {{ pl }} != ""
+      {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
     }[{{ args.duration }}m]) / 100
 ) * on (Hostname) group_left(node_type) (
@@ -20,11 +27,11 @@ sum by (Hostname, exported_container, exported_pod, exported_namespace, gpu, mod
 )
 == 0
 {%- if args.power_threshold %}
-unless on (exported_pod, exported_namespace)
+unless on ({{ pl }}, {{ nl }})
 (
   max_over_time(DCGM_FI_DEV_POWER_USAGE{
-    exported_pod != ""
-    {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+    {{ pl }} != ""
+    {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
   }[{{ args.duration }}m]) >= {{ args.power_threshold }}
 )
 {%- endif %}

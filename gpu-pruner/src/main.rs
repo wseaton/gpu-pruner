@@ -85,6 +85,12 @@ struct Cli {
     #[clap(long)]
     power_threshold: Option<f64>,
 
+    /// Set when the Prometheus ServiceMonitor uses honorLabels: true.
+    /// Controls whether the query uses native DCGM label names (pod/namespace/container)
+    /// or the Prometheus-prefixed names (exported_pod/exported_namespace/exported_container).
+    #[clap(long, default_value = "false")]
+    honor_labels: bool,
+
     /// Operation mode of the scaler process
     #[clap(short, long, default_value = "dry-run")]
     run_mode: Mode,
@@ -656,9 +662,7 @@ mod tests {
     #[test]
     fn query_with_namespace_filter() {
         let query = render(json!({ "duration": 15, "namespace": "ml-team" }));
-        // namespace filter should appear in all metric selectors
         let count = query.matches("exported_namespace =~ \"ml-team\"").count();
-        // primary metric + fallback metric + power (not present here) = 2
         assert_eq!(
             count, 2,
             "namespace filter should appear in both compute metric selectors"
@@ -673,7 +677,6 @@ mod tests {
             "power_threshold": 100.0
         }));
         let count = query.matches("exported_namespace =~ \"ml-team\"").count();
-        // primary + fallback + power = 3
         assert_eq!(
             count, 3,
             "namespace filter should appear in all three metric selectors"
@@ -696,6 +699,57 @@ mod tests {
         assert!(
             query.contains("[45m]"),
             "duration should be interpolated into range selector"
+        );
+    }
+
+    #[test]
+    fn query_default_uses_exported_labels() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("exported_pod"),
+            "default should use exported_pod"
+        );
+        assert!(
+            query.contains("exported_namespace"),
+            "default should use exported_namespace"
+        );
+        assert!(
+            query.contains("exported_container"),
+            "default should use exported_container"
+        );
+    }
+
+    #[test]
+    fn query_honor_labels_uses_native_labels() {
+        let query = render(json!({ "duration": 30, "honor_labels": true }));
+        assert!(
+            !query.contains("exported_pod"),
+            "honor_labels should not use exported_pod"
+        );
+        assert!(
+            !query.contains("exported_namespace"),
+            "honor_labels should not use exported_namespace"
+        );
+        assert!(
+            query.contains("pod !="),
+            "honor_labels should filter on pod"
+        );
+        assert!(
+            query.contains("sum by (Hostname, container, pod, namespace"),
+            "honor_labels should group by native labels"
+        );
+    }
+
+    #[test]
+    fn query_honor_labels_with_power_threshold() {
+        let query = render(json!({
+            "duration": 30,
+            "honor_labels": true,
+            "power_threshold": 120.0
+        }));
+        assert!(
+            query.contains("unless on (pod, namespace)"),
+            "honor_labels power unless should use native labels"
         );
     }
 }
