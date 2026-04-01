@@ -1,10 +1,15 @@
 sum by (Hostname, exported_container, exported_pod, exported_namespace, gpu, modelName) (
-    avg_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
+    max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
       exported_pod != ""
       {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
-    }
-  [{{ args.duration }}m])
+    }[{{ args.duration }}m])
+    or
+    max_over_time(DCGM_FI_DEV_GPU_UTIL{
+      exported_pod != ""
+      {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+      {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
+    }[{{ args.duration }}m]) / 100
 ) * on (Hostname) group_left(node_type) (
   label_replace(
     label_replace(node_dmi_info,
@@ -14,3 +19,12 @@ sum by (Hostname, exported_container, exported_pod, exported_namespace, gpu, mod
   )
 )
 == 0
+{%- if args.power_threshold %}
+unless on (exported_pod, exported_namespace)
+(
+  max_over_time(DCGM_FI_DEV_POWER_USAGE{
+    exported_pod != ""
+    {%- if args.namespace %}, exported_namespace =~ "{{ args.namespace }}"{%endif%}
+  }[{{ args.duration }}m]) >= {{ args.power_threshold }}
+)
+{%- endif %}

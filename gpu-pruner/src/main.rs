@@ -79,6 +79,12 @@ struct Cli {
     #[clap(short, long)]
     model_name: Option<String>,
 
+    /// Power draw threshold in watts. When set, GPUs showing peak power usage above this value
+    /// over the lookback window are excluded from idle candidates even if compute utilization is zero.
+    /// Useful as a corroborating signal (e.g. 100 for A10G, 150 for A100/H100).
+    #[clap(long)]
+    power_threshold: Option<f64>,
+
     /// Operation mode of the scaler process
     #[clap(short, long, default_value = "dry-run")]
     run_mode: Mode,
@@ -573,4 +579,123 @@ async fn run_query_and_scale(
         num_pods,
         shutdown_events: num_shutdown_events,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use minijinja::{Environment, context};
+    use serde_json::json;
+
+    const TEMPLATE: &str = include_str!("query.promql.j2");
+
+    fn render(args: serde_json::Value) -> String {
+        let env = Environment::new();
+        env.render_str(TEMPLATE, context! { args }).unwrap()
+    }
+
+    #[test]
+    fn query_uses_max_over_time() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("max_over_time("),
+            "should use max_over_time, not avg_over_time"
+        );
+        assert!(
+            !query.contains("avg_over_time("),
+            "should not contain avg_over_time"
+        );
+    }
+
+    #[test]
+    fn query_includes_gpu_util_fallback() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("DCGM_FI_PROF_GR_ENGINE_ACTIVE"),
+            "primary metric missing"
+        );
+        assert!(
+            query.contains("DCGM_FI_DEV_GPU_UTIL"),
+            "fallback metric missing"
+        );
+        assert!(
+            query.contains("/ 100"),
+            "fallback should normalize 0-100 to 0-1"
+        );
+    }
+
+    #[test]
+    fn query_without_power_threshold_has_no_unless() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            !query.contains("unless"),
+            "should not have unless clause without power_threshold"
+        );
+        assert!(
+            !query.contains("DCGM_FI_DEV_POWER_USAGE"),
+            "should not reference power metric"
+        );
+    }
+
+    #[test]
+    fn query_with_power_threshold_adds_unless() {
+        let query = render(json!({ "duration": 30, "power_threshold": 150.0 }));
+        assert!(
+            query.contains("unless on (exported_pod, exported_namespace)"),
+            "should have unless clause"
+        );
+        assert!(
+            query.contains("DCGM_FI_DEV_POWER_USAGE"),
+            "should reference power metric"
+        );
+        assert!(
+            query.contains(">= 150"),
+            "should use the configured threshold"
+        );
+    }
+
+    #[test]
+    fn query_with_namespace_filter() {
+        let query = render(json!({ "duration": 15, "namespace": "ml-team" }));
+        // namespace filter should appear in all metric selectors
+        let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // primary metric + fallback metric + power (not present here) = 2
+        assert_eq!(
+            count, 2,
+            "namespace filter should appear in both compute metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_with_namespace_and_power_threshold() {
+        let query = render(json!({
+            "duration": 15,
+            "namespace": "ml-team",
+            "power_threshold": 100.0
+        }));
+        let count = query.matches("exported_namespace =~ \"ml-team\"").count();
+        // primary + fallback + power = 3
+        assert_eq!(
+            count, 3,
+            "namespace filter should appear in all three metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_with_model_name_filter() {
+        let query = render(json!({ "duration": 30, "model_name": "NVIDIA A100" }));
+        let count = query.matches("modelName =~ \"NVIDIA A100\"").count();
+        assert_eq!(
+            count, 2,
+            "model_name filter should appear in both compute metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_duration_is_interpolated() {
+        let query = render(json!({ "duration": 45 }));
+        assert!(
+            query.contains("[45m]"),
+            "duration should be interpolated into range selector"
+        );
+    }
 }
