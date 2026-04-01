@@ -175,8 +175,8 @@ impl TryFrom<&InstantVector> for PodMetricData {
                 .clone(),
             node_type: metrics
                 .get("node_type")
-                .unwrap_or(&"unknown".to_string())
-                .clone(),
+                .cloned()
+                .unwrap_or_else(|| "unknown".into()),
             gpu_model: metrics
                 .get("modelName")
                 .ok_or_else(|| PodConvertError::UnwrapError("modelName".into()))?
@@ -499,14 +499,17 @@ pub async fn find_root_object(
                         return Ok(ScaleKind::StatefulSet(ss));
                     }
                 }
-                _ => {
-                    tracing::warn!("Found no ORs!")
+                kind => {
+                    tracing::debug!("Ignoring unrecognized owner ref kind: {kind}");
                 }
             }
         }
     }
 
-    Err(anyhow::anyhow!("oops, nothing found!"))
+    Err(anyhow::anyhow!(
+        "no scalable root object found for pod {:?}",
+        pod_meta.name
+    ))
 }
 
 /// Scale a resource to zero replicas via the /scale subresource endpoint
