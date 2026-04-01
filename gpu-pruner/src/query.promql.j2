@@ -29,7 +29,7 @@ sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
       "node_type", "$1", "product_name", "(.+)"
     )
   )
-  or
+  or on (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName)
   {{ idle_gpus }}
 )
 == 0
