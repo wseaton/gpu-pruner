@@ -1,6 +1,6 @@
 # gpu-pruner
 
-The `gpu-pruner` is a non-destructive idle culler that works with Red Hat OpenShift AI/Kubeflow provided APIs (`InferenceService` and `Notebook`), as well as generic `Deployment`, `ReplicaSet`, `StatefulSet` and `LeaderWorkerSet` (`leaderworkerset.x-k8s.io`).
+The `gpu-pruner` is a non-destructive idle culler that works with Red Hat OpenShift AI/Kubeflow provided APIs (`InferenceService` and `Notebook`), as well as generic `Deployment`, `ReplicaSet`, `StatefulSet`, `LeaderWorkerSet` (`leaderworkerset.x-k8s.io`) and `LLMInferenceService` (`serving.kserve.io/v1alpha1`).
 
 The way it works is by querying cluster NVIDIA DCGM metrics and looking at a window of GPU utilization per pod. A scaling decision is made by looking up the pods metadata, and using owner-references to figure out the owning resource.
 
@@ -33,9 +33,9 @@ Options:
   -e, --enabled-resources <ENABLED_RESOURCES>
           Specifcy enabled resources with a string of letters
 
-          - `d` for Deployment - `r` for ReplicaSet - `s` for StatefulSet - `i` for InferenceService - `n` for Notebook - `l` for LeaderWorkerSet
+          - `d` for Deployment - `r` for ReplicaSet - `s` for StatefulSet - `i` for InferenceService - `n` for Notebook - `l` for LeaderWorkerSet - `m` for LLMInferenceService
 
-          [default: drsinl]
+          [default: drsinlm]
 
   -c, --check-interval <CHECK_INTERVAL>
           interval in seconds to check for idle pods, only used in daemon mode

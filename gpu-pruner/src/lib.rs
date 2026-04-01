@@ -13,7 +13,8 @@ use k8s_openapi::{
 };
 use kube::{Client, ResourceExt, api::PostParams};
 use resources::{
-    inferenceservice::InferenceService, leaderworkerset::LeaderWorkerSet, notebook::Notebook,
+    inferenceservice::InferenceService, leaderworkerset::LeaderWorkerSet,
+    llminferenceservice::LLMInferenceService, notebook::Notebook,
 };
 use secrecy::ExposeSecret;
 use serde::Serialize;
@@ -99,6 +100,7 @@ pub enum ScaleKind {
     ReplicaSet(ReplicaSet),
     StatefulSet(StatefulSet),
     InferenceService(Box<InferenceService>),
+    LLMInferenceService(Box<LLMInferenceService>),
     Notebook(Notebook),
     LeaderWorkerSet(LeaderWorkerSet),
 }
@@ -110,6 +112,9 @@ impl PartialEq for ScaleKind {
             (ScaleKind::ReplicaSet(a), ScaleKind::ReplicaSet(b)) => a == b,
             (ScaleKind::StatefulSet(a), ScaleKind::StatefulSet(b)) => a == b,
             (ScaleKind::InferenceService(a), ScaleKind::InferenceService(b)) => a.uid() == b.uid(),
+            (ScaleKind::LLMInferenceService(a), ScaleKind::LLMInferenceService(b)) => {
+                a.uid() == b.uid()
+            }
             (ScaleKind::Notebook(a), ScaleKind::Notebook(b)) => a.uid() == b.uid(),
             (ScaleKind::LeaderWorkerSet(a), ScaleKind::LeaderWorkerSet(b)) => a.uid() == b.uid(),
             // If they are different variants, they are not equal
@@ -136,6 +141,9 @@ impl Hash for ScaleKind {
             ScaleKind::InferenceService(a) => {
                 a.uid().hash(state);
             }
+            ScaleKind::LLMInferenceService(a) => {
+                a.uid().hash(state);
+            }
             ScaleKind::Notebook(a) => {
                 a.uid().hash(state);
             }
@@ -153,6 +161,7 @@ impl From<ScaleKind> for ResourceKind {
             ScaleKind::ReplicaSet(_) => ResourceKind::REPLICA_SET,
             ScaleKind::StatefulSet(_) => ResourceKind::STATEFUL_SET,
             ScaleKind::InferenceService(_) => ResourceKind::INFERENCE_SERVICE,
+            ScaleKind::LLMInferenceService(_) => ResourceKind::LLM_INFERENCE_SERVICE,
             ScaleKind::Notebook(_) => ResourceKind::NOTEBOOK,
             ScaleKind::LeaderWorkerSet(_) => ResourceKind::LEADER_WORKER_SET,
         }
@@ -168,6 +177,7 @@ bitflags! {
         const INFERENCE_SERVICE = 0b01000;
         const NOTEBOOK = 0b10000;
         const LEADER_WORKER_SET = 0b100000;
+        const LLM_INFERENCE_SERVICE = 0b1000000;
     }
 }
 
@@ -179,6 +189,7 @@ bitflags! {
 /// - `i` → InferenceService
 /// - `n` → Notebook
 /// - `l` → LeaderWorkerSet
+/// - `m` → LLMInferenceService
 ///
 /// Unknown characters are silently ignored.
 pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
@@ -191,6 +202,7 @@ pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
             'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
             'n' => resource_kind |= ResourceKind::NOTEBOOK,
             'l' => resource_kind |= ResourceKind::LEADER_WORKER_SET,
+            'm' => resource_kind |= ResourceKind::LLM_INFERENCE_SERVICE,
             _ => {}
         }
     }
@@ -381,6 +393,7 @@ macro_rules! delegate_resource_ext {
             ScaleKind::ReplicaSet(d) => d.$method(),
             ScaleKind::StatefulSet(d) => d.$method(),
             ScaleKind::InferenceService(d) => d.$method(),
+            ScaleKind::LLMInferenceService(d) => d.$method(),
             ScaleKind::Notebook(d) => d.$method(),
             ScaleKind::LeaderWorkerSet(d) => d.$method(),
         }
@@ -404,6 +417,7 @@ impl Meta for ScaleKind {
             ScaleKind::Notebook(_) => "v1".to_string(),
             ScaleKind::InferenceService(_) => "v1beta1".to_string(),
             ScaleKind::LeaderWorkerSet(_) => "leaderworkerset.x-k8s.io/v1".to_string(),
+            ScaleKind::LLMInferenceService(_) => "serving.kserve.io/v1alpha1".to_string(),
         }
     }
 
@@ -415,6 +429,7 @@ impl Meta for ScaleKind {
             ScaleKind::Notebook(_) => "Notebook".to_string(),
             ScaleKind::InferenceService(_) => "InferenceService".to_string(),
             ScaleKind::LeaderWorkerSet(_) => "LeaderWorkerSet".to_string(),
+            ScaleKind::LLMInferenceService(_) => "LLMInferenceService".to_string(),
         }
     }
 
@@ -480,6 +495,14 @@ impl Scaler for ScaleKind {
                     &d.namespace().expect("No namespace!"),
                 )
                 .await?;
+                Ok(())
+            }
+            ScaleKind::LLMInferenceService(d) => {
+                let ns = d
+                    .namespace()
+                    .ok_or_else(|| anyhow::anyhow!("LLMInferenceService has no namespace"))?;
+                scale_llm_inference_service_to_zero(client.clone(), &d.name_unchecked(), &ns)
+                    .await?;
                 Ok(())
             }
         };
@@ -551,6 +574,7 @@ fn workload_annotations(
         ScaleKind::Notebook(n) => n.metadata.annotations.as_ref(),
         ScaleKind::InferenceService(i) => i.metadata.annotations.as_ref(),
         ScaleKind::LeaderWorkerSet(l) => l.metadata.annotations.as_ref(),
+        ScaleKind::LLMInferenceService(l) => l.metadata.annotations.as_ref(),
     }
 }
 
@@ -749,6 +773,12 @@ pub async fn fetch_workload(
             let api: Api<InferenceService> = Api::namespaced(client, namespace);
             Ok(ScaleKind::InferenceService(Box::new(api.get(name).await?)))
         }
+        "LLMInferenceService" => {
+            let api: Api<LLMInferenceService> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::LLMInferenceService(Box::new(
+                api.get(name).await?,
+            )))
+        }
         _ => Err(anyhow::anyhow!("Unsupported resource kind: {}", kind)),
     }
 }
@@ -787,6 +817,10 @@ pub async fn patch_workload(
             let api: Api<InferenceService> = Api::namespaced(client, namespace);
             api.patch(name, &params, &Patch::Merge(patch)).await?;
         }
+        "LLMInferenceService" => {
+            let api: Api<LLMInferenceService> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
         _ => {
             return Err(anyhow::anyhow!("Unsupported resource kind: {}", kind));
         }
@@ -809,9 +843,19 @@ pub async fn find_root_object(
         "Finding root object of {name:?} for scale-down.",
         name = &pod_meta.name
     );
-    // first, check for the special kserve label
-    // if it exists, we can go directly to the InferenceService
-    // and scale it down
+    // fast-path: LLMInferenceService pods carry standard k8s app labels
+    if let Some(labels) = &pod_meta.labels
+        && labels.get("app.kubernetes.io/part-of").map(|v| v.as_str())
+            == Some("llminferenceservice")
+        && let Some(llmis_name) = labels.get("app.kubernetes.io/name")
+    {
+        let namespace = pod_meta.namespace.clone().unwrap_or_default();
+        let api: Api<LLMInferenceService> = Api::namespaced(client.clone(), &namespace);
+        let llmis = api.get(llmis_name).await?;
+        return Ok(ScaleKind::LLMInferenceService(Box::new(llmis)));
+    }
+
+    // fast-path: InferenceService pods carry a kserve-specific label
     if let Some(labels) = &pod_meta.labels
         && let Some(ks_label) = labels.get("serving.kserve.io/inferenceservice")
     {
@@ -837,6 +881,25 @@ pub async fn find_root_object(
                                     let deployment_api: Api<Deployment> =
                                         Api::namespaced(client.clone(), &namespace);
                                     let deployment = deployment_api.get(&rs_or.name).await?;
+
+                                    // check if this Deployment is owned by an LLMInferenceService
+                                    if let Some(dep_ors) =
+                                        deployment.metadata.owner_references.as_ref()
+                                    {
+                                        for dep_or in dep_ors {
+                                            if dep_or.kind == "LLMInferenceService" {
+                                                tracing::info!(
+                                                    "Found LLMInferenceService owning Deployment!"
+                                                );
+                                                let llmis_api: Api<LLMInferenceService> =
+                                                    Api::namespaced(client.clone(), &namespace);
+                                                let llmis = llmis_api.get(&dep_or.name).await?;
+                                                return Ok(ScaleKind::LLMInferenceService(
+                                                    Box::new(llmis),
+                                                ));
+                                            }
+                                        }
+                                    }
 
                                     return Ok(ScaleKind::Deployment(deployment));
                                 }
@@ -961,6 +1024,36 @@ async fn scale_inference_service_to_zero(
     Ok(res)
 }
 
+/// Scale an LLMInferenceService to zero by patching spec.replicas.
+///
+/// The LLMInferenceService CRD does not expose a /scale subresource, so we
+/// patch spec.replicas directly. In disaggregated (prefill-decode) setups,
+/// prefill has its own independent replica count at spec.prefill.replicas,
+/// so we zero both to avoid leaving half the pipeline running.
+#[tracing::instrument(skip(client))]
+async fn scale_llm_inference_service_to_zero(
+    client: KubeClient,
+    name: &str,
+    namespace: &str,
+) -> anyhow::Result<LLMInferenceService> {
+    let api: Api<LLMInferenceService> = Api::namespaced(client.clone(), namespace);
+
+    let patch = serde_json::json!({
+        "spec": {
+            "replicas": 0,
+            "prefill": {
+                "replicas": 0
+            }
+        }
+    });
+
+    let res = api
+        .patch(name, &PatchParams::default(), &Patch::Merge(patch))
+        .await?;
+
+    Ok(res)
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
@@ -972,6 +1065,8 @@ mod tests {
         leaderworkerset::{LeaderWorkerSet, LeaderWorkerSetSpec, LeaderWorkerSetStatus},
         notebook::NotebookSpec,
     };
+
+    use resources::llminferenceservice::LLMInferenceService;
 
     use crate::{
         ACK_BY_ANNOTATION, ACK_UNTIL_ANNOTATION, Meta, NamespaceMentionMapper, Notebook,
@@ -1065,16 +1160,40 @@ mod tests {
         })
     }
 
+    fn make_llm_inference_service(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        let mut llmis: LLMInferenceService = serde_json::from_value(serde_json::json!({
+            "metadata": {
+                "name": name,
+                "namespace": ns,
+            },
+            "spec": {}
+        }))
+        .expect("valid LLMInferenceService JSON");
+        llmis.metadata.uid = uid.map(Into::into);
+        ScaleKind::LLMInferenceService(Box::new(llmis))
+    }
+
     // ── get_enabled_resources ────────────────────────────────────────────
 
     #[test]
     fn enabled_resources_all_flags() {
-        let rk = get_enabled_resources("drsin");
+        let rk = get_enabled_resources("drsinlm");
         assert!(rk.contains(ResourceKind::DEPLOYMENT));
         assert!(rk.contains(ResourceKind::REPLICA_SET));
         assert!(rk.contains(ResourceKind::STATEFUL_SET));
         assert!(rk.contains(ResourceKind::INFERENCE_SERVICE));
         assert!(rk.contains(ResourceKind::NOTEBOOK));
+        assert!(rk.contains(ResourceKind::LEADER_WORKER_SET));
+        assert!(rk.contains(ResourceKind::LLM_INFERENCE_SERVICE));
+    }
+
+    #[test]
+    fn enabled_resources_single_llm_inference_service() {
+        let rk = get_enabled_resources("m");
+        assert!(rk.contains(ResourceKind::LLM_INFERENCE_SERVICE));
+        assert!(!rk.contains(ResourceKind::DEPLOYMENT));
+        assert!(!rk.contains(ResourceKind::INFERENCE_SERVICE));
+        assert!(!rk.contains(ResourceKind::LEADER_WORKER_SET));
     }
 
     #[test]
@@ -1134,6 +1253,7 @@ mod tests {
         assert!(!empty.contains(ResourceKind::STATEFUL_SET));
         assert!(!empty.contains(ResourceKind::INFERENCE_SERVICE));
         assert!(!empty.contains(ResourceKind::NOTEBOOK));
+        assert!(!empty.contains(ResourceKind::LLM_INFERENCE_SERVICE));
     }
 
     // ── ScaleKind → ResourceKind conversion ──────────────────────────────
@@ -1160,6 +1280,12 @@ mod tests {
     fn scale_kind_to_resource_kind_inference_service() {
         let rk: ResourceKind = make_inference_service("i", "ns", None).into();
         assert_eq!(rk, ResourceKind::INFERENCE_SERVICE);
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_llm_inference_service() {
+        let rk: ResourceKind = make_llm_inference_service("l", "ns", None).into();
+        assert_eq!(rk, ResourceKind::LLM_INFERENCE_SERVICE);
     }
 
     #[test]
@@ -1205,6 +1331,27 @@ mod tests {
         assert_eq!(a, b);
     }
 
+    #[test]
+    fn llm_inference_service_equality_uses_uid() {
+        let a = make_llm_inference_service("llm-a", "ns", Some("uid-llm"));
+        let b = make_llm_inference_service("llm-b", "ns", Some("uid-llm"));
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn llm_inference_service_different_uid_not_equal() {
+        let a = make_llm_inference_service("llm", "ns", Some("uid-1"));
+        let b = make_llm_inference_service("llm", "ns", Some("uid-2"));
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn llm_inference_service_not_equal_to_inference_service() {
+        let llmis = make_llm_inference_service("x", "ns", Some("uid-1"));
+        let is = make_inference_service("x", "ns", Some("uid-1"));
+        assert_ne!(llmis, is);
+    }
+
     // ── ScaleKind hashing / HashSet dedup ────────────────────────────────
 
     #[test]
@@ -1246,10 +1393,11 @@ mod tests {
         set.insert(make_replica_set("r1", "ns", Some("uid-r")));
         set.insert(make_stateful_set("s1", "ns", Some("uid-s")));
         set.insert(make_inference_service("i1", "ns", Some("uid-i")));
+        set.insert(make_llm_inference_service("l1", "ns", Some("uid-l")));
         set.insert(make_notebook("n1", "ns", Some("uid-n")));
         // duplicate of first deployment
         set.insert(make_deployment("d1", "ns", Some("uid-d")));
-        assert_eq!(set.len(), 5);
+        assert_eq!(set.len(), 6);
     }
 
     // ── Meta trait ───────────────────────────────────────────────────────
@@ -1302,6 +1450,16 @@ mod tests {
         assert_eq!(sk.kind(), "InferenceService");
         assert_eq!(sk.uid(), Some("is-uid".into()));
         assert_eq!(sk.api_version(), "v1beta1");
+    }
+
+    #[test]
+    fn meta_llm_inference_service() {
+        let sk = make_llm_inference_service("my-llmis", "genai", Some("llmis-uid"));
+        assert_eq!(sk.name(), "my-llmis");
+        assert_eq!(sk.namespace(), Some("genai".into()));
+        assert_eq!(sk.kind(), "LLMInferenceService");
+        assert_eq!(sk.uid(), Some("llmis-uid".into()));
+        assert_eq!(sk.api_version(), "serving.kserve.io/v1alpha1");
     }
 
     // ── Event generation ─────────────────────────────────────────────────
@@ -1371,6 +1529,22 @@ mod tests {
 
         assert_eq!(event.involved_object.kind, Some("InferenceService".into()));
         assert_eq!(event.involved_object.api_version, Some("v1beta1".into()));
+    }
+
+    #[test]
+    fn event_for_llm_inference_service() {
+        let sk = make_llm_inference_service("my-llmis", "genai", Some("llmis-uid"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(
+            event.involved_object.kind,
+            Some("LLMInferenceService".into())
+        );
+        assert_eq!(
+            event.involved_object.api_version,
+            Some("serving.kserve.io/v1alpha1".into())
+        );
+        assert_eq!(event.involved_object.uid, Some("llmis-uid".into()));
     }
 
     #[test]

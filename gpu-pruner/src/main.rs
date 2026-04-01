@@ -66,7 +66,8 @@ struct Cli {
     /// - `i` for InferenceService
     /// - `n` for Notebook
     /// - `l` for LeaderWorkerSet
-    #[clap(short, long, default_value = "drsinl")]
+    /// - `m` for LLMInferenceService
+    #[clap(short, long, default_value = "drsinlm")]
     enabled_resources: String,
 
     /// interval in seconds to check for idle pods, only used in daemon mode
