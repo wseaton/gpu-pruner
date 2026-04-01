@@ -34,7 +34,7 @@ use kube::{Api, Client as KubeClient, Resource};
 use clap::{Parser, ValueEnum};
 
 use gpu_pruner::{
-    Meta, PodMetricData, QueryResposne, ScaleKind, Scaler, TlsMode, find_root_object,
+    Meta, PodMetricData, QueryResponse, ScaleKind, Scaler, TlsMode, find_root_object,
     get_enabled_resources, get_prom_client, get_prometheus_token,
 };
 
@@ -142,7 +142,7 @@ fn init_metrics() -> anyhow::Result<SdkMeterProvider> {
     Ok(provider)
 }
 
-fn setup_logging() -> OtelGuard {
+fn setup_logging(args: &Cli) -> OtelGuard {
     // Add a tracing filter to filter events from crates used by opentelemetry-otlp.
     // The filter levels are set as follows:
     // - Allow `info` level and above by default.
@@ -160,8 +160,6 @@ fn setup_logging() -> OtelGuard {
     #[cfg(not(feature = "otel"))]
     let filter = EnvFilter::from_default_env();
     let reg = tracing_subscriber::registry().with(filter);
-
-    let args = Cli::parse();
 
     let json_layer = if let LogFormat::Json = args.log_format {
         Some(tracing_subscriber::fmt::layer().json())
@@ -262,9 +260,8 @@ impl Drop for OtelGuard {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let _guard = setup_logging();
-
     let args = Cli::parse();
+    let _guard = setup_logging(&args);
     let enabled_resources = get_enabled_resources(&args.enabled_resources);
     tracing::info!("Enabled resources: {enabled_resources:?}");
 
@@ -412,7 +409,7 @@ async fn run_query_and_scale(
     query: String,
     args: &Cli,
     tx: Sender<ScaleKind>,
-) -> anyhow::Result<QueryResposne> {
+) -> anyhow::Result<QueryResponse> {
     let response = match client.query(query).get().await {
         Ok(response) => response,
         Err(e) => {
@@ -421,104 +418,130 @@ async fn run_query_and_scale(
         }
     };
 
-    let data = response.data();
-    let vec = data.clone().into_vector().unwrap();
+    let vec = response
+        .data()
+        .clone()
+        .into_vector()
+        .expect("expected vector response from prometheus");
 
     let kube_client: KubeClient = KubeClient::try_default().await?;
 
-    let mut shutdown_events: HashSet<ScaleKind> = HashSet::new();
+    let lookback_duration =
+        SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
 
-    for pod in &vec {
-        tracing::debug!("{:#?}", pod);
+    // Process pods concurrently (up to 10 at a time) instead of serially.
+    // Each pod requires 1-3 API calls (get pod, walk owner refs), so parallelism
+    // cuts wall-clock time significantly on large result sets.
+    let num_pods = vec.len();
+    let results: Vec<Option<ScaleKind>> = futures::stream::iter(vec)
+        .map(|pod| {
+            let kube_client = kube_client.clone();
+            async move {
+                tracing::debug!("{:#?}", pod);
 
-        let pmd: PodMetricData = match pod.try_into() {
-            Ok(pmd) => pmd,
-            Err(e) => {
-                tracing::error!("Failed to unwrap pod fields! {}", e);
-                continue;
-            }
-        };
+                let pmd: PodMetricData = match (&pod).try_into() {
+                    Ok(pmd) => pmd,
+                    Err(e) => {
+                        tracing::error!("Failed to unwrap pod fields! {}", e);
+                        return None;
+                    }
+                };
 
-        let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
-        let pod = match api
-            .get_opt(&pmd.name)
-            .await
-            .map_err(|e| {
-                tracing::error!(
-                    "Skipping pod {namespace}:{pod_name}, retrieval error",
-                    namespace = &pmd.namespace,
-                    pod_name = &pmd.name
-                );
-                tracing::debug!("{e}");
-            })
-            .ok()
-            .flatten()
-            .or_else(|| {
-                tracing::info!(
-                    "Skipping pod {namespace}:{pod_name} because it no longer exists!",
-                    namespace = &pmd.namespace,
-                    pod_name = &pmd.name
-                );
-                None
-            }) {
-            Some(pod) => pod,
-            None => continue,
-        };
+                let api = Api::<Pod>::namespaced(kube_client.clone(), &pmd.namespace);
+                let pod = match api
+                    .get_opt(&pmd.name)
+                    .await
+                    .map_err(|e| {
+                        tracing::error!(
+                            "Skipping pod {namespace}:{pod_name}, retrieval error",
+                            namespace = &pmd.namespace,
+                            pod_name = &pmd.name
+                        );
+                        tracing::debug!("{e}");
+                    })
+                    .ok()
+                    .flatten()
+                {
+                    Some(pod) => pod,
+                    None => {
+                        tracing::info!(
+                            "Skipping pod {namespace}:{pod_name} because it no longer exists!",
+                            namespace = &pmd.namespace,
+                            pod_name = &pmd.name
+                        );
+                        return None;
+                    }
+                };
 
-        if let Some(status) = pod.status.as_ref()
-            && let Some(phase) = status.phase.as_ref()
-            && phase == "Pending"
-        {
-            tracing::info!(
-                "Skipping pod {namespace}:{pod_name}, it's still pending",
-                namespace = &pmd.namespace,
-                pod_name = &pmd.name
-            );
-            continue;
-        }
-
-        let create_time = pod
-            .metadata
-            .creation_timestamp
-            .clone()
-            .expect("no timestamp");
-
-        let lookback_duration =
-            SignedDuration::from_mins(args.duration) + SignedDuration::from_secs(args.grace_period);
-        let lookback_start = Timestamp::now() - lookback_duration;
-
-        tracing::info!(
-            "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
-            pod_name = &pmd.name,
-            create_time = create_time.0
-        );
-        if create_time.0 < lookback_start {
-            tracing::info!("Pod older than lookback start, so eligible for scaledown.");
-            let obj = match find_root_object(kube_client.clone(), pod.clone().meta()).await {
-                Ok(obj) => obj,
-                Err(e) => {
-                    tracing::warn!("Failed to find root object! {e}");
+                if let Some(status) = pod.status.as_ref()
+                    && let Some(phase) = status.phase.as_ref()
+                    && phase == "Pending"
+                {
                     tracing::info!(
-                        "Skipping pod {namespace}:{pod_name} because it has no visible root object!",
+                        "Skipping pod {namespace}:{pod_name}, it's still pending",
                         namespace = &pmd.namespace,
                         pod_name = &pmd.name
                     );
-                    continue;
+                    return None;
                 }
-            };
-            shutdown_events.insert(obj);
-        };
 
-        let status = pod.status.unwrap().phase.unwrap().to_string();
-        tracing::info!(
-            "Pod [{:#?}] | CreateTime: {create_time} | Status: {status}",
-            &pmd,
-            create_time = create_time.0,
-            status = status
-        );
-    }
+                let Some(create_time) = pod.metadata.creation_timestamp.clone() else {
+                    tracing::warn!(
+                        "Pod {namespace}:{pod_name} has no creation timestamp, skipping",
+                        namespace = &pmd.namespace,
+                        pod_name = &pmd.name
+                    );
+                    return None;
+                };
 
-    futures::stream::iter(shutdown_events.clone())
+                let lookback_start = Timestamp::now() - lookback_duration;
+
+                tracing::info!(
+                    "Pod {pod_name} create_time: {create_time} | lookback_start: {lookback_start}",
+                    pod_name = &pmd.name,
+                    create_time = create_time.0
+                );
+
+                let status = pod
+                    .status
+                    .as_ref()
+                    .and_then(|s| s.phase.as_deref())
+                    .unwrap_or("Unknown");
+                tracing::info!(
+                    "Pod [{:#?}] | CreateTime: {create_time} | Status: {status}",
+                    &pmd,
+                    create_time = create_time.0,
+                    status = status
+                );
+
+                if create_time.0 >= lookback_start {
+                    return None;
+                }
+
+                tracing::info!("Pod older than lookback start, so eligible for scaledown.");
+                match find_root_object(kube_client.clone(), pod.clone().meta()).await {
+                    Ok(obj) => Some(obj),
+                    Err(e) => {
+                        tracing::warn!("Failed to find root object! {e}");
+                        tracing::info!(
+                            "Skipping pod {namespace}:{pod_name} because it has no visible root object!",
+                            namespace = &pmd.namespace,
+                            pod_name = &pmd.name
+                        );
+                        None
+                    }
+                }
+            }
+        })
+        .buffer_unordered(10)
+        .collect()
+        .await;
+
+    let shutdown_events: HashSet<ScaleKind> = results.into_iter().flatten().collect();
+
+    let num_shutdown_events = shutdown_events.len();
+
+    futures::stream::iter(shutdown_events)
         .filter_map(|obj| async {
             if let Mode::DryRun = args.run_mode {
                 tracing::info!(
@@ -527,9 +550,9 @@ async fn run_query_and_scale(
                     obj.namespace().unwrap_or_default(),
                     obj.name()
                 );
-                None // Filter out in dry-run mode
+                None
             } else {
-                Some(obj) // Keep the object for sending
+                Some(obj)
             }
         })
         .for_each_concurrent(None, |obj| async {
@@ -545,8 +568,9 @@ async fn run_query_and_scale(
             }
         })
         .await;
-    Ok(QueryResposne {
-        num_pods: vec.len(),
-        shutdown_events: shutdown_events.len(),
+
+    Ok(QueryResponse {
+        num_pods,
+        shutdown_events: num_shutdown_events,
     })
 }
