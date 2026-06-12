@@ -810,6 +810,14 @@ async fn run_query_and_scale(
                 );
                 match find_root_object(kube_client.clone(), pod.meta()).await {
                     Ok(obj) => Some(obj),
+                    Err(e @ RootObjectError::NonScalable { .. }) => {
+                        tracing::debug!(
+                            "Skipping {ns}:{name}, {e}",
+                            ns = &pmd.namespace,
+                            name = &pmd.name,
+                        );
+                        None
+                    }
                     Err(e) => {
                         tracing::warn!(
                             "Skipping {ns}:{name}, no scalable root object: {e}",

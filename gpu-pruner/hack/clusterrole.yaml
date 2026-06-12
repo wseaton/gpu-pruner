@@ -30,6 +30,12 @@ rules:
       - deployments
       - replicasets
       - statefulsets
+      # scale-down patches the /scale subresource, which RBAC treats as a
+      # distinct resource from the parent. Without these the pruner 403s in
+      # scale-down mode (it works in dry-run because it never patches).
+      - deployments/scale
+      - replicasets/scale
+      - statefulsets/scale
   - verbs:
       - get
       - list

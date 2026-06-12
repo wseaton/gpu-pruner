@@ -160,6 +160,26 @@ pub enum PodConvertError {
     UnwrapError(String),
 }
 
+/// Why we couldn't resolve a scalable root object for a pod.
+#[derive(Debug, Error)]
+pub enum RootObjectError {
+    /// The pod is owned by a controller that has no scale subresource by design
+    /// (DaemonSets, static pods owned by a Node, etc.). These show up in GPU
+    /// metrics (dcgm-exporter is the worst offender, it reports on its own idle
+    /// GPUs) but are never scalable, so skipping them is expected, not a problem.
+    #[error("pod {pod} is owned by non-scalable {kind}")]
+    NonScalable { pod: String, kind: String },
+
+    /// No owner ref we recognize as scalable, or no owners at all. Genuinely
+    /// unexpected, worth a warning.
+    #[error("no scalable root object found for pod {0}")]
+    NotFound(String),
+
+    /// A Kubernetes API call failed while walking the owner chain.
+    #[error(transparent)]
+    Kube(#[from] kube::Error),
+}
+
 impl TryFrom<&InstantVector> for PodMetricData {
     type Error = PodConvertError;
 
@@ -596,7 +616,7 @@ pub async fn check_acknowledgment(
 pub async fn find_root_object(
     client: KubeClient,
     pod_meta: &ObjectMeta,
-) -> anyhow::Result<ScaleKind> {
+) -> Result<ScaleKind, RootObjectError> {
     tracing::info!(
         "Finding root object of {name:?} for scale-down.",
         name = &pod_meta.name
@@ -658,6 +678,12 @@ pub async fn find_root_object(
                         return Ok(ScaleKind::StatefulSet(ss));
                     }
                 }
+                "DaemonSet" | "Node" => {
+                    return Err(RootObjectError::NonScalable {
+                        pod: pod_meta.name.clone().unwrap_or_default(),
+                        kind: or.kind.clone(),
+                    });
+                }
                 kind => {
                     tracing::debug!("Ignoring unrecognized owner ref kind: {kind}");
                 }
@@ -665,9 +691,8 @@ pub async fn find_root_object(
         }
     }
 
-    Err(anyhow::anyhow!(
-        "no scalable root object found for pod {:?}",
-        pod_meta.name
+    Err(RootObjectError::NotFound(
+        pod_meta.name.clone().unwrap_or_default(),
     ))
 }
 
