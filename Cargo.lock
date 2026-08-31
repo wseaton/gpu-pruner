@@ -809,7 +809,7 @@ dependencies = [
 
 [[package]]
 name = "gpu-pruner"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2202,7 +2202,7 @@ dependencies = [
 
 [[package]]
 name = "resources"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "k8s-openapi",
  "kube",
