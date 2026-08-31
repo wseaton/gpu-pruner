@@ -60,7 +60,7 @@ async fn wait_for_deployment_ready(api: &Api<Deployment>, name: &str) {
 
 /// Wait for a statefulset to have at least one ready pod.
 async fn wait_for_statefulset_ready(api: &Api<StatefulSet>, name: &str) {
-    for _ in 0..60 {
+    for _ in 0..120 {
         if let Ok(ss) = api.get(name).await
             && let Some(status) = ss.status
             && status.ready_replicas.unwrap_or(0) > 0
@@ -69,7 +69,7 @@ async fn wait_for_statefulset_ready(api: &Api<StatefulSet>, name: &str) {
         }
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
-    panic!("statefulset {name} never became ready");
+    panic!("statefulset {name} never became ready after 120s");
 }
 
 fn make_deployment(name: &str, ns: &str) -> Deployment {

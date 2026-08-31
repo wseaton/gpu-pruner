@@ -1,5 +1,7 @@
-resources: 
+resources:
 - crs.yaml
 - deployment.yaml
 - serviceaccount.yaml
 - clusterrole.yaml
+- service.yaml
+- servicemonitor.yaml

@@ -1,0 +1,1807 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "enable": true,
+        "expr": "changes(gpu_pruner_scale_successes_total[5m]) > 0",
+        "iconColor": "red",
+        "name": "gpu-pruner scale-down",
+        "step": "30s",
+        "tagKeys": "",
+        "titleFormat": "Scale-down",
+        "type": "prometheus"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "gpu-pruner Activity",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Scale-downs (last hour)",
+      "description": "Successful gpu-pruner scale-down operations in the last hour.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(gpu_pruner_scale_successes_total[1h]))",
+          "legendFormat": "Scale-downs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Idle workloads (last check)",
+      "description": "Workloads eligible for scale-down in gpu-pruner's most recent query cycle.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "gpu_pruner_idle_gpus",
+          "legendFormat": "Eligible"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Idle allocated GPUs (30m)",
+      "description": "GPUs on running workloads with <1% engine activity over 30m. Drops within ~1-2 min of scale-down.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count(label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) < 0.01, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\") * on (pod, namespace) group_left() sum by (pod, namespace) (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"}))",
+          "legendFormat": "Idle GPUs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Query failures (total)",
+      "description": "Failed Prometheus queries run by gpu-pruner.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "gpu_pruner_query_failures_total",
+          "legendFormat": "Failures"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Recent scale-downs",
+      "description": "Resources scaled to zero by gpu-pruner in the last hour.",
+      "type": "table",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (kind, namespace, name) (increase(gpu_pruner_scales_total[1h])) > 0",
+          "format": "table",
+          "instant": true,
+          "refId": "Recent scale-downs"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "kind": "Kind",
+              "namespace": "Namespace",
+              "name": "Name",
+              "Value": "Scale-downs (1h)"
+            },
+            "indexByName": {
+              "kind": 0,
+              "namespace": 1,
+              "name": 2,
+              "Value": 3
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "color-text"
+          }
+        }
+      }
+    },
+    {
+      "title": "Cluster GPU Overview",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Total GPUs",
+      "description": "All GPUs reporting DCGM metrics. Baseline for the two partitions below (engine activity and VRAM).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count(DCGM_FI_DEV_GPU_UTIL)",
+          "legendFormat": "Total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "VRAM allocated (FB>0)",
+      "description": "GPUs with framebuffer memory in use (CUDA context / VRAM). Complements VRAM free (FB=0); the pair sums to Total. Not the same as compute-active.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count(DCGM_FI_DEV_FB_USED > 0)",
+          "legendFormat": "FB>0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "VRAM free (FB=0)",
+      "description": "GPUs with no framebuffer in use. PromQL: count(DCGM_FI_DEV_FB_USED == 0). Equals Total − VRAM allocated (FB>0).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count(DCGM_FI_DEV_FB_USED == 0)",
+          "legendFormat": "FB=0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "semi-dark-green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Engine idle (30m)",
+      "description": "All node GPUs with <1% engine activity over 30m (hardware-wide). Not workload allocation; see Idle allocated GPUs in gpu-pruner Activity.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL[30m]) / 100) < 0.01)",
+          "legendFormat": "Idle (30m)",
+          "refId": "Idle (30m)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Engine active (30m)",
+      "description": "GPUs with ≥ 1% engine activity at least once in 30m. Uses DCGM_FI_PROF_GR_ENGINE_ACTIVE or DCGM_FI_DEV_GPU_UTIL fallback. Equals Total − Engine idle (30m).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "count((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL[30m]) / 100) >= 0.01)",
+          "legendFormat": "Active (30m)",
+          "refId": "Active (30m)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "GPU Memory per GPU (H200)",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "max(DCGM_FI_DEV_FB_TOTAL) / 1024",
+          "legendFormat": "GiB"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "GPU Utilization Heatmap by Node",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 0,
+        "y": 18
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_DEV_GPU_UTIL)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "Running GPU Workloads",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Running GPU Workloads",
+      "description": "All pods with GPU requests, grouped by namespace (user)",
+      "type": "table",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"})",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "namespace": "Namespace (User)",
+              "pod": "Pod",
+              "Value": "GPUs Requested"
+            },
+            "indexByName": {
+              "namespace": 0,
+              "pod": 1,
+              "Value": 2
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPUs Requested"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 4
+                    },
+                    {
+                      "color": "red",
+                      "value": 8
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Idle GPU Workloads",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Idle GPU Workloads (Zero Compute for 30m+)",
+      "description": "Running GPU workloads idle for 30m (<1% engine activity). Filtered to pods with active GPU requests; rows drop within ~1-2 min of scale-down.",
+      "type": "table",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "(label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) < 0.01, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\") * on (pod, namespace) group_left() sum by (pod, namespace) (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"}))",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true,
+          "refId": "Idle GPUs (30m)"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "Value": true
+            },
+            "renameByName": {
+              "Hostname": "Node",
+              "gpu": "GPU #",
+              "modelName": "GPU Model",
+              "namespace": "Namespace",
+              "pod": "Pod"
+            },
+            "indexByName": {
+              "namespace": 0,
+              "pod": 1,
+              "Hostname": 2,
+              "gpu": 3,
+              "modelName": 4
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "color-text"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          }
+        }
+      }
+    },
+    {
+      "title": "Idle GPU Time by Deployment - Historical Timeline",
+      "description": "Historical timeline showing idle GPU-hours by deployment over time. Each line represents a deployment's idle GPU allocation trend.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "(label_replace(sum by (label_app, namespace) (count by (pod, namespace) (label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) == bool 0, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\") ) * on (pod, namespace) group_left(label_app) kube_pod_labels{label_app != \"\"}), \"deployment\", \"$1\", \"label_app\", \"(.+)\") or sum by (deployment, namespace) (label_replace(count by (pod, namespace) (label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) == bool 0, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\")), \"deployment\", \"$1\", \"pod\", \"^(.*)-[^-]+-[^-]+$\"))) * 0.5",
+          "legendFormat": "{{deployment}} ({{namespace}}) (30m)",
+          "interval": "1m",
+          "refId": "By deployment (30m)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "spanNulls": true,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "axisLabel": "Idle GPU-Hours",
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 1,
+          "unit": "none",
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "title": "Idle GPU Time by Deployment (30m)",
+      "description": "Deployments producing the most allocated GPU idle time at 0% utilization. Sorted by total idle GPU-hours (GPU count × 30min window). Uses kube_pod_labels when available; otherwise derives deployment name from pod name.",
+      "type": "table",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sort_desc((label_replace(sum by (label_app, namespace) (count by (pod, namespace) (label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) == bool 0, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\") ) * on (pod, namespace) group_left(label_app) kube_pod_labels{label_app != \"\"}), \"deployment\", \"$1\", \"label_app\", \"(.+)\") or sum by (deployment, namespace) (label_replace(count by (pod, namespace) (label_replace(label_replace((max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{pod != \"\"}[30m]) or max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{exported_pod != \"\"}[30m]) or max_over_time(DCGM_FI_DEV_GPU_UTIL{pod != \"\"}[30m]) / 100 or max_over_time(DCGM_FI_DEV_GPU_UTIL{exported_pod != \"\"}[30m]) / 100) == bool 0, \"pod\", \"$1\", \"exported_pod\", \"(.+)\"), \"namespace\", \"$1\", \"exported_namespace\", \"(.+)\")), \"deployment\", \"$1\", \"pod\", \"^(.*)-[^-]+-[^-]+$\"))) * 0.5)",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true,
+          "refId": "By deployment (30m)"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "deployment": "Deployment",
+              "namespace": "Namespace",
+              "Value": "Idle GPU-Hours"
+            },
+            "indexByName": {
+              "Value": 2,
+              "deployment": 0,
+              "namespace": 1
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "color-background-solid"
+          },
+          "decimals": 1,
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Idle GPU-Hours"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 2
+                    },
+                    {
+                      "color": "orange",
+                      "value": 5
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Leaderboard",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 66
+      },
+      "collapsed": false
+    },
+    {
+      "title": "GPU Allocation Leaderboard (by Namespace)",
+      "description": "Total GPU requests per namespace, sorted descending. Namespace = user ({user}-dev pattern).",
+      "type": "barchart",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 67
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (namespace) (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"}))",
+          "legendFormat": "{{namespace}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.7
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "displayName": "${__field.labels.namespace}"
+        }
+      }
+    },
+    {
+      "title": "GPU Memory Allocation Leaderboard (GiB)",
+      "description": "Estimated GPU memory allocated per namespace. Calculated as GPUs requested × 140 GiB (H200 FB total).",
+      "type": "barchart",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 67
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (namespace) (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"}) * 140)",
+          "legendFormat": "{{namespace}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "barWidth": 0.7
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "displayName": "${__field.labels.namespace}"
+        }
+      }
+    },
+    {
+      "title": "GPU Memory Usage Over Time (by Node)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 77
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (Hostname) (DCGM_FI_DEV_FB_USED) / 1024",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "GPU Health & DCGM",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 85
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Peak GPU temperature",
+      "description": "Highest GPU die temperature across the cluster (DCGM_FI_DEV_GPU_TEMP).",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 86
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "max(DCGM_FI_DEV_GPU_TEMP)",
+          "legendFormat": "Max °C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Peak power (W)",
+      "description": "Highest per-GPU power draw in watts (DCGM_FI_DEV_POWER_USAGE). Useful for rack capacity and corroborating idle detection.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 86
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "max(DCGM_FI_DEV_POWER_USAGE)",
+          "legendFormat": "Max W"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "XID errors (total)",
+      "description": "Sum of NVIDIA XID driver/hardware error counter (DCGM_FI_DEV_XID_ERRORS). Non-zero warrants investigation.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 86
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum(DCGM_FI_DEV_XID_ERRORS)",
+          "legendFormat": "XID"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "GPU temperature by node",
+      "description": "Average GPU temperature per host (DCGM_FI_DEV_GPU_TEMP).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 90
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_DEV_GPU_TEMP)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Power draw by node",
+      "description": "Sum of per-GPU power draw per host in watts (DCGM_FI_DEV_POWER_USAGE).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 90
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (Hostname) (DCGM_FI_DEV_POWER_USAGE)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "VRAM utilization %",
+      "description": "Framebuffer used as a percentage of total VRAM per GPU (DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_TOTAL).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 98
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "100 * avg by (Hostname, gpu) (DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_TOTAL)",
+          "legendFormat": "{{Hostname}} GPU {{gpu}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "Memory copy utilization",
+      "description": "Average memory copy engine utilization per host (DCGM_FI_DEV_MEM_COPY_UTIL).",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 98
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_DEV_MEM_COPY_UTIL)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "XID errors (1h increase)",
+      "description": "XID errors increased over the last hour per GPU. Spikes indicate driver or hardware faults.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 106
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (Hostname, gpu) (increase(DCGM_FI_DEV_XID_ERRORS[1h]))",
+          "legendFormat": "{{Hostname}} GPU {{gpu}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 50,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "Graphics/compute engine active by node",
+      "description": "Average graphics/compute engine activity (DCGM_FI_PROF_GR_ENGINE_ACTIVE, 0–1). Primary metric for idle detection in gpu-pruner and engine idle/active overview stats.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 112
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_PROF_GR_ENGINE_ACTIVE)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "SM active by node",
+      "description": "DCGM profiling: streaming multiprocessor activity (DCGM_FI_PROF_SM_ACTIVE). No data if DCGM profiling is not enabled on the exporter.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 118
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_PROF_SM_ACTIVE)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "Tensor pipe active by node",
+      "description": "DCGM profiling: tensor pipe activity (DCGM_FI_PROF_PIPE_TENSOR_ACTIVE). No data if DCGM profiling is not enabled.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 118
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_PROF_PIPE_TENSOR_ACTIVE)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "DRAM active by node",
+      "description": "DCGM profiling: DRAM activity (DCGM_FI_PROF_DRAM_ACTIVE). No data if DCGM profiling is not enabled.",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 118
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "avg by (Hostname) (DCGM_FI_PROF_DRAM_ACTIVE)",
+          "legendFormat": "{{Hostname}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": true
+          }
+        }
+      }
+    },
+    {
+      "title": "GPU Leaderboard",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 126
+      },
+      "collapsed": false
+    },
+    {
+      "title": "Idle GPU Hours (7 Days)",
+      "description": "Total GPU hours where utilization < 1% over the past 7 days, grouped by namespace. Higher values indicate more GPU waste.",
+      "type": "table",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 127
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (namespace, pod) (count_over_time((DCGM_FI_PROF_GR_ENGINE_ACTIVE < 0.01)[7d:1m]) / 60))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exported_namespace"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Namespace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Idle Hours"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Value"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Utilized GPU Hours (7 Days)",
+      "description": "Total GPU hours where utilization >= 1% over the past 7 days, grouped by namespace. Higher values indicate more actual GPU usage.",
+      "type": "table",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 127
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (namespace, pod) (count_over_time((DCGM_FI_PROF_GR_ENGINE_ACTIVE >= 0.01)[7d:1m]) / 60))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "green",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exported_namespace"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Namespace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Utilized Hours"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Value"
+          }
+        ]
+      }
+    },
+    {
+      "title": "GPU Efficiency (7 Days)",
+      "description": "Efficiency percentage: utilized hours / (utilized + idle hours) * 100. Higher is better.",
+      "type": "bargauge",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 135
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by (namespace) (count_over_time((DCGM_FI_PROF_GR_ENGINE_ACTIVE >= 0.01)[7d:1m])) / sum by (namespace) (count_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE[7d:1m])) * 100",
+          "format": "time_series",
+          "instant": true,
+          "legendFormat": "{{exported_namespace}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "gpu",
+    "waldorf",
+    "llm-d"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Waldorf GPU Usage & Idle Tracker",
+  "uid": "prometheus",
+  "version": 4,
+  "refresh": "30s"
+}
