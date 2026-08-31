@@ -154,6 +154,42 @@ impl Hash for ScaleKind {
     }
 }
 
+impl From<Deployment> for ScaleKind {
+    fn from(v: Deployment) -> Self {
+        ScaleKind::Deployment(v)
+    }
+}
+impl From<ReplicaSet> for ScaleKind {
+    fn from(v: ReplicaSet) -> Self {
+        ScaleKind::ReplicaSet(v)
+    }
+}
+impl From<StatefulSet> for ScaleKind {
+    fn from(v: StatefulSet) -> Self {
+        ScaleKind::StatefulSet(v)
+    }
+}
+impl From<Notebook> for ScaleKind {
+    fn from(v: Notebook) -> Self {
+        ScaleKind::Notebook(v)
+    }
+}
+impl From<LeaderWorkerSet> for ScaleKind {
+    fn from(v: LeaderWorkerSet) -> Self {
+        ScaleKind::LeaderWorkerSet(v)
+    }
+}
+impl From<InferenceService> for ScaleKind {
+    fn from(v: InferenceService) -> Self {
+        ScaleKind::InferenceService(Box::new(v))
+    }
+}
+impl From<LLMInferenceService> for ScaleKind {
+    fn from(v: LLMInferenceService) -> Self {
+        ScaleKind::LLMInferenceService(Box::new(v))
+    }
+}
+
 impl From<ScaleKind> for ResourceKind {
     fn from(kind: ScaleKind) -> Self {
         match kind {
@@ -741,6 +777,44 @@ pub async fn clear_pending_scale_at(
     patch_workload(client, kind, name, namespace, &patch).await
 }
 
+/// Dispatches a kind string to a typed `Api` bound as `$api`, then runs the
+/// body. Unknown kinds return an error.
+macro_rules! with_kind_api {
+    ($kind:expr, $client:expr, $namespace:expr, |$api:ident| $body:expr) => {
+        match $kind {
+            "Deployment" => {
+                let $api: Api<Deployment> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "ReplicaSet" => {
+                let $api: Api<ReplicaSet> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "StatefulSet" => {
+                let $api: Api<StatefulSet> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "LeaderWorkerSet" => {
+                let $api: Api<LeaderWorkerSet> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "Notebook" => {
+                let $api: Api<Notebook> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "InferenceService" => {
+                let $api: Api<InferenceService> = Api::namespaced($client, $namespace);
+                $body
+            }
+            "LLMInferenceService" => {
+                let $api: Api<LLMInferenceService> = Api::namespaced($client, $namespace);
+                $body
+            }
+            other => Err(anyhow::anyhow!("Unsupported resource kind: {}", other)),
+        }
+    };
+}
+
 #[tracing::instrument(skip(client))]
 pub async fn fetch_workload(
     client: KubeClient,
@@ -748,39 +822,9 @@ pub async fn fetch_workload(
     name: &str,
     namespace: &str,
 ) -> anyhow::Result<ScaleKind> {
-    match kind {
-        "Deployment" => {
-            let api: Api<Deployment> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::Deployment(api.get(name).await?))
-        }
-        "ReplicaSet" => {
-            let api: Api<ReplicaSet> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::ReplicaSet(api.get(name).await?))
-        }
-        "StatefulSet" => {
-            let api: Api<StatefulSet> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::StatefulSet(api.get(name).await?))
-        }
-        "LeaderWorkerSet" => {
-            let api: Api<LeaderWorkerSet> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::LeaderWorkerSet(api.get(name).await?))
-        }
-        "Notebook" => {
-            let api: Api<Notebook> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::Notebook(api.get(name).await?))
-        }
-        "InferenceService" => {
-            let api: Api<InferenceService> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::InferenceService(Box::new(api.get(name).await?)))
-        }
-        "LLMInferenceService" => {
-            let api: Api<LLMInferenceService> = Api::namespaced(client, namespace);
-            Ok(ScaleKind::LLMInferenceService(Box::new(
-                api.get(name).await?,
-            )))
-        }
-        _ => Err(anyhow::anyhow!("Unsupported resource kind: {}", kind)),
-    }
+    with_kind_api!(kind, client, namespace, |api| Ok(ScaleKind::from(
+        api.get(name).await?
+    )))
 }
 
 #[tracing::instrument(skip(client, patch))]
@@ -791,41 +835,11 @@ pub async fn patch_workload(
     namespace: &str,
     patch: &serde_json::Value,
 ) -> anyhow::Result<()> {
-    let params = PatchParams::default();
-    match kind {
-        "Deployment" => {
-            let api: Api<Deployment> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "ReplicaSet" => {
-            let api: Api<ReplicaSet> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "StatefulSet" => {
-            let api: Api<StatefulSet> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "LeaderWorkerSet" => {
-            let api: Api<LeaderWorkerSet> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "Notebook" => {
-            let api: Api<Notebook> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "InferenceService" => {
-            let api: Api<InferenceService> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        "LLMInferenceService" => {
-            let api: Api<LLMInferenceService> = Api::namespaced(client, namespace);
-            api.patch(name, &params, &Patch::Merge(patch)).await?;
-        }
-        _ => {
-            return Err(anyhow::anyhow!("Unsupported resource kind: {}", kind));
-        }
-    }
-    Ok(())
+    with_kind_api!(kind, client, namespace, |api| {
+        api.patch(name, &PatchParams::default(), &Patch::Merge(patch))
+            .await?;
+        Ok(())
+    })
 }
 
 /// Crawl up the owner references to find the root Deployment or StatefulSet
@@ -872,75 +886,57 @@ pub async fn find_root_object(
             match or.kind.as_str() {
                 "ReplicaSet" => {
                     tracing::info!("Found ReplicaSet!");
-                    let rs_api: Api<ReplicaSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(rs) = rs_api.get(&or.name).await {
-                        if let Some(rs_meta) = rs.metadata.owner_references.as_ref() {
-                            for rs_or in rs_meta {
-                                if rs_or.kind == "Deployment" {
-                                    tracing::info!("Found Deployment owning ReplicaSet!");
-                                    let deployment_api: Api<Deployment> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let deployment = deployment_api.get(&rs_or.name).await?;
+                    if let Ok(rs) = get_typed::<ReplicaSet>(&client, &namespace, &or.name).await {
+                        if let Some(dep_or) = find_owner(&rs.metadata, "Deployment") {
+                            tracing::info!("Found Deployment owning ReplicaSet!");
+                            let deployment =
+                                get_typed::<Deployment>(&client, &namespace, &dep_or.name).await?;
 
-                                    // check if this Deployment is owned by an LLMInferenceService
-                                    if let Some(dep_ors) =
-                                        deployment.metadata.owner_references.as_ref()
-                                    {
-                                        for dep_or in dep_ors {
-                                            if dep_or.kind == "LLMInferenceService" {
-                                                tracing::info!(
-                                                    "Found LLMInferenceService owning Deployment!"
-                                                );
-                                                let llmis_api: Api<LLMInferenceService> =
-                                                    Api::namespaced(client.clone(), &namespace);
-                                                let llmis = llmis_api.get(&dep_or.name).await?;
-                                                return Ok(ScaleKind::LLMInferenceService(
-                                                    Box::new(llmis),
-                                                ));
-                                            }
-                                        }
-                                    }
-
-                                    return Ok(ScaleKind::Deployment(deployment));
-                                }
+                            if let Some(llmis_or) =
+                                find_owner(&deployment.metadata, "LLMInferenceService")
+                            {
+                                tracing::info!("Found LLMInferenceService owning Deployment!");
+                                let llmis = get_typed::<LLMInferenceService>(
+                                    &client,
+                                    &namespace,
+                                    &llmis_or.name,
+                                )
+                                .await?;
+                                return Ok(llmis.into());
                             }
+
+                            return Ok(deployment.into());
                         }
                         // fallthrough, replica set with no owners
-                        return Ok(ScaleKind::ReplicaSet(rs.clone()));
+                        return Ok(rs.into());
                     }
                 }
                 "StatefulSet" => {
                     tracing::info!("Found StatefulSet!");
-                    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(ss) = ss_api.get(&or.name).await {
-                        if let Some(ss_meta) = ss.metadata.owner_references.as_ref() {
-                            for ss_or in ss_meta {
-                                if ss_or.kind == "Notebook" {
-                                    tracing::info!("Found Notebook owning StatefulSet!");
-                                    let nb_api: Api<Notebook> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let nb = nb_api.get(&ss_or.name).await?;
-
-                                    return Ok(ScaleKind::Notebook(nb));
-                                } else if ss_or.kind == "LeaderWorkerSet" {
-                                    tracing::info!("Found LeaderWorkerSet owning StatefulSet!");
-                                    let lws_api: Api<LeaderWorkerSet> =
-                                        Api::namespaced(client.clone(), &namespace);
-                                    let lws = lws_api.get(&ss_or.name).await?;
-
-                                    return Ok(ScaleKind::LeaderWorkerSet(lws));
-                                }
-                            }
+                    if let Ok(ss) = get_typed::<StatefulSet>(&client, &namespace, &or.name).await {
+                        if let Some(nb_or) = find_owner(&ss.metadata, "Notebook") {
+                            tracing::info!("Found Notebook owning StatefulSet!");
+                            let nb =
+                                get_typed::<Notebook>(&client, &namespace, &nb_or.name).await?;
+                            return Ok(nb.into());
+                        }
+                        if let Some(lws_or) = find_owner(&ss.metadata, "LeaderWorkerSet") {
+                            tracing::info!("Found LeaderWorkerSet owning StatefulSet!");
+                            let lws =
+                                get_typed::<LeaderWorkerSet>(&client, &namespace, &lws_or.name)
+                                    .await?;
+                            return resolve_lws(&client, &namespace, lws).await;
                         }
                         // fallthrough, statefulset with no owners
-                        return Ok(ScaleKind::StatefulSet(ss));
+                        return Ok(ss.into());
                     }
                 }
                 "LeaderWorkerSet" => {
                     tracing::info!("Found LeaderWorkerSet!");
-                    let lws_api: Api<LeaderWorkerSet> = Api::namespaced(client.clone(), &namespace);
-                    if let Ok(lws) = lws_api.get(&or.name).await {
-                        return Ok(ScaleKind::LeaderWorkerSet(lws));
+                    if let Ok(lws) =
+                        get_typed::<LeaderWorkerSet>(&client, &namespace, &or.name).await
+                    {
+                        return resolve_lws(&client, &namespace, lws).await;
                     }
                 }
                 "DaemonSet" | "Node" => {
@@ -959,6 +955,43 @@ pub async fn find_root_object(
     Err(RootObjectError::NotFound(
         pod_meta.name.clone().unwrap_or_default(),
     ))
+}
+
+fn find_owner<'a>(
+    meta: &'a ObjectMeta,
+    kind: &str,
+) -> Option<&'a k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference> {
+    meta.owner_references
+        .as_ref()?
+        .iter()
+        .find(|or| or.kind == kind)
+}
+
+async fn get_typed<K>(client: &KubeClient, namespace: &str, name: &str) -> Result<K, kube::Error>
+where
+    K: kube::Resource<DynamicType = (), Scope = k8s_openapi::NamespaceResourceScope>
+        + Clone
+        + DeserializeOwned
+        + Debug,
+{
+    Api::<K>::namespaced(client.clone(), namespace)
+        .get(name)
+        .await
+}
+
+/// A LeaderWorkerSet created by an LLMInferenceService is re-reconciled by the
+/// KServe controller, so scale the owning LLMInferenceService instead.
+async fn resolve_lws(
+    client: &KubeClient,
+    namespace: &str,
+    lws: LeaderWorkerSet,
+) -> Result<ScaleKind, RootObjectError> {
+    if let Some(llmis_or) = find_owner(&lws.metadata, "LLMInferenceService") {
+        tracing::info!("Found LLMInferenceService owning LeaderWorkerSet!");
+        let llmis = get_typed::<LLMInferenceService>(client, namespace, &llmis_or.name).await?;
+        return Ok(llmis.into());
+    }
+    Ok(lws.into())
 }
 
 /// Scale a resource to zero replicas via the /scale subresource endpoint
