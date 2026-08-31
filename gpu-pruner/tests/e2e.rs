@@ -392,3 +392,192 @@ async fn hashset_dedup_with_real_uids() {
 
     delete_test_namespace(&client, &ns).await;
 }
+
+// ── CRD-backed owner chains (LeaderWorkerSet / LLMInferenceService) ──────
+
+async fn ensure_crd(
+    client: &Client,
+    crd: k8s_openapi::apiextensions_apiserver::pkg::apis::apiextensions::v1::CustomResourceDefinition,
+) {
+    use k8s_openapi::apiextensions_apiserver::pkg::apis::apiextensions::v1::CustomResourceDefinition;
+
+    let api: Api<CustomResourceDefinition> = Api::all(client.clone());
+    let name = crd.metadata.name.clone().unwrap();
+    match api.create(&PostParams::default(), &crd).await {
+        Ok(_) => {}
+        Err(kube::Error::Api(ae)) if ae.code == 409 => {}
+        Err(e) => panic!("failed to create CRD {name}: {e}"),
+    }
+
+    for _ in 0..30 {
+        if let Ok(c) = api.get(&name).await
+            && let Some(status) = c.status
+            && let Some(conditions) = status.conditions
+            && conditions
+                .iter()
+                .any(|c| c.type_ == "Established" && c.status == "True")
+        {
+            return;
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+    panic!("CRD {name} never became established");
+}
+
+fn owner_reference(
+    api_version: &str,
+    kind: &str,
+    name: &str,
+    uid: &str,
+) -> k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
+    k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
+        api_version: api_version.into(),
+        kind: kind.into(),
+        name: name.into(),
+        uid: uid.into(),
+        ..Default::default()
+    }
+}
+
+/// Pod -> StatefulSet -> LeaderWorkerSet resolves to the LWS.
+#[tokio::test]
+#[ignore]
+async fn find_root_object_lws_chain() {
+    use kube::CustomResourceExt;
+    use resources::leaderworkerset::{LeaderWorkerSet, LeaderWorkerSetSpec};
+
+    let client = Client::try_default().await.unwrap();
+    ensure_crd(&client, LeaderWorkerSet::crd()).await;
+    let ns = create_test_namespace(&client, "gpu-pruner-e2e-lws").await;
+
+    let svc_api: Api<Service> = Api::namespaced(client.clone(), &ns);
+    svc_api
+        .create(
+            &PostParams::default(),
+            &make_headless_service("e2e-lws-ss-svc", &ns),
+        )
+        .await
+        .unwrap();
+
+    let lws_api: Api<LeaderWorkerSet> = Api::namespaced(client.clone(), &ns);
+    let lws = lws_api
+        .create(
+            &PostParams::default(),
+            &LeaderWorkerSet::new(
+                "e2e-lws",
+                LeaderWorkerSetSpec {
+                    replicas: Some(1),
+                    leader_worker_template: None,
+                },
+            ),
+        )
+        .await
+        .unwrap();
+
+    // no LWS controller in kind, so build the StatefulSet it would create
+    let mut ss = make_statefulset("e2e-lws-ss", &ns);
+    ss.metadata.owner_references = Some(vec![owner_reference(
+        "leaderworkerset.x-k8s.io/v1",
+        "LeaderWorkerSet",
+        "e2e-lws",
+        lws.metadata.uid.as_deref().unwrap(),
+    )]);
+    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &ns);
+    ss_api.create(&PostParams::default(), &ss).await.unwrap();
+    wait_for_statefulset_ready(&ss_api, "e2e-lws-ss").await;
+
+    let pod_api: Api<k8s_openapi::api::core::v1::Pod> = Api::namespaced(client.clone(), &ns);
+    let pods = pod_api.list(&Default::default()).await.unwrap();
+    let pod = pods.items.first().expect("no pods found for statefulset");
+
+    let root = find_root_object(client.clone(), &pod.metadata)
+        .await
+        .expect("failed to find root object");
+    match &root {
+        ScaleKind::LeaderWorkerSet(l) => assert_eq!(l.name_unchecked(), "e2e-lws"),
+        other => panic!("expected LeaderWorkerSet root, got {}", other.kind()),
+    }
+
+    delete_test_namespace(&client, &ns).await;
+}
+
+/// Pod -> StatefulSet -> LeaderWorkerSet -> LLMInferenceService resolves to
+/// the LLMInferenceService: scaling the LWS alone is undone by the KServe
+/// controller reconciling it back.
+#[tokio::test]
+#[ignore]
+async fn find_root_object_llmis_owned_lws_chain() {
+    use kube::CustomResourceExt;
+    use resources::leaderworkerset::{LeaderWorkerSet, LeaderWorkerSetSpec};
+    use resources::llminferenceservice::{LLMInferenceService, LLMInferenceServiceSpec};
+
+    let client = Client::try_default().await.unwrap();
+    ensure_crd(&client, LeaderWorkerSet::crd()).await;
+    ensure_crd(&client, LLMInferenceService::crd()).await;
+    let ns = create_test_namespace(&client, "gpu-pruner-e2e-llmis-lws").await;
+
+    let svc_api: Api<Service> = Api::namespaced(client.clone(), &ns);
+    svc_api
+        .create(
+            &PostParams::default(),
+            &make_headless_service("e2e-llmis-ss-svc", &ns),
+        )
+        .await
+        .unwrap();
+
+    let llmis_api: Api<LLMInferenceService> = Api::namespaced(client.clone(), &ns);
+    let llmis = llmis_api
+        .create(
+            &PostParams::default(),
+            &LLMInferenceService::new(
+                "e2e-llmis",
+                LLMInferenceServiceSpec {
+                    replicas: Some(1),
+                    other: Default::default(),
+                },
+            ),
+        )
+        .await
+        .unwrap();
+
+    let lws_api: Api<LeaderWorkerSet> = Api::namespaced(client.clone(), &ns);
+    let mut lws = LeaderWorkerSet::new(
+        "e2e-llmis-lws",
+        LeaderWorkerSetSpec {
+            replicas: Some(1),
+            leader_worker_template: None,
+        },
+    );
+    lws.metadata.owner_references = Some(vec![owner_reference(
+        "serving.kserve.io/v1alpha1",
+        "LLMInferenceService",
+        "e2e-llmis",
+        llmis.metadata.uid.as_deref().unwrap(),
+    )]);
+    let lws = lws_api.create(&PostParams::default(), &lws).await.unwrap();
+
+    let mut ss = make_statefulset("e2e-llmis-ss", &ns);
+    ss.metadata.owner_references = Some(vec![owner_reference(
+        "leaderworkerset.x-k8s.io/v1",
+        "LeaderWorkerSet",
+        "e2e-llmis-lws",
+        lws.metadata.uid.as_deref().unwrap(),
+    )]);
+    let ss_api: Api<StatefulSet> = Api::namespaced(client.clone(), &ns);
+    ss_api.create(&PostParams::default(), &ss).await.unwrap();
+    wait_for_statefulset_ready(&ss_api, "e2e-llmis-ss").await;
+
+    let pod_api: Api<k8s_openapi::api::core::v1::Pod> = Api::namespaced(client.clone(), &ns);
+    let pods = pod_api.list(&Default::default()).await.unwrap();
+    let pod = pods.items.first().expect("no pods found for statefulset");
+
+    let root = find_root_object(client.clone(), &pod.metadata)
+        .await
+        .expect("failed to find root object");
+    match &root {
+        ScaleKind::LLMInferenceService(l) => assert_eq!(l.name_unchecked(), "e2e-llmis"),
+        other => panic!("expected LLMInferenceService root, got {}", other.kind()),
+    }
+
+    delete_test_namespace(&client, &ns).await;
+}

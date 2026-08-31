@@ -29,7 +29,17 @@ pub struct LeaderWorkerSetSpec {
         skip_serializing_if = "Option::is_none",
         rename = "leaderWorkerTemplate"
     )]
+    #[schemars(schema_with = "preserve_unknown_object")]
     pub leader_worker_template: Option<serde_json::Value>,
+}
+
+/// Schema for opaque pass-through fields: without an explicit type and the
+/// preserve marker, the API server rejects the CRD as non-structural.
+pub fn preserve_unknown_object(_gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!({
+        "type": "object",
+        "x-kubernetes-preserve-unknown-fields": true
+    })
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]

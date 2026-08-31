@@ -20,10 +20,12 @@ use std::collections::BTreeMap;
     plural = "llminferenceservices"
 )]
 #[kube(namespaced)]
+#[schemars(extend("x-kubernetes-preserve-unknown-fields" = true))]
 pub struct LLMInferenceServiceSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicas: Option<i64>,
 
     #[serde(flatten)]
+    #[schemars(skip)]
     pub other: BTreeMap<String, serde_json::Value>,
 }
