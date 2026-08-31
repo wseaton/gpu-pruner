@@ -86,6 +86,22 @@ struct Cli {
     #[clap(long)]
     power_threshold: Option<f64>,
 
+    /// GPU utilization (0.0-1.0) below which a GPU counts as idle.
+    /// DCGM GR_ENGINE_ACTIVE reports a small nonzero noise floor on otherwise
+    /// idle GPUs, so a strict == 0 comparison misses them.
+    #[clap(long, default_value = "0.01")]
+    idle_threshold: f64,
+
+    /// Regex of namespaces to exclude from pruning, applied as a negative
+    /// match in the Prometheus query, eg. "infra-.*|monitoring"
+    #[clap(long)]
+    exclude_namespaces: Option<String>,
+
+    /// Regex of pod names to exclude from pruning, applied as a negative
+    /// match in the Prometheus query, eg. "dcgm-exporter-.*"
+    #[clap(long)]
+    exclude_pods: Option<String>,
+
     /// Set when the Prometheus ServiceMonitor uses honorLabels: true.
     /// Controls whether the query uses native DCGM label names (pod/namespace/container)
     /// or the Prometheus-prefixed names (exported_pod/exported_namespace/exported_container).
@@ -647,6 +663,80 @@ mod tests {
         assert!(
             query.contains(">= 150"),
             "should use the configured threshold"
+        );
+    }
+
+    #[test]
+    fn query_uses_idle_threshold_not_strict_zero() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            query.contains("< 0.01"),
+            "default idle threshold should be 0.01, not == 0"
+        );
+        assert!(!query.contains("== 0"), "should not use strict == 0");
+    }
+
+    #[test]
+    fn query_idle_threshold_is_configurable() {
+        let query = render(json!({ "duration": 30, "idle_threshold": 0.05 }));
+        assert!(
+            query.contains("< 0.05"),
+            "should use configured idle threshold"
+        );
+    }
+
+    #[test]
+    fn query_without_excludes_has_no_negative_matchers() {
+        let query = render(json!({ "duration": 30 }));
+        assert!(
+            !query.contains("!~"),
+            "no negative matchers unless exclude flags are set"
+        );
+    }
+
+    #[test]
+    fn query_exclude_flags_add_negative_matchers() {
+        let query = render(json!({
+            "duration": 30,
+            "exclude_namespaces": "infra-.*|monitoring",
+            "exclude_pods": "dcgm-exporter-.*",
+        }));
+        // idle_gpus block appears twice (enriched + bare fallback), 2 metrics each = 4
+        assert_eq!(
+            query
+                .matches("exported_namespace !~ \"infra-.*|monitoring\"")
+                .count(),
+            4,
+            "namespace exclude should appear in all compute metric selectors"
+        );
+        assert_eq!(
+            query
+                .matches("exported_pod !~ \"dcgm-exporter-.*\"")
+                .count(),
+            4,
+            "pod exclude should appear in all compute metric selectors"
+        );
+    }
+
+    #[test]
+    fn query_exclude_flags_apply_to_power_selector() {
+        let query = render(json!({
+            "duration": 30,
+            "power_threshold": 150.0,
+            "exclude_namespaces": "infra-.*",
+            "exclude_pods": "dcgm-exporter-.*",
+        }));
+        assert_eq!(
+            query.matches("exported_namespace !~ \"infra-.*\"").count(),
+            5,
+            "namespace exclude should also appear in the power metric selector"
+        );
+        assert_eq!(
+            query
+                .matches("exported_pod !~ \"dcgm-exporter-.*\"")
+                .count(),
+            5,
+            "pod exclude should also appear in the power metric selector"
         );
     }
 

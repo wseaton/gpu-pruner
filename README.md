@@ -53,6 +53,20 @@ Options:
   -m, --model-name <MODEL_NAME>
           model name of GPU to use for filter, eg. "NVIDIA A10G", is passed down to prometheus as a pattern match
 
+      --power-threshold <POWER_THRESHOLD>
+          Power draw threshold in watts. When set, GPUs showing peak power usage above this value over the lookback window are excluded from idle candidates even if compute utilization is zero. Useful as a corroborating signal (e.g. 100 for A10G, 150 for A100/H100)
+
+      --idle-threshold <IDLE_THRESHOLD>
+          GPU utilization (0.0-1.0) below which a GPU counts as idle. DCGM GR_ENGINE_ACTIVE reports a small nonzero noise floor on otherwise idle GPUs, so a strict == 0 comparison misses them
+
+          [default: 0.01]
+
+      --exclude-namespaces <EXCLUDE_NAMESPACES>
+          Regex of namespaces to exclude from pruning, applied as a negative match in the Prometheus query, eg. "infra-.*|monitoring"
+
+      --exclude-pods <EXCLUDE_PODS>
+          Regex of pod names to exclude from pruning, applied as a negative match in the Prometheus query, eg. "dcgm-exporter-.*"
+
   -r, --run-mode <RUN_MODE>
           Operation mode of the scaler process
 

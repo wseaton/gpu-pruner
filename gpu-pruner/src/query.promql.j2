@@ -9,12 +9,16 @@
 sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
     max_over_time(DCGM_FI_PROF_GR_ENGINE_ACTIVE{
       {{ pl }} != ""
+      {%- if args.exclude_pods %}, {{ pl }} !~ "{{ args.exclude_pods }}"{%endif%}
+      {%- if args.exclude_namespaces %}, {{ nl }} !~ "{{ args.exclude_namespaces }}"{%endif%}
       {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
     }[{{ args.duration }}m])
     or
     max_over_time(DCGM_FI_DEV_GPU_UTIL{
       {{ pl }} != ""
+      {%- if args.exclude_pods %}, {{ pl }} !~ "{{ args.exclude_pods }}"{%endif%}
+      {%- if args.exclude_namespaces %}, {{ nl }} !~ "{{ args.exclude_namespaces }}"{%endif%}
       {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
       {%- if args.model_name %}, modelName =~ "{{ args.model_name }}"{%endif%}
     }[{{ args.duration }}m]) / 100
@@ -32,12 +36,14 @@ sum by (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName) (
   or on (Hostname, {{ cl }}, {{ pl }}, {{ nl }}, gpu, modelName)
   {{ idle_gpus }}
 )
-== 0
+< {{ args.idle_threshold | default(0.01) }}
 {%- if args.power_threshold %}
 unless on ({{ pl }}, {{ nl }})
 (
   max_over_time(DCGM_FI_DEV_POWER_USAGE{
     {{ pl }} != ""
+    {%- if args.exclude_pods %}, {{ pl }} !~ "{{ args.exclude_pods }}"{%endif%}
+    {%- if args.exclude_namespaces %}, {{ nl }} !~ "{{ args.exclude_namespaces }}"{%endif%}
     {%- if args.namespace %}, {{ nl }} =~ "{{ args.namespace }}"{%endif%}
   }[{{ args.duration }}m]) >= {{ args.power_threshold }}
 )
