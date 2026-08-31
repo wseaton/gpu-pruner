@@ -90,6 +90,25 @@ Options:
 ```
 
 
+## Slack notifications and acknowledgments (experimental)
+
+When a Slack incoming webhook is configured (`--slack-webhook-url` or `SLACK_WEBHOOK_URL`),
+the pruner notifies before acting instead of scaling immediately: on first detection it
+posts a message with "Keep 4h/8h/24h" buttons, annotates the workload with
+`gpu-pruner.io/pending-scale-at`, and waits `--ack-grace-period` seconds (default 300)
+before scaling down. Button clicks write `gpu-pruner.io/ack-until` / `gpu-pruner.io/ack-by`
+annotations that suppress scale-down until they expire.
+
+Button clicks arrive via a Slack app interactivity callback served with
+`--slack-interaction-addr`. The endpoint requires the `SLACK_SIGNING_SECRET` env var
+(from your Slack app's Basic Information page) and rejects any request that fails
+Slack request-signature verification, so it is safe to expose through an ingress.
+The pruner refuses to start the endpoint without the secret.
+
+Mentions in notifications resolve from the `gpu-pruner.io/slack-mentions` annotation on
+the workload, falling back to `--slack-namespace-mentions` JSON (keys ending in `-` are
+namespace prefixes, longest match wins), eg. `{"ml-team":"<@U123>","alice-":"<@UALICE>"}`.
+
 ## OTEL via OTLP
 
 When compiled with the `otel` feature, OTLP metrics and trace export is enabled, and can be configured via environment variables, eg:

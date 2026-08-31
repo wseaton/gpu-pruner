@@ -1,4 +1,5 @@
 pub mod metrics;
+pub mod slack;
 
 use clap::ValueEnum;
 use k8s_openapi::{
@@ -36,6 +37,60 @@ use kube::{
     Api, Client as KubeClient,
     api::{ObjectMeta, Patch, PatchParams},
 };
+
+pub const PENDING_SCALE_ANNOTATION: &str = "gpu-pruner.io/pending-scale-at";
+pub const ACK_UNTIL_ANNOTATION: &str = "gpu-pruner.io/ack-until";
+pub const ACK_BY_ANNOTATION: &str = "gpu-pruner.io/ack-by";
+pub const SLACK_MENTIONS_ANNOTATION: &str = "gpu-pruner.io/slack-mentions";
+
+#[derive(Debug, Clone)]
+pub struct AckStatus {
+    pub acknowledged: bool,
+    pub expires_at: Option<String>,
+    pub by_user: Option<String>,
+}
+
+/// Maps namespaces to Slack mention strings. Keys ending in `-` are treated
+/// as namespace prefixes; the longest matching prefix wins.
+#[derive(Debug, Clone)]
+pub struct NamespaceMentionMapper {
+    pub mappings: std::collections::HashMap<String, String>,
+}
+
+impl NamespaceMentionMapper {
+    pub fn new(mappings: std::collections::HashMap<String, String>) -> Self {
+        Self { mappings }
+    }
+
+    pub fn from_json(json_str: &str) -> Result<Self, serde_json::Error> {
+        let mappings: std::collections::HashMap<String, String> = serde_json::from_str(json_str)?;
+        Ok(Self::new(mappings))
+    }
+
+    pub fn get_mentions(&self, namespace: &str) -> Option<String> {
+        if let Some(mentions) = self.mappings.get(namespace) {
+            return Some(mentions.clone());
+        }
+
+        self.mappings
+            .iter()
+            .filter(|(key, _)| key.ends_with('-') && namespace.starts_with(key.as_str()))
+            .max_by_key(|(key, _)| key.len())
+            .map(|(_, mentions)| mentions.clone())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PendingScaleStatus {
+    NotPending,
+    InGrace {
+        until: chrono::DateTime<chrono::Utc>,
+    },
+    GraceExpired,
+    /// The pending annotation is so old the notification predates the current
+    /// idle episode; treat like NotPending and re-notify.
+    Stale,
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub enum ScaleKind {
@@ -384,7 +439,7 @@ impl Scaler for ScaleKind {
             }
         };
 
-        match self {
+        let result = match self {
             ScaleKind::Deployment(d) => {
                 let api: Api<Deployment> =
                     Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
@@ -423,7 +478,21 @@ impl Scaler for ScaleKind {
                 .await?;
                 Ok(())
             }
+        };
+
+        if result.is_ok()
+            && let Some(ns) = self.namespace()
+            && let Err(e) = clear_pending_scale_at(client, &self.kind(), &self.name(), &ns).await
+        {
+            tracing::warn!(
+                "Failed to clear pending-scale annotation for [{}] {}:{}: {e}",
+                self.kind(),
+                ns,
+                self.name()
+            );
         }
+
+        result
     }
 
     #[tracing::instrument(skip(self))]
@@ -466,6 +535,259 @@ impl Scaler for ScaleKind {
         };
         Ok(event)
     }
+}
+
+fn workload_annotations(
+    workload: &ScaleKind,
+) -> Option<&std::collections::BTreeMap<String, String>> {
+    match workload {
+        ScaleKind::Deployment(d) => d.metadata.annotations.as_ref(),
+        ScaleKind::ReplicaSet(r) => r.metadata.annotations.as_ref(),
+        ScaleKind::StatefulSet(s) => s.metadata.annotations.as_ref(),
+        ScaleKind::Notebook(n) => n.metadata.annotations.as_ref(),
+        ScaleKind::InferenceService(i) => i.metadata.annotations.as_ref(),
+        ScaleKind::LeaderWorkerSet(l) => l.metadata.annotations.as_ref(),
+    }
+}
+
+/// Read the acknowledgment annotations off a workload.
+pub fn ack_status(workload: &ScaleKind) -> AckStatus {
+    let not_acknowledged = AckStatus {
+        acknowledged: false,
+        expires_at: None,
+        by_user: None,
+    };
+
+    let Some(annotations) = workload_annotations(workload) else {
+        return not_acknowledged;
+    };
+
+    if let Some(expires_at_str) = annotations.get(ACK_UNTIL_ANNOTATION)
+        && let Ok(expires_at) = chrono::DateTime::parse_from_rfc3339(expires_at_str)
+    {
+        if expires_at.timestamp() > chrono::Utc::now().timestamp() {
+            return AckStatus {
+                acknowledged: true,
+                expires_at: Some(expires_at_str.clone()),
+                by_user: annotations.get(ACK_BY_ANNOTATION).cloned(),
+            };
+        }
+        tracing::info!(
+            "Acknowledgment expired for {} in {}",
+            workload.name(),
+            workload.namespace().unwrap_or_default()
+        );
+    }
+
+    not_acknowledged
+}
+
+/// Extract Slack mentions for a workload.
+///
+/// Precedence order:
+/// 1. Annotation `gpu-pruner.io/slack-mentions` on the workload
+/// 2. Exact namespace match in the mapper
+/// 3. Longest prefix match in the mapper (keys ending in `-`)
+///
+/// The mention should contain space-separated Slack mention syntax:
+/// - User mentions: `<@U123456789>`
+/// - User group mentions: `<!subteam^S123456789>`
+/// - Channel-wide mentions: `<!channel>` or `<!here>`
+pub fn get_slack_mentions(
+    workload: &ScaleKind,
+    mapper: Option<&NamespaceMentionMapper>,
+) -> Option<String> {
+    if let Some(annotations) = workload_annotations(workload)
+        && let Some(mentions) = annotations.get(SLACK_MENTIONS_ANNOTATION)
+    {
+        return Some(mentions.clone());
+    }
+
+    if let Some(mapper) = mapper
+        && let Some(namespace) = workload.namespace()
+        && let Some(mentions) = mapper.get_mentions(&namespace)
+    {
+        return Some(mentions);
+    }
+
+    None
+}
+
+/// Evaluate the ack grace period for a workload against its
+/// `pending-scale-at` annotation.
+pub fn check_pending_grace(
+    workload: &ScaleKind,
+    grace_secs: u64,
+    stale_after_secs: u64,
+) -> PendingScaleStatus {
+    use chrono::{DateTime, Duration, Utc};
+
+    let Some(annotations) = workload_annotations(workload) else {
+        return PendingScaleStatus::NotPending;
+    };
+
+    let Some(pending_str) = annotations.get(PENDING_SCALE_ANNOTATION) else {
+        return PendingScaleStatus::NotPending;
+    };
+
+    let pending_at = match DateTime::parse_from_rfc3339(pending_str) {
+        Ok(dt) => dt.with_timezone(&Utc),
+        Err(_) => return PendingScaleStatus::NotPending,
+    };
+
+    let now = Utc::now();
+    let grace_end = pending_at + Duration::seconds(grace_secs as i64);
+    let stale_at = pending_at + Duration::seconds(stale_after_secs.max(grace_secs) as i64);
+
+    if now < grace_end {
+        PendingScaleStatus::InGrace { until: grace_end }
+    } else if now < stale_at {
+        PendingScaleStatus::GraceExpired
+    } else {
+        PendingScaleStatus::Stale
+    }
+}
+
+/// Apply acknowledgment annotations to a workload.
+#[tracing::instrument(skip(client))]
+pub async fn acknowledge_workload(
+    client: KubeClient,
+    kind: &str,
+    name: &str,
+    namespace: &str,
+    duration_hours: u32,
+    user: &str,
+) -> anyhow::Result<()> {
+    let expires_at = chrono::Utc::now() + chrono::Duration::hours(duration_hours as i64);
+    let expires_at_rfc3339 = expires_at.to_rfc3339();
+
+    let patch = serde_json::json!({
+        "metadata": {
+            "annotations": {
+                ACK_UNTIL_ANNOTATION: expires_at_rfc3339,
+                ACK_BY_ANNOTATION: user,
+                PENDING_SCALE_ANNOTATION: null,
+            }
+        }
+    });
+
+    patch_workload(client, kind, name, namespace, &patch).await?;
+
+    tracing::info!("Acknowledged [{kind}] {namespace}:{name} by {user} until {expires_at_rfc3339}");
+
+    Ok(())
+}
+
+#[tracing::instrument(skip(client))]
+pub async fn set_pending_scale_at(
+    client: KubeClient,
+    kind: &str,
+    name: &str,
+    namespace: &str,
+) -> anyhow::Result<()> {
+    let pending_at = chrono::Utc::now().to_rfc3339();
+    let patch = serde_json::json!({
+        "metadata": {
+            "annotations": {
+                PENDING_SCALE_ANNOTATION: pending_at,
+            }
+        }
+    });
+    patch_workload(client, kind, name, namespace, &patch).await
+}
+
+#[tracing::instrument(skip(client))]
+pub async fn clear_pending_scale_at(
+    client: KubeClient,
+    kind: &str,
+    name: &str,
+    namespace: &str,
+) -> anyhow::Result<()> {
+    let patch = serde_json::json!({
+        "metadata": {
+            "annotations": {
+                PENDING_SCALE_ANNOTATION: null,
+            }
+        }
+    });
+    patch_workload(client, kind, name, namespace, &patch).await
+}
+
+#[tracing::instrument(skip(client))]
+pub async fn fetch_workload(
+    client: KubeClient,
+    kind: &str,
+    name: &str,
+    namespace: &str,
+) -> anyhow::Result<ScaleKind> {
+    match kind {
+        "Deployment" => {
+            let api: Api<Deployment> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::Deployment(api.get(name).await?))
+        }
+        "ReplicaSet" => {
+            let api: Api<ReplicaSet> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::ReplicaSet(api.get(name).await?))
+        }
+        "StatefulSet" => {
+            let api: Api<StatefulSet> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::StatefulSet(api.get(name).await?))
+        }
+        "LeaderWorkerSet" => {
+            let api: Api<LeaderWorkerSet> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::LeaderWorkerSet(api.get(name).await?))
+        }
+        "Notebook" => {
+            let api: Api<Notebook> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::Notebook(api.get(name).await?))
+        }
+        "InferenceService" => {
+            let api: Api<InferenceService> = Api::namespaced(client, namespace);
+            Ok(ScaleKind::InferenceService(Box::new(api.get(name).await?)))
+        }
+        _ => Err(anyhow::anyhow!("Unsupported resource kind: {}", kind)),
+    }
+}
+
+#[tracing::instrument(skip(client, patch))]
+pub async fn patch_workload(
+    client: KubeClient,
+    kind: &str,
+    name: &str,
+    namespace: &str,
+    patch: &serde_json::Value,
+) -> anyhow::Result<()> {
+    let params = PatchParams::default();
+    match kind {
+        "Deployment" => {
+            let api: Api<Deployment> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        "ReplicaSet" => {
+            let api: Api<ReplicaSet> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        "StatefulSet" => {
+            let api: Api<StatefulSet> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        "LeaderWorkerSet" => {
+            let api: Api<LeaderWorkerSet> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        "Notebook" => {
+            let api: Api<Notebook> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        "InferenceService" => {
+            let api: Api<InferenceService> = Api::namespaced(client, namespace);
+            api.patch(name, &params, &Patch::Merge(patch)).await?;
+        }
+        _ => {
+            return Err(anyhow::anyhow!("Unsupported resource kind: {}", kind));
+        }
+    }
+    Ok(())
 }
 
 /// Crawl up the owner references to find the root Deployment or StatefulSet
@@ -647,7 +969,12 @@ mod tests {
         notebook::NotebookSpec,
     };
 
-    use crate::{Meta, Notebook, ResourceKind, ScaleKind, Scaler, get_enabled_resources};
+    use crate::{
+        ACK_BY_ANNOTATION, ACK_UNTIL_ANNOTATION, Meta, NamespaceMentionMapper, Notebook,
+        PENDING_SCALE_ANNOTATION, PendingScaleStatus, ResourceKind, SLACK_MENTIONS_ANNOTATION,
+        ScaleKind, Scaler, ack_status, check_pending_grace, get_enabled_resources,
+        get_slack_mentions,
+    };
 
     // ── helpers ──────────────────────────────────────────────────────────
 
@@ -1117,6 +1444,159 @@ mod tests {
         assert_eq!(sk.kind(), "LeaderWorkerSet");
         assert_eq!(sk.uid(), Some("lws-uid".into()));
         assert_eq!(sk.api_version(), "v1");
+    }
+
+    // ── ack / grace period ───────────────────────────────────────────────
+
+    fn deployment_with_annotations(annotations: &[(&str, &str)]) -> ScaleKind {
+        let mut dep = Deployment::default();
+        dep.metadata.name = Some("d".into());
+        dep.metadata.namespace = Some("ns".into());
+        dep.metadata.annotations = Some(
+            annotations
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        );
+        ScaleKind::Deployment(dep)
+    }
+
+    #[test]
+    fn ack_status_without_annotations_is_not_acknowledged() {
+        let sk = make_deployment("d", "ns", None);
+        assert!(!ack_status(&sk).acknowledged);
+    }
+
+    #[test]
+    fn ack_status_honors_future_expiry() {
+        let until = (chrono::Utc::now() + chrono::Duration::hours(1)).to_rfc3339();
+        let sk = deployment_with_annotations(&[
+            (ACK_UNTIL_ANNOTATION, &until),
+            (ACK_BY_ANNOTATION, "alice"),
+        ]);
+        let ack = ack_status(&sk);
+        assert!(ack.acknowledged);
+        assert_eq!(ack.by_user.as_deref(), Some("alice"));
+    }
+
+    #[test]
+    fn ack_status_expired_is_not_acknowledged() {
+        let until = (chrono::Utc::now() - chrono::Duration::hours(1)).to_rfc3339();
+        let sk = deployment_with_annotations(&[(ACK_UNTIL_ANNOTATION, &until)]);
+        assert!(!ack_status(&sk).acknowledged);
+    }
+
+    #[test]
+    fn ack_status_garbage_timestamp_is_not_acknowledged() {
+        let sk = deployment_with_annotations(&[(ACK_UNTIL_ANNOTATION, "yesterday-ish")]);
+        assert!(!ack_status(&sk).acknowledged);
+    }
+
+    #[test]
+    fn pending_grace_not_pending_without_annotation() {
+        let sk = make_deployment("d", "ns", None);
+        assert_eq!(
+            check_pending_grace(&sk, 300, 900),
+            PendingScaleStatus::NotPending
+        );
+    }
+
+    #[test]
+    fn pending_grace_in_grace_window() {
+        let pending = (chrono::Utc::now() - chrono::Duration::seconds(60)).to_rfc3339();
+        let sk = deployment_with_annotations(&[(PENDING_SCALE_ANNOTATION, &pending)]);
+        assert!(matches!(
+            check_pending_grace(&sk, 300, 900),
+            PendingScaleStatus::InGrace { .. }
+        ));
+    }
+
+    #[test]
+    fn pending_grace_expired_within_stale_window() {
+        let pending = (chrono::Utc::now() - chrono::Duration::seconds(400)).to_rfc3339();
+        let sk = deployment_with_annotations(&[(PENDING_SCALE_ANNOTATION, &pending)]);
+        assert_eq!(
+            check_pending_grace(&sk, 300, 900),
+            PendingScaleStatus::GraceExpired
+        );
+    }
+
+    #[test]
+    fn pending_grace_stale_after_stale_window() {
+        let pending = (chrono::Utc::now() - chrono::Duration::seconds(1000)).to_rfc3339();
+        let sk = deployment_with_annotations(&[(PENDING_SCALE_ANNOTATION, &pending)]);
+        assert_eq!(
+            check_pending_grace(&sk, 300, 900),
+            PendingScaleStatus::Stale
+        );
+    }
+
+    #[test]
+    fn pending_grace_stale_window_never_shorter_than_grace() {
+        let pending = (chrono::Utc::now() - chrono::Duration::seconds(200)).to_rfc3339();
+        let sk = deployment_with_annotations(&[(PENDING_SCALE_ANNOTATION, &pending)]);
+        // stale_after (100) below grace (300) is clamped up to grace
+        assert!(matches!(
+            check_pending_grace(&sk, 300, 100),
+            PendingScaleStatus::InGrace { .. }
+        ));
+    }
+
+    #[test]
+    fn pending_grace_unparseable_annotation_is_not_pending() {
+        let sk = deployment_with_annotations(&[(PENDING_SCALE_ANNOTATION, "not-a-time")]);
+        assert_eq!(
+            check_pending_grace(&sk, 300, 900),
+            PendingScaleStatus::NotPending
+        );
+    }
+
+    // ── slack mentions ───────────────────────────────────────────────────
+
+    #[test]
+    fn mention_mapper_exact_match_wins() {
+        let mapper =
+            NamespaceMentionMapper::from_json(r#"{"ml-team":"<@EXACT>","ml-":"<@PREFIX>"}"#)
+                .unwrap();
+        assert_eq!(mapper.get_mentions("ml-team").as_deref(), Some("<@EXACT>"));
+    }
+
+    #[test]
+    fn mention_mapper_longest_prefix_wins() {
+        let mapper =
+            NamespaceMentionMapper::from_json(r#"{"team-":"<@TEAM>","team-ml-":"<@TEAMML>"}"#)
+                .unwrap();
+        assert_eq!(
+            mapper.get_mentions("team-ml-dev").as_deref(),
+            Some("<@TEAMML>")
+        );
+        assert_eq!(mapper.get_mentions("team-web").as_deref(), Some("<@TEAM>"));
+    }
+
+    #[test]
+    fn mention_mapper_no_match() {
+        let mapper = NamespaceMentionMapper::from_json(r#"{"alice-":"<@A>"}"#).unwrap();
+        assert_eq!(mapper.get_mentions("bob-dev"), None);
+    }
+
+    #[test]
+    fn mentions_annotation_beats_mapper() {
+        let mapper = NamespaceMentionMapper::from_json(r#"{"ns":"<@MAPPED>"}"#).unwrap();
+        let sk = deployment_with_annotations(&[(SLACK_MENTIONS_ANNOTATION, "<@ANNOTATED>")]);
+        assert_eq!(
+            get_slack_mentions(&sk, Some(&mapper)).as_deref(),
+            Some("<@ANNOTATED>")
+        );
+    }
+
+    #[test]
+    fn mentions_fall_back_to_mapper() {
+        let mapper = NamespaceMentionMapper::from_json(r#"{"ns":"<@MAPPED>"}"#).unwrap();
+        let sk = make_deployment("d", "ns", None);
+        assert_eq!(
+            get_slack_mentions(&sk, Some(&mapper)).as_deref(),
+            Some("<@MAPPED>")
+        );
     }
 
     #[test]

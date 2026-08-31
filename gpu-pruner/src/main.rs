@@ -33,10 +33,14 @@ use kube::{Api, Client as KubeClient, Resource};
 
 use clap::{Parser, ValueEnum};
 
+use secrecy::ExposeSecret;
+
 use gpu_pruner::{
-    Meta, PodMetricData, QueryResponse, RootObjectError, ScaleKind, Scaler, TlsMode,
-    find_root_object, get_enabled_resources, get_prom_client, get_prometheus_token,
-    metrics::Metrics,
+    Meta, NamespaceMentionMapper, PendingScaleStatus, PodMetricData, QueryResponse,
+    RootObjectError, ScaleKind, Scaler, TlsMode, ack_status, acknowledge_workload,
+    check_pending_grace, fetch_workload, find_root_object, get_enabled_resources, get_prom_client,
+    get_prometheus_token, get_slack_mentions, metrics::Metrics, set_pending_scale_at,
+    slack::SlackNotifier,
 };
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
@@ -140,6 +144,39 @@ struct Cli {
     #[clap(long)]
     #[serde(skip)]
     metrics_addr: Option<std::net::SocketAddr>,
+
+    /// Slack incoming-webhook URL for idle notifications.
+    /// Can also be set via the SLACK_WEBHOOK_URL env var.
+    /// When unset, Slack notifications and the ack grace period are disabled.
+    #[clap(long)]
+    #[serde(skip)]
+    slack_webhook_url: Option<String>,
+
+    /// Slack channel override for notifications. When unset, messages go to
+    /// the webhook's default channel.
+    #[clap(long)]
+    #[serde(skip)]
+    slack_channel: Option<String>,
+
+    /// Address to serve Slack interactive callbacks (ack button clicks) on,
+    /// eg. "0.0.0.0:9090". Requires the SLACK_SIGNING_SECRET env var; requests
+    /// failing Slack signature verification are rejected.
+    #[clap(long)]
+    #[serde(skip)]
+    slack_interaction_addr: Option<std::net::SocketAddr>,
+
+    /// Seconds to wait after a Slack notification before scaling down.
+    /// Only applies when Slack notifications are enabled.
+    #[clap(long, default_value = "300")]
+    #[serde(skip)]
+    ack_grace_period: u64,
+
+    /// Namespace-to-Slack-mention mapping as JSON, eg.
+    /// {"ml-team":"<@U123>","alice-":"<@UALICE>"}. Keys ending in "-" are
+    /// namespace prefixes. Can also be set via SLACK_NAMESPACE_MENTIONS.
+    #[clap(long)]
+    #[serde(skip)]
+    slack_namespace_mentions: Option<String>,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -309,6 +346,33 @@ async fn main() -> anyhow::Result<()> {
 
     let metrics = Metrics::new()?;
 
+    let slack_ctx = build_slack_context(&args)?;
+
+    let _slack_interaction_server = match args.slack_interaction_addr {
+        Some(addr) => {
+            let signing_secret = std::env::var("SLACK_SIGNING_SECRET").map_err(|_| {
+                anyhow::anyhow!(
+                    "--slack-interaction-addr requires the SLACK_SIGNING_SECRET env var; \
+                     refusing to serve unauthenticated workload-mutating callbacks"
+                )
+            })?;
+            let state = SlackInteractionState {
+                kube_client: KubeClient::try_default().await?,
+                signing_secret: std::sync::Arc::new(secrecy::SecretString::from(signing_secret)),
+                http: reqwest::Client::builder()
+                    .timeout(std::time::Duration::from_secs(10))
+                    .build()?,
+                metrics: metrics.clone(),
+            };
+            Some(tokio::spawn(async move {
+                if let Err(e) = serve_slack_interactions(addr, state).await {
+                    tracing::error!("slack interaction server exited: {e}");
+                }
+            }))
+        }
+        None => None,
+    };
+
     let _metrics_server = args.metrics_addr.map(|addr| {
         let metrics = metrics.clone();
         tokio::spawn(async move {
@@ -321,6 +385,7 @@ async fn main() -> anyhow::Result<()> {
     let query_task = {
         let args = args.clone();
         let metrics = metrics.clone();
+        let slack_ctx = slack_ctx.clone();
         tokio::spawn(async move {
             let mut interval =
                 time::interval(tokio::time::Duration::from_secs(args.check_interval));
@@ -330,7 +395,15 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 let client = build_prom_client(&args).await;
-                match run_query_and_scale(client, query.clone(), &args, tx.clone(), &metrics).await
+                match run_query_and_scale(
+                    client,
+                    query.clone(),
+                    &args,
+                    tx.clone(),
+                    &metrics,
+                    slack_ctx.as_ref(),
+                )
+                .await
                 {
                     Ok(qr) => {
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
@@ -423,6 +496,218 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Clone)]
+struct SlackContext {
+    notifier: SlackNotifier,
+    mentions: Option<NamespaceMentionMapper>,
+    grace_secs: u64,
+    stale_after_secs: u64,
+}
+
+fn build_slack_context(args: &Cli) -> anyhow::Result<Option<SlackContext>> {
+    let webhook_url = args
+        .slack_webhook_url
+        .clone()
+        .or_else(|| std::env::var("SLACK_WEBHOOK_URL").ok());
+
+    let Some(webhook_url) = webhook_url else {
+        tracing::info!("Slack notifications disabled (no webhook URL configured)");
+        return Ok(None);
+    };
+
+    let notifier = SlackNotifier::new(webhook_url, args.slack_channel.clone())?;
+    tracing::info!("Slack notifications enabled");
+
+    let mentions = args
+        .slack_namespace_mentions
+        .clone()
+        .or_else(|| std::env::var("SLACK_NAMESPACE_MENTIONS").ok())
+        .map(|json_str| NamespaceMentionMapper::from_json(&json_str))
+        .transpose()
+        .map_err(|e| anyhow::anyhow!("invalid namespace mention mapping JSON: {e}"))?;
+
+    if let Some(m) = &mentions {
+        tracing::info!(
+            "Namespace mention mapping enabled with {} entries",
+            m.mappings.len()
+        );
+    }
+
+    Ok(Some(SlackContext {
+        notifier,
+        mentions,
+        grace_secs: args.ack_grace_period,
+        stale_after_secs: args.ack_grace_period + 2 * args.check_interval,
+    }))
+}
+
+#[derive(Clone)]
+struct SlackInteractionState {
+    kube_client: KubeClient,
+    signing_secret: std::sync::Arc<secrecy::SecretString>,
+    http: reqwest::Client,
+    metrics: Metrics,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct SlackInteractionPayload {
+    user: SlackUser,
+    actions: Vec<SlackAction>,
+    response_url: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct SlackUser {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    username: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct SlackAction {
+    value: String,
+}
+
+async fn serve_slack_interactions(
+    addr: std::net::SocketAddr,
+    state: SlackInteractionState,
+) -> anyhow::Result<()> {
+    use axum::{Router, routing::post};
+
+    let app = Router::new()
+        .route("/slack/interactions", post(handle_slack_interaction))
+        .with_state(state);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    tracing::info!("Serving Slack interaction callbacks on {addr}");
+    axum::serve(listener, app).await?;
+    Ok(())
+}
+
+async fn handle_slack_interaction(
+    axum::extract::State(state): axum::extract::State<SlackInteractionState>,
+    headers: axum::http::HeaderMap,
+    body: String,
+) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    let timestamp = headers
+        .get("x-slack-request-timestamp")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default();
+    let signature = headers
+        .get("x-slack-signature")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default();
+
+    if !gpu_pruner::slack::verify_slack_signature(
+        state.signing_secret.expose_secret(),
+        timestamp,
+        &body,
+        signature,
+    ) {
+        tracing::warn!("Rejected Slack interaction with invalid signature");
+        return (StatusCode::UNAUTHORIZED, "invalid signature").into_response();
+    }
+
+    let payload_str = match serde_urlencoded::from_str::<Vec<(String, String)>>(&body) {
+        Ok(params) => params
+            .into_iter()
+            .find(|(k, _)| k == "payload")
+            .map(|(_, v)| v)
+            .unwrap_or_default(),
+        Err(e) => {
+            tracing::error!("Failed to parse Slack form data: {e}");
+            return (StatusCode::BAD_REQUEST, "invalid form data").into_response();
+        }
+    };
+
+    if payload_str.is_empty() {
+        return (StatusCode::OK, "OK").into_response();
+    }
+
+    let payload: SlackInteractionPayload = match serde_json::from_str(&payload_str) {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::error!("Failed to parse Slack payload JSON: {e}");
+            return (StatusCode::BAD_REQUEST, "invalid payload").into_response();
+        }
+    };
+
+    let Some(action) = payload.actions.first() else {
+        return (StatusCode::BAD_REQUEST, "no action found").into_response();
+    };
+
+    // Button values are kind:namespace:name:hours; kinds and k8s names never
+    // contain colons.
+    let parts: Vec<&str> = action.value.split(':').collect();
+    let [kind, namespace, name, duration_str] = parts.as_slice() else {
+        tracing::error!("Invalid action value format: {}", action.value);
+        return (StatusCode::BAD_REQUEST, "invalid action value").into_response();
+    };
+
+    let duration_hours: u32 = match duration_str.parse() {
+        Ok(d @ 1..=168) => d,
+        _ => {
+            return (StatusCode::BAD_REQUEST, "invalid duration").into_response();
+        }
+    };
+
+    let user = [&payload.user.name, &payload.user.username, &payload.user.id]
+        .into_iter()
+        .find(|s| !s.is_empty())
+        .map(String::as_str)
+        .unwrap_or("unknown");
+
+    match acknowledge_workload(
+        state.kube_client.clone(),
+        kind,
+        name,
+        namespace,
+        duration_hours,
+        user,
+    )
+    .await
+    {
+        Ok(()) => {
+            state.metrics.acknowledgments.inc();
+            let response_message = serde_json::json!({
+                "replace_original": true,
+                "attachments": [{
+                    "color": "good",
+                    "title": "GPU Idle Acknowledgment Confirmed",
+                    "text": format!(
+                        "[{kind}] {namespace}:{name} will not be scaled down for the next {duration_hours} hours (acknowledged by {user})"
+                    ),
+                    "footer": "gpu-pruner",
+                }]
+            });
+            if let Err(e) = state
+                .http
+                .post(&payload.response_url)
+                .json(&response_message)
+                .send()
+                .await
+            {
+                tracing::error!("Failed to send response to Slack: {e}");
+            }
+            (StatusCode::OK, "Acknowledged").into_response()
+        }
+        Err(e) => {
+            tracing::error!("Failed to acknowledge workload: {e}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to acknowledge workload",
+            )
+                .into_response()
+        }
+    }
+}
+
 async fn serve_metrics(addr: std::net::SocketAddr, metrics: Metrics) -> anyhow::Result<()> {
     use axum::{Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
 
@@ -475,6 +760,7 @@ async fn run_query_and_scale(
     args: &Cli,
     tx: Sender<ScaleKind>,
     metrics: &Metrics,
+    slack: Option<&SlackContext>,
 ) -> anyhow::Result<QueryResponse> {
     let response = match client.query(query).get().await {
         Ok(response) => response,
@@ -627,38 +913,160 @@ async fn run_query_and_scale(
     let num_shutdown_events = shutdown_events.len();
     metrics.idle_workloads.set(num_shutdown_events as i64);
 
-    futures::stream::iter(shutdown_events)
-        .filter_map(|obj| async {
-            if let Mode::DryRun = args.run_mode {
-                tracing::info!(
-                    "Dry-run: Would have sent [{}] {}:{} for scaledown",
-                    obj.kind(),
-                    obj.namespace().unwrap_or_default(),
-                    obj.name()
-                );
-                None
-            } else {
-                Some(obj)
-            }
-        })
-        .for_each_concurrent(None, |obj| async {
-            tracing::info!(
-                "Sending [{}] {}:{} for scaledown",
-                obj.kind(),
-                obj.namespace().unwrap_or_default(),
-                obj.name()
-            );
+    match slack {
+        Some(slack) if slack.grace_secs > 0 => {
+            dispatch_with_ack_grace(kube_client, shutdown_events, args, tx, metrics, slack).await;
+        }
+        _ => {
+            futures::stream::iter(shutdown_events)
+                .filter_map(|obj| async {
+                    if let Mode::DryRun = args.run_mode {
+                        tracing::info!(
+                            "Dry-run: Would have sent [{}] {}:{} for scaledown",
+                            obj.kind(),
+                            obj.namespace().unwrap_or_default(),
+                            obj.name()
+                        );
+                        None
+                    } else {
+                        Some(obj)
+                    }
+                })
+                .for_each_concurrent(None, |obj| async {
+                    tracing::info!(
+                        "Sending [{}] {}:{} for scaledown",
+                        obj.kind(),
+                        obj.namespace().unwrap_or_default(),
+                        obj.name()
+                    );
 
-            if let Err(e) = tx.send(obj).await {
-                tracing::error!("Failed to send object for scaledown: {:?}", e);
-            }
-        })
-        .await;
+                    if let Err(e) = tx.send(obj).await {
+                        tracing::error!("Failed to send object for scaledown: {:?}", e);
+                    }
+                })
+                .await;
+        }
+    }
 
     Ok(QueryResponse {
         num_pods,
         shutdown_events: num_shutdown_events,
     })
+}
+
+/// Scale-down dispatch with Slack notify-then-wait semantics: notify and
+/// annotate on first detection, skip while the grace period runs, scale once
+/// it expires unless an acknowledgment landed in the meantime.
+async fn dispatch_with_ack_grace(
+    kube_client: KubeClient,
+    shutdown_events: HashSet<ScaleKind>,
+    args: &Cli,
+    tx: Sender<ScaleKind>,
+    metrics: &Metrics,
+    slack: &SlackContext,
+) {
+    let mut acknowledged_count: i64 = 0;
+
+    for obj in shutdown_events {
+        let ack = ack_status(&obj);
+        let kind = obj.kind();
+        let name = obj.name();
+        let namespace = obj.namespace().unwrap_or_else(|| "default".to_string());
+
+        if ack.acknowledged {
+            acknowledged_count += 1;
+            metrics.scaledowns_prevented.inc();
+            tracing::info!(
+                "Skipping [{kind}] {namespace}:{name} - acknowledged until {} by {}",
+                ack.expires_at.as_deref().unwrap_or("unknown"),
+                ack.by_user.as_deref().unwrap_or("unknown"),
+            );
+            continue;
+        }
+
+        match check_pending_grace(&obj, slack.grace_secs, slack.stale_after_secs) {
+            PendingScaleStatus::NotPending | PendingScaleStatus::Stale => {
+                if matches!(args.run_mode, Mode::DryRun) {
+                    tracing::info!(
+                        "Dry-run: Would notify [{kind}] {namespace}:{name} and wait {}s before scale-down",
+                        slack.grace_secs
+                    );
+                    continue;
+                }
+
+                let mentions = get_slack_mentions(&obj, slack.mentions.as_ref());
+                match slack
+                    .notifier
+                    .send_notification(&obj, args.duration, slack.grace_secs, mentions)
+                    .await
+                {
+                    Ok(()) => metrics.slack_notifications_sent.inc(),
+                    Err(e) => {
+                        metrics.slack_notification_failures.inc();
+                        tracing::error!("Failed to send Slack notification: {e}");
+                    }
+                }
+
+                if let Err(e) =
+                    set_pending_scale_at(kube_client.clone(), &kind, &name, &namespace).await
+                {
+                    tracing::error!(
+                        "Failed to set pending-scale annotation for [{kind}] {namespace}:{name}: {e}"
+                    );
+                } else {
+                    tracing::info!(
+                        "Started {}s ack grace period for [{kind}] {namespace}:{name}",
+                        slack.grace_secs
+                    );
+                }
+            }
+            PendingScaleStatus::InGrace { until } => {
+                tracing::info!(
+                    "Skipping [{kind}] {namespace}:{name} - ack grace period until {}",
+                    until.to_rfc3339()
+                );
+            }
+            PendingScaleStatus::GraceExpired => {
+                // Re-fetch so an ack applied after this scan's listing is seen.
+                let fresh = match fetch_workload(kube_client.clone(), &kind, &name, &namespace)
+                    .await
+                {
+                    Ok(fresh) => fresh,
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to re-fetch [{kind}] {namespace}:{name}, using cached object: {e}"
+                        );
+                        obj.clone()
+                    }
+                };
+
+                if ack_status(&fresh).acknowledged {
+                    acknowledged_count += 1;
+                    metrics.scaledowns_prevented.inc();
+                    tracing::info!(
+                        "Skipping [{kind}] {namespace}:{name} - acknowledged during grace period"
+                    );
+                    continue;
+                }
+
+                if matches!(args.run_mode, Mode::DryRun) {
+                    tracing::info!(
+                        "Dry-run: Would scale [{kind}] {namespace}:{name} after grace period expired"
+                    );
+                    continue;
+                }
+
+                tracing::info!(
+                    "Sending [{kind}] {namespace}:{name} for scaledown after grace period expired"
+                );
+                if let Err(e) = tx.send(fresh).await {
+                    tracing::error!("Failed to send object for scaledown: {:?}", e);
+                }
+            }
+        }
+    }
+
+    metrics.acknowledged_workloads.set(acknowledged_count);
 }
 
 #[cfg(test)]

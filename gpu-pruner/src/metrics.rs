@@ -20,6 +20,12 @@ pub struct Metrics {
 
     pub idle_workloads: IntGauge,
     pub pods_checked: IntGauge,
+
+    pub acknowledged_workloads: IntGauge,
+    pub acknowledgments: IntCounter,
+    pub scaledowns_prevented: IntCounter,
+    pub slack_notifications_sent: IntCounter,
+    pub slack_notification_failures: IntCounter,
 }
 
 impl Metrics {
@@ -65,6 +71,26 @@ impl Metrics {
             "gpu_pruner_pods_checked",
             "Number of pods analyzed in the last query",
         )?;
+        let acknowledged_workloads = IntGauge::new(
+            "gpu_pruner_acknowledged_workloads",
+            "Current number of idle workloads with active acknowledgments",
+        )?;
+        let acknowledgments = IntCounter::new(
+            "gpu_pruner_acknowledgments_total",
+            "Total number of acknowledgments created",
+        )?;
+        let scaledowns_prevented = IntCounter::new(
+            "gpu_pruner_scaledowns_prevented_total",
+            "Total number of scale-downs prevented by acknowledgments",
+        )?;
+        let slack_notifications_sent = IntCounter::new(
+            "gpu_pruner_slack_notifications_sent_total",
+            "Total number of Slack notifications successfully sent",
+        )?;
+        let slack_notification_failures = IntCounter::new(
+            "gpu_pruner_slack_notification_failures_total",
+            "Total number of failed Slack notification attempts",
+        )?;
 
         registry.register(Box::new(query_successes.clone()))?;
         registry.register(Box::new(query_failures.clone()))?;
@@ -75,6 +101,11 @@ impl Metrics {
         registry.register(Box::new(scales_by_kind.clone()))?;
         registry.register(Box::new(idle_workloads.clone()))?;
         registry.register(Box::new(pods_checked.clone()))?;
+        registry.register(Box::new(acknowledged_workloads.clone()))?;
+        registry.register(Box::new(acknowledgments.clone()))?;
+        registry.register(Box::new(scaledowns_prevented.clone()))?;
+        registry.register(Box::new(slack_notifications_sent.clone()))?;
+        registry.register(Box::new(slack_notification_failures.clone()))?;
 
         Ok(Self {
             registry: Arc::new(registry),
@@ -87,6 +118,11 @@ impl Metrics {
             scales_by_kind,
             idle_workloads,
             pods_checked,
+            acknowledged_workloads,
+            acknowledgments,
+            scaledowns_prevented,
+            slack_notifications_sent,
+            slack_notification_failures,
         })
     }
 
