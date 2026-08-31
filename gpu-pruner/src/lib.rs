@@ -8,7 +8,9 @@ use k8s_openapi::{
     apimachinery::pkg::apis::meta::v1::MicroTime,
 };
 use kube::{Client, ResourceExt, api::PostParams};
-use resources::{inferenceservice::InferenceService, notebook::Notebook};
+use resources::{
+    inferenceservice::InferenceService, leaderworkerset::LeaderWorkerSet, notebook::Notebook,
+};
 use secrecy::ExposeSecret;
 use serde::Serialize;
 use std::{
@@ -40,6 +42,7 @@ pub enum ScaleKind {
     StatefulSet(StatefulSet),
     InferenceService(Box<InferenceService>),
     Notebook(Notebook),
+    LeaderWorkerSet(LeaderWorkerSet),
 }
 
 impl PartialEq for ScaleKind {
@@ -50,6 +53,7 @@ impl PartialEq for ScaleKind {
             (ScaleKind::StatefulSet(a), ScaleKind::StatefulSet(b)) => a == b,
             (ScaleKind::InferenceService(a), ScaleKind::InferenceService(b)) => a.uid() == b.uid(),
             (ScaleKind::Notebook(a), ScaleKind::Notebook(b)) => a.uid() == b.uid(),
+            (ScaleKind::LeaderWorkerSet(a), ScaleKind::LeaderWorkerSet(b)) => a.uid() == b.uid(),
             // If they are different variants, they are not equal
             _ => false,
         }
@@ -77,6 +81,9 @@ impl Hash for ScaleKind {
             ScaleKind::Notebook(a) => {
                 a.uid().hash(state);
             }
+            ScaleKind::LeaderWorkerSet(a) => {
+                a.uid().hash(state);
+            }
         }
     }
 }
@@ -89,6 +96,7 @@ impl From<ScaleKind> for ResourceKind {
             ScaleKind::StatefulSet(_) => ResourceKind::STATEFUL_SET,
             ScaleKind::InferenceService(_) => ResourceKind::INFERENCE_SERVICE,
             ScaleKind::Notebook(_) => ResourceKind::NOTEBOOK,
+            ScaleKind::LeaderWorkerSet(_) => ResourceKind::LEADER_WORKER_SET,
         }
     }
 }
@@ -101,6 +109,7 @@ bitflags! {
         const STATEFUL_SET = 0b00100;
         const INFERENCE_SERVICE = 0b01000;
         const NOTEBOOK = 0b10000;
+        const LEADER_WORKER_SET = 0b100000;
     }
 }
 
@@ -111,6 +120,7 @@ bitflags! {
 /// - `s` → StatefulSet
 /// - `i` → InferenceService
 /// - `n` → Notebook
+/// - `l` → LeaderWorkerSet
 ///
 /// Unknown characters are silently ignored.
 pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
@@ -122,6 +132,7 @@ pub fn get_enabled_resources(enabled_resources: &str) -> ResourceKind {
             's' => resource_kind |= ResourceKind::STATEFUL_SET,
             'i' => resource_kind |= ResourceKind::INFERENCE_SERVICE,
             'n' => resource_kind |= ResourceKind::NOTEBOOK,
+            'l' => resource_kind |= ResourceKind::LEADER_WORKER_SET,
             _ => {}
         }
     }
@@ -312,6 +323,7 @@ macro_rules! delegate_resource_ext {
             ScaleKind::StatefulSet(d) => d.$method(),
             ScaleKind::InferenceService(d) => d.$method(),
             ScaleKind::Notebook(d) => d.$method(),
+            ScaleKind::LeaderWorkerSet(d) => d.$method(),
         }
     };
 }
@@ -332,6 +344,7 @@ impl Meta for ScaleKind {
             ScaleKind::StatefulSet(_) => StatefulSet::API_VERSION.to_string(),
             ScaleKind::Notebook(_) => "v1".to_string(),
             ScaleKind::InferenceService(_) => "v1beta1".to_string(),
+            ScaleKind::LeaderWorkerSet(_) => "v1".to_string(),
         }
     }
 
@@ -342,6 +355,7 @@ impl Meta for ScaleKind {
             ScaleKind::StatefulSet(_) => StatefulSet::KIND.to_string(),
             ScaleKind::Notebook(_) => "Notebook".to_string(),
             ScaleKind::InferenceService(_) => "InferenceService".to_string(),
+            ScaleKind::LeaderWorkerSet(_) => "LeaderWorkerSet".to_string(),
         }
     }
 
@@ -381,6 +395,11 @@ impl Scaler for ScaleKind {
             }
             ScaleKind::StatefulSet(d) => {
                 let api: Api<StatefulSet> =
+                    Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
+                scale_to_zero(api, &d.name_unchecked()).await
+            }
+            ScaleKind::LeaderWorkerSet(d) => {
+                let api: Api<LeaderWorkerSet> =
                     Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
                 scale_to_zero(api, &d.name_unchecked()).await
             }
@@ -512,11 +531,25 @@ pub async fn find_root_object(
                                     let nb = nb_api.get(&ss_or.name).await?;
 
                                     return Ok(ScaleKind::Notebook(nb));
+                                } else if ss_or.kind == "LeaderWorkerSet" {
+                                    tracing::info!("Found LeaderWorkerSet owning StatefulSet!");
+                                    let lws_api: Api<LeaderWorkerSet> =
+                                        Api::namespaced(client.clone(), &namespace);
+                                    let lws = lws_api.get(&ss_or.name).await?;
+
+                                    return Ok(ScaleKind::LeaderWorkerSet(lws));
                                 }
                             }
                         }
                         // fallthrough, statefulset with no owners
                         return Ok(ScaleKind::StatefulSet(ss));
+                    }
+                }
+                "LeaderWorkerSet" => {
+                    tracing::info!("Found LeaderWorkerSet!");
+                    let lws_api: Api<LeaderWorkerSet> = Api::namespaced(client.clone(), &namespace);
+                    if let Ok(lws) = lws_api.get(&or.name).await {
+                        return Ok(ScaleKind::LeaderWorkerSet(lws));
                     }
                 }
                 "DaemonSet" | "Node" => {
@@ -606,7 +639,11 @@ mod tests {
 
     use k8s_openapi::api::apps::v1::{Deployment, ReplicaSet, StatefulSet};
     use kube::api::ObjectMeta;
-    use resources::{inferenceservice::InferenceService, notebook::NotebookSpec};
+    use resources::{
+        inferenceservice::InferenceService,
+        leaderworkerset::{LeaderWorkerSet, LeaderWorkerSetSpec, LeaderWorkerSetStatus},
+        notebook::NotebookSpec,
+    };
 
     use crate::{Meta, Notebook, ResourceKind, ScaleKind, Scaler, get_enabled_resources};
 
@@ -674,6 +711,25 @@ mod tests {
         .expect("valid InferenceService JSON");
         is.metadata.uid = uid.map(Into::into);
         ScaleKind::InferenceService(Box::new(is))
+    }
+
+    fn make_leader_worker_set(name: &str, ns: &str, uid: Option<&str>) -> ScaleKind {
+        ScaleKind::LeaderWorkerSet(LeaderWorkerSet {
+            metadata: ObjectMeta {
+                name: Some(name.into()),
+                namespace: Some(ns.into()),
+                uid: uid.map(Into::into),
+                ..Default::default()
+            },
+            spec: LeaderWorkerSetSpec {
+                replicas: Some(1),
+                leader_worker_template: None,
+            },
+            status: Some(LeaderWorkerSetStatus {
+                replicas: Some(1),
+                ready_replicas: Some(1),
+            }),
+        })
     }
 
     // ── get_enabled_resources ────────────────────────────────────────────
@@ -1019,5 +1075,58 @@ mod tests {
         assert!(enabled.contains(dep));
         assert!(enabled.contains(nb));
         assert!(!enabled.contains(ss));
+    }
+
+    // ── LeaderWorkerSet specific tests ────────────────────────────────────
+
+    #[test]
+    fn enabled_resources_leader_worker_set_flag() {
+        let rk = get_enabled_resources("l");
+        assert!(rk.contains(ResourceKind::LEADER_WORKER_SET));
+        assert!(!rk.contains(ResourceKind::DEPLOYMENT));
+    }
+
+    #[test]
+    fn scale_kind_to_resource_kind_leader_worker_set() {
+        let rk: ResourceKind = make_leader_worker_set("lws", "ns", None).into();
+        assert_eq!(rk, ResourceKind::LEADER_WORKER_SET);
+    }
+
+    #[test]
+    fn leader_worker_set_equality_uses_uid() {
+        let a = make_leader_worker_set("lws-a", "ns", Some("uid-x"));
+        let b = make_leader_worker_set("lws-b", "ns", Some("uid-x"));
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn hashset_deduplicates_leader_worker_sets_by_uid() {
+        let mut set = HashSet::new();
+        set.insert(make_leader_worker_set("lws-1", "ns", Some("uid-lws")));
+        set.insert(make_leader_worker_set("lws-2", "ns", Some("uid-lws")));
+        assert_eq!(set.len(), 1);
+    }
+
+    #[test]
+    fn meta_leader_worker_set() {
+        let sk = make_leader_worker_set("my-lws", "training", Some("lws-uid"));
+        assert_eq!(sk.name(), "my-lws");
+        assert_eq!(sk.namespace(), Some("training".into()));
+        assert_eq!(sk.kind(), "LeaderWorkerSet");
+        assert_eq!(sk.uid(), Some("lws-uid".into()));
+        assert_eq!(sk.api_version(), "v1");
+    }
+
+    #[test]
+    fn event_for_leader_worker_set() {
+        let sk = make_leader_worker_set("my-lws", "ml", Some("lws-uid"));
+        let event = sk.generate_scale_event().unwrap();
+
+        assert_eq!(event.involved_object.kind, Some("LeaderWorkerSet".into()));
+        assert_eq!(event.involved_object.api_version, Some("v1".into()));
+        assert_eq!(
+            event.reason,
+            Some("Pod ml::my-lws was not using GPU".into())
+        );
     }
 }
