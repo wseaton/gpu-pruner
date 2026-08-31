@@ -403,7 +403,7 @@ impl Meta for ScaleKind {
             ScaleKind::StatefulSet(_) => StatefulSet::API_VERSION.to_string(),
             ScaleKind::Notebook(_) => "v1".to_string(),
             ScaleKind::InferenceService(_) => "v1beta1".to_string(),
-            ScaleKind::LeaderWorkerSet(_) => "v1".to_string(),
+            ScaleKind::LeaderWorkerSet(_) => "leaderworkerset.x-k8s.io/v1".to_string(),
         }
     }
 
@@ -458,8 +458,10 @@ impl Scaler for ScaleKind {
                 scale_to_zero(api, &d.name_unchecked()).await
             }
             ScaleKind::LeaderWorkerSet(d) => {
-                let api: Api<LeaderWorkerSet> =
-                    Api::namespaced(client.clone(), &d.namespace().expect("No namespace!"));
+                let ns = d
+                    .namespace()
+                    .ok_or_else(|| anyhow::anyhow!("LeaderWorkerSet has no namespace"))?;
+                let api: Api<LeaderWorkerSet> = Api::namespaced(client.clone(), &ns);
                 scale_to_zero(api, &d.name_unchecked()).await
             }
             ScaleKind::Notebook(d) => {
@@ -1445,7 +1447,7 @@ mod tests {
         assert_eq!(sk.namespace(), Some("training".into()));
         assert_eq!(sk.kind(), "LeaderWorkerSet");
         assert_eq!(sk.uid(), Some("lws-uid".into()));
-        assert_eq!(sk.api_version(), "v1");
+        assert_eq!(sk.api_version(), "leaderworkerset.x-k8s.io/v1");
     }
 
     // ── ack / grace period ───────────────────────────────────────────────
@@ -1607,7 +1609,10 @@ mod tests {
         let event = sk.generate_scale_event().unwrap();
 
         assert_eq!(event.involved_object.kind, Some("LeaderWorkerSet".into()));
-        assert_eq!(event.involved_object.api_version, Some("v1".into()));
+        assert_eq!(
+            event.involved_object.api_version,
+            Some("leaderworkerset.x-k8s.io/v1".into())
+        );
         assert_eq!(
             event.reason,
             Some("Pod ml::my-lws was not using GPU".into())

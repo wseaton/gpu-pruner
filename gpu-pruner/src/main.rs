@@ -171,6 +171,14 @@ struct Cli {
     #[serde(skip)]
     ack_grace_period: u64,
 
+    /// Seconds after a pending-scale annotation is written before it is
+    /// considered stale and re-notified instead of scaled. 0 = auto:
+    /// ack-grace-period plus 2x check-interval in daemon mode, plus 3600s
+    /// in one-shot mode (size this to your cron cadence).
+    #[clap(long, default_value = "0")]
+    #[serde(skip)]
+    ack_stale_after: u64,
+
     /// Namespace-to-Slack-mention mapping as JSON, eg.
     /// {"ml-team":"<@U123>","alice-":"<@UALICE>"}. Keys ending in "-" are
     /// namespace prefixes. Can also be set via SLACK_NAMESPACE_MENTIONS.
@@ -579,11 +587,17 @@ fn build_slack_context(args: &Cli) -> anyhow::Result<Option<SlackContext>> {
         );
     }
 
+    let stale_after_secs = match args.ack_stale_after {
+        0 if args.daemon_mode => args.ack_grace_period + 2 * args.check_interval,
+        0 => args.ack_grace_period + 3600,
+        v => v,
+    };
+
     Ok(Some(SlackContext {
         notifier,
         mentions,
         grace_secs: args.ack_grace_period,
-        stale_after_secs: args.ack_grace_period + 2 * args.check_interval,
+        stale_after_secs,
     }))
 }
 
@@ -835,6 +849,9 @@ async fn build_cluster_configs(
 
     let mut clusters = std::collections::HashMap::new();
     for (name, url, honor_labels) in entries {
+        if clusters.contains_key(&name) {
+            return Err(anyhow::anyhow!("duplicate --cluster name: {name}"));
+        }
         let token = get_prometheus_token().await?;
         let (_, http_client) = get_prom_client(
             &url,
@@ -1130,24 +1147,28 @@ async fn dispatch_with_ack_grace(
                     .send_notification(&obj, args.duration, slack.grace_secs, mentions)
                     .await
                 {
-                    Ok(()) => metrics.slack_notifications_sent.inc(),
+                    Ok(()) => {
+                        metrics.slack_notifications_sent.inc();
+                        if let Err(e) =
+                            set_pending_scale_at(kube_client.clone(), &kind, &name, &namespace)
+                                .await
+                        {
+                            tracing::error!(
+                                "Failed to set pending-scale annotation for [{kind}] {namespace}:{name}: {e}"
+                            );
+                        } else {
+                            tracing::info!(
+                                "Started {}s ack grace period for [{kind}] {namespace}:{name}",
+                                slack.grace_secs
+                            );
+                        }
+                    }
                     Err(e) => {
                         metrics.slack_notification_failures.inc();
-                        tracing::error!("Failed to send Slack notification: {e}");
+                        tracing::error!(
+                            "Failed to send Slack notification for [{kind}] {namespace}:{name}, will retry next scan: {e}"
+                        );
                     }
-                }
-
-                if let Err(e) =
-                    set_pending_scale_at(kube_client.clone(), &kind, &name, &namespace).await
-                {
-                    tracing::error!(
-                        "Failed to set pending-scale annotation for [{kind}] {namespace}:{name}: {e}"
-                    );
-                } else {
-                    tracing::info!(
-                        "Started {}s ack grace period for [{kind}] {namespace}:{name}",
-                        slack.grace_secs
-                    );
                 }
             }
             PendingScaleStatus::InGrace { until } => {
