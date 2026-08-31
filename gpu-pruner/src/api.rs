@@ -91,20 +91,19 @@ pub async fn summary_handler(State(state): State<AppState>) -> Json<SummaryRespo
     Json(summary_from_metrics(&state.metrics))
 }
 
-fn normalize_window(window: Option<String>) -> Result<String, Box<Response>> {
+type ApiError = (StatusCode, Json<serde_json::Value>);
+
+fn normalize_window(window: Option<String>) -> Result<String, ApiError> {
     let window = window.unwrap_or_else(|| "7d".to_string());
     if ALLOWED_WINDOWS.contains(&window.as_str()) {
         Ok(window)
     } else {
-        Err(Box::new(
-            (
-                StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({
-                    "error": "invalid window",
-                    "allowed": ALLOWED_WINDOWS,
-                })),
-            )
-                .into_response(),
+        Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "invalid window",
+                "allowed": ALLOWED_WINDOWS,
+            })),
         ))
     }
 }
@@ -140,8 +139,8 @@ async fn query_scale_downs_in_window(
 pub async fn stats_handler(
     State(state): State<AppState>,
     Query(query): Query<StatsQuery>,
-) -> Result<Json<StatsResponse>, Response> {
-    let window = normalize_window(query.window).map_err(|e| *e)?;
+) -> Result<Json<StatsResponse>, ApiError> {
+    let window = normalize_window(query.window)?;
 
     let mut in_window = None;
     let mut prometheus_available = false;
