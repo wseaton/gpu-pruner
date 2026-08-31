@@ -36,6 +36,7 @@ use clap::{Parser, ValueEnum};
 use gpu_pruner::{
     Meta, PodMetricData, QueryResponse, RootObjectError, ScaleKind, Scaler, TlsMode,
     find_root_object, get_enabled_resources, get_prom_client, get_prometheus_token,
+    metrics::Metrics,
 };
 
 /// `gpu-pruner` is a tool to prune idle pods based on GPU utilization. It uses Prometheus to query
@@ -133,6 +134,12 @@ struct Cli {
     /// Log format to use
     #[clap(short, long, default_value = "default")]
     log_format: LogFormat,
+
+    /// Address to serve Prometheus metrics on, eg. "0.0.0.0:8080".
+    /// When unset, no metrics endpoint is exposed.
+    #[clap(long)]
+    #[serde(skip)]
+    metrics_addr: Option<std::net::SocketAddr>,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -300,8 +307,20 @@ async fn main() -> anyhow::Result<()> {
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<ScaleKind>(100);
 
+    let metrics = Metrics::new()?;
+
+    let _metrics_server = args.metrics_addr.map(|addr| {
+        let metrics = metrics.clone();
+        tokio::spawn(async move {
+            if let Err(e) = serve_metrics(addr, metrics).await {
+                tracing::error!("metrics server exited: {e}");
+            }
+        })
+    });
+
     let query_task = {
         let args = args.clone();
+        let metrics = metrics.clone();
         tokio::spawn(async move {
             let mut interval =
                 time::interval(tokio::time::Duration::from_secs(args.check_interval));
@@ -311,9 +330,15 @@ async fn main() -> anyhow::Result<()> {
                 }
 
                 let client = build_prom_client(&args).await;
-                match run_query_and_scale(client, query.clone(), &args, tx.clone()).await {
+                match run_query_and_scale(client, query.clone(), &args, tx.clone(), &metrics).await
+                {
                     Ok(qr) => {
                         QUERY_FAILURES.store(0, std::sync::atomic::Ordering::Relaxed);
+                        metrics.query_successes.inc();
+                        metrics.query_candidates.inc_by(qr.num_pods as u64);
+                        metrics
+                            .query_shutdown_events
+                            .inc_by(qr.shutdown_events as u64);
                         tracing::info!(monotonic_counter.query_successes = 1, "Query succeeded");
                         tracing::info!(
                             counter.query_returned_candidates = qr.num_pods,
@@ -327,6 +352,7 @@ async fn main() -> anyhow::Result<()> {
                     Err(e) => {
                         let failures =
                             QUERY_FAILURES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        metrics.query_failures.inc();
                         tracing::error!(
                             monotonic_counter.query_failures = 1,
                             "Failed to run query and scale down: {e}"
@@ -346,40 +372,46 @@ async fn main() -> anyhow::Result<()> {
         })
     };
 
-    let scale_down_task = tokio::spawn(async move {
-        let kube_client = KubeClient::try_default()
-            .await
-            .expect("failed to get kube client");
+    let scale_down_task = tokio::spawn({
+        let metrics = metrics.clone();
+        async move {
+            let kube_client = KubeClient::try_default()
+                .await
+                .expect("failed to get kube client");
 
-        while let Some(sk) = rx.recv().await {
-            // Check if the resource is enabled
-            if !enabled_resources.contains(sk.clone().into()) {
+            while let Some(sk) = rx.recv().await {
+                // Check if the resource is enabled
+                if !enabled_resources.contains(sk.clone().into()) {
+                    tracing::info!(
+                        "Skipping resource type {kind:?} because it is not enabled",
+                        kind = sk.kind()
+                    );
+                    continue;
+                }
+
+                if let Err(e) = sk.scale(kube_client.clone()).await {
+                    metrics.scale_failures.inc();
+                    tracing::error!(
+                        monotonic_counter.scale_failures = 1,
+                        "Failed to scale resource! {e}"
+                    );
+                    continue;
+                }
+
+                let kind = sk.kind();
+                let name = sk.name();
+                let namespace = sk.namespace().unwrap_or_else(|| "default".to_string());
+
+                metrics.scale_successes.inc();
+                metrics.scales_by_kind.with_label_values(&[&kind]).inc();
                 tracing::info!(
-                    "Skipping resource type {kind:?} because it is not enabled",
-                    kind = sk.kind()
-                );
-                continue;
+                    monotonic_counter.scale_successes = 1,
+                    "Scaled Resource: [{kind}] - {namespace}:{name}",
+                    kind = kind,
+                    name = name,
+                    namespace = namespace
+                )
             }
-
-            if let Err(e) = sk.scale(kube_client.clone()).await {
-                tracing::error!(
-                    monotonic_counter.scale_failures = 1,
-                    "Failed to scale resource! {e}"
-                );
-                continue;
-            }
-
-            let kind = sk.kind();
-            let name = sk.name();
-            let namespace = sk.namespace().unwrap_or_else(|| "default".to_string());
-
-            tracing::info!(
-                monotonic_counter.scale_successes = 1,
-                "Scaled Resource: [{kind}] - {namespace}:{name}",
-                kind = kind,
-                name = name,
-                namespace = namespace
-            )
         }
     });
 
@@ -388,6 +420,38 @@ async fn main() -> anyhow::Result<()> {
         scale_down_task
     }?;
 
+    Ok(())
+}
+
+async fn serve_metrics(addr: std::net::SocketAddr, metrics: Metrics) -> anyhow::Result<()> {
+    use axum::{Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
+
+    async fn metrics_handler(State(metrics): State<Metrics>) -> axum::response::Response {
+        match metrics.render() {
+            Ok(body) => (
+                [(
+                    axum::http::header::CONTENT_TYPE,
+                    "text/plain; version=0.0.4",
+                )],
+                body,
+            )
+                .into_response(),
+            Err(e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("failed to render metrics: {e}"),
+            )
+                .into_response(),
+        }
+    }
+
+    let app = Router::new()
+        .route("/metrics", get(metrics_handler))
+        .route("/healthz", get(|| async { "ok" }))
+        .with_state(metrics);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    tracing::info!("Serving Prometheus metrics on {addr}");
+    axum::serve(listener, app).await?;
     Ok(())
 }
 
@@ -410,6 +474,7 @@ async fn run_query_and_scale(
     query: String,
     args: &Cli,
     tx: Sender<ScaleKind>,
+    metrics: &Metrics,
 ) -> anyhow::Result<QueryResponse> {
     let response = match client.query(query).get().await {
         Ok(response) => response,
@@ -457,6 +522,7 @@ async fn run_query_and_scale(
         "Query returned {num_pods} series across {} unique pods",
         unique_pods.len()
     );
+    metrics.pods_checked.set(unique_pods.len() as i64);
 
     // Process pods concurrently (up to 10 at a time) instead of serially.
     // Each pod requires 1-3 API calls (get pod, walk owner refs), so parallelism
@@ -559,6 +625,7 @@ async fn run_query_and_scale(
     let shutdown_events: HashSet<ScaleKind> = results.into_iter().flatten().collect();
 
     let num_shutdown_events = shutdown_events.len();
+    metrics.idle_workloads.set(num_shutdown_events as i64);
 
     futures::stream::iter(shutdown_events)
         .filter_map(|obj| async {

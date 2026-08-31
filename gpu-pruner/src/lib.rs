@@ -1,3 +1,5 @@
+pub mod metrics;
+
 use clap::ValueEnum;
 use k8s_openapi::{
     Resource,

@@ -30,7 +30,9 @@ serde.workspace = true
 serde_json.workspace = true
 
 anyhow.workspace = true
+prometheus = "0.14"
 prometheus-http-query = "0.8"
+axum = "0.8"
 reqwest = { version = "0.12", features = ["native-tls"] }
 
 clap = { version = "4", features = ["derive"] }
