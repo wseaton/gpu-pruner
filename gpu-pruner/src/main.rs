@@ -37,7 +37,7 @@ use secrecy::ExposeSecret;
 
 use gpu_pruner::{
     Meta, NamespaceMentionMapper, PendingScaleStatus, PodMetricData, QueryResponse,
-    RootObjectError, ScaleKind, Scaler, TlsMode, ack_status, acknowledge_workload,
+    RootObjectError, ScaleKind, Scaler, TlsMode, ack_status, acknowledge_workload, api,
     check_pending_grace, fetch_workload, find_root_object, get_enabled_resources, get_prom_client,
     get_prometheus_token, get_slack_mentions, metrics::Metrics, set_pending_scale_at,
     slack::SlackNotifier,
@@ -177,6 +177,25 @@ struct Cli {
     #[clap(long)]
     #[serde(skip)]
     slack_namespace_mentions: Option<String>,
+
+    /// Address to serve the web dashboard on, eg. "0.0.0.0:8080".
+    /// When unset, no dashboard is served. Static assets come from
+    /// GPU_PRUNER_WEB_DIST (default /opt/gpu-pruner/web/dist, then web/dist).
+    #[clap(long)]
+    #[serde(skip)]
+    dashboard_addr: Option<std::net::SocketAddr>,
+
+    /// Dashboard cluster Prometheus endpoints as name=url, repeatable.
+    /// When unset, --prometheus-url is used as the sole "default" cluster.
+    #[clap(long)]
+    #[serde(skip)]
+    cluster: Vec<String>,
+
+    /// Comma-separated cluster names whose Prometheus uses honorLabels,
+    /// controlling which label names the dashboard leaderboard queries use.
+    #[clap(long)]
+    #[serde(skip)]
+    honor_labels_clusters: Option<String>,
 }
 
 #[derive(Debug, Clone, ValueEnum, Default, Serialize)]
@@ -367,6 +386,33 @@ async fn main() -> anyhow::Result<()> {
             Some(tokio::spawn(async move {
                 if let Err(e) = serve_slack_interactions(addr, state).await {
                     tracing::error!("slack interaction server exited: {e}");
+                }
+            }))
+        }
+        None => None,
+    };
+
+    let _dashboard_server = match args.dashboard_addr {
+        Some(addr) => {
+            let clusters = build_cluster_configs(&args).await?;
+            let namespace = std::env::var("POD_NAMESPACE").ok().unwrap_or_else(|| {
+                std::fs::read_to_string("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_else(|_| "default".to_string())
+            });
+            let pod_name = std::env::var("POD_NAME")
+                .or_else(|_| std::env::var("HOSTNAME"))
+                .unwrap_or_default();
+            let state = api::AppState {
+                prom_client: std::sync::Arc::new(build_prom_client(&args).await),
+                clusters,
+                namespace,
+                pod_name,
+                metrics: metrics.clone(),
+            };
+            Some(tokio::spawn(async move {
+                if let Err(e) = serve_dashboard(addr, state).await {
+                    tracing::error!("dashboard server exited: {e}");
                 }
             }))
         }
@@ -744,13 +790,97 @@ async fn build_prom_client(args: &Cli) -> Client {
     let token = get_prometheus_token()
         .await
         .expect("failed to get prometheus token");
-    get_prom_client(
+    let (prom_client, _) = get_prom_client(
         &args.prometheus_url,
         token,
         args.prometheus_tls_mode,
         args.prometheus_tls_cert.clone(),
     )
-    .expect("failed to build prometheus client")
+    .expect("failed to build prometheus client");
+    prom_client
+}
+
+async fn build_cluster_configs(
+    args: &Cli,
+) -> anyhow::Result<std::collections::HashMap<String, api::ClusterConfig>> {
+    let honor_labels_set: HashSet<String> = args
+        .honor_labels_clusters
+        .as_deref()
+        .unwrap_or("")
+        .split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+
+    let mut entries: Vec<(String, String, bool)> = Vec::new();
+    if args.cluster.is_empty() {
+        entries.push((
+            "default".to_string(),
+            args.prometheus_url.clone(),
+            args.honor_labels,
+        ));
+    } else {
+        for entry in &args.cluster {
+            let (name, url) = entry.split_once('=').ok_or_else(|| {
+                anyhow::anyhow!("invalid --cluster format: {entry}, expected name=url")
+            })?;
+            entries.push((
+                name.to_string(),
+                url.to_string(),
+                honor_labels_set.contains(name),
+            ));
+        }
+    }
+
+    let mut clusters = std::collections::HashMap::new();
+    for (name, url, honor_labels) in entries {
+        let token = get_prometheus_token().await?;
+        let (_, http_client) = get_prom_client(
+            &url,
+            token,
+            args.prometheus_tls_mode,
+            args.prometheus_tls_cert.clone(),
+        )?;
+        clusters.insert(
+            name,
+            api::ClusterConfig {
+                http_client,
+                prometheus_url: url,
+                honor_labels,
+            },
+        );
+    }
+    Ok(clusters)
+}
+
+async fn serve_dashboard(addr: std::net::SocketAddr, state: api::AppState) -> anyhow::Result<()> {
+    use axum::routing::get;
+
+    let web_dist = api::web_dist_dir();
+    let index_path = web_dist.join("index.html");
+
+    let app = axum::Router::new()
+        .route("/api/v1/summary", get(api::summary_handler))
+        .route("/api/v1/stats", get(api::stats_handler))
+        .route("/api/v1/clusters", get(api::clusters_handler))
+        .route(
+            "/prom/{cluster}/api/v1/query",
+            get(api::prom_cluster_query_handler),
+        )
+        .fallback_service(
+            tower_http::services::ServeDir::new(&web_dist)
+                .fallback(tower_http::services::ServeFile::new(index_path)),
+        )
+        .with_state(state);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    tracing::info!(
+        "Serving dashboard on {addr} (web dist: {})",
+        web_dist.display()
+    );
+    axum::serve(listener, app).await?;
+    Ok(())
 }
 
 #[tracing::instrument(skip_all)]

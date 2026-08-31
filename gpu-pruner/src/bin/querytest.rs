@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Query: {}", &query);
 
     let token = get_prometheus_token().await?;
-    let client = get_prom_client(prometheus_url, token, TlsMode::Verify, prometheus_tls_cert)?;
+    let (client, _) = get_prom_client(prometheus_url, token, TlsMode::Verify, prometheus_tls_cert)?;
 
     let data = client.query(query).get().await?;
 

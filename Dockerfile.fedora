@@ -1,6 +1,14 @@
 ARG FEATURES="otel"
 
-FROM fedora:latest as builder
+FROM node:22 AS web-builder
+
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
+
+FROM fedora:latest AS builder
 
 ARG FEATURES
 
@@ -14,6 +22,9 @@ RUN cargo install --path ./gpu-pruner --locked --verbose --features $FEATURES
 
 FROM fedora:latest
 
+COPY --from=web-builder /web/dist /opt/gpu-pruner/web/dist
 COPY --from=builder /root/.cargo/bin/gpu-pruner /usr/local/bin/gpu-pruner
+
+ENV GPU_PRUNER_WEB_DIST=/opt/gpu-pruner/web/dist
 
 CMD ["gpu-pruner"]

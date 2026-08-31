@@ -33,6 +33,7 @@ anyhow.workspace = true
 prometheus = "0.14"
 prometheus-http-query = "0.8"
 axum = "0.8"
+tower-http = { version = "0.6", features = ["fs"] }
 
 # Slack request signature verification
 hmac = "0.12"
@@ -63,3 +64,6 @@ tracing-opentelemetry = { version = "0.32", features = ["metrics"], optional = t
 prettytable = "0.10"
 csv = "1"
 bitflags = "2"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }

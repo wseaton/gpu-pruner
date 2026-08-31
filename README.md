@@ -90,6 +90,20 @@ Options:
 ```
 
 
+## Web dashboard (experimental)
+
+`--dashboard-addr 0.0.0.0:8080` serves a read-only React dashboard (scale-down
+stats and an idle-GPU-hours leaderboard) plus its JSON API (`/api/v1/summary`,
+`/api/v1/stats`, `/api/v1/clusters`). The leaderboard queries Prometheus through
+`/prom/{cluster}/api/v1/query`, a relay restricted to instant queries; the relay
+uses the pruner's ServiceAccount token, so treat dashboard access as read access
+to those Prometheus instances and put it behind authenticated ingress. Extra
+clusters can be added with repeatable `--cluster name=url` flags
+(`--honor-labels-clusters` names the ones scraped with honorLabels).
+
+Static assets are read from `GPU_PRUNER_WEB_DIST` (container images ship them at
+`/opt/gpu-pruner/web/dist`). For local development: `just web-dev`.
+
 ## Slack notifications and acknowledgments (experimental)
 
 When a Slack incoming webhook is configured (`--slack-webhook-url` or `SLACK_WEBHOOK_URL`),
